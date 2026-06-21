@@ -26,7 +26,6 @@ state([
     'discount_price' => '',
     'stock' => '',
     'weight' => '',
-    'image' => null,
     'current_image_path' => null,
     'additional_images' => [],
     'current_additional_images' => [],
@@ -40,14 +39,13 @@ rules([
     'discount_price' => ['nullable', 'numeric', 'min:0'],
     'stock' => ['required', 'integer', 'min:0'],
     'weight' => ['required', 'integer', 'min:0'],
-    'image' => ['nullable', 'image', 'max:2048'], // Max 2MB
     'additional_images' => ['nullable', 'array'],
     'additional_images.*' => ['nullable', 'image', 'max:2048'],
 ]);
 
 $openCreateModal = function () {
     $this->resetErrorBag();
-    $this->reset(['editingProductId', 'category_id', 'name', 'description', 'price', 'discount_price', 'stock', 'weight', 'image', 'current_image_path', 'additional_images', 'current_additional_images']);
+    $this->reset(['editingProductId', 'category_id', 'name', 'description', 'price', 'discount_price', 'stock', 'weight', 'current_image_path', 'additional_images', 'current_additional_images']);
     // Set default category if exists
     $firstCategory = Category::first();
     if ($firstCategory) {
@@ -69,7 +67,6 @@ $openEditModal = function ($id) {
     $this->stock = $product->stock;
     $this->weight = $product->weight;
     $this->current_image_path = $product->image_path;
-    $this->image = null;
     $this->additional_images = [];
     $this->current_additional_images = $product->images;
     
@@ -85,33 +82,38 @@ $saveProduct = function () {
     $validated = $this->validate();
     unset($validated['additional_images']);
     $validated['discount_price'] = $this->discount_price !== '' && $this->discount_price !== null ? $this->discount_price : null;
-    
-    // Handle image upload if provided
-    if ($this->image) {
-        $path = $this->image->store('products', 'public');
-        $validated['image_path'] = $path;
-    }
-    
     $validated['slug'] = Str::slug($this->name);
+    
+    // Copy the additional images array so we can shift files
+    $uploadedFiles = $this->additional_images;
     
     if ($this->editingProductId) {
         $product = Product::findOrFail($this->editingProductId);
         
-        // Remove old image if a new one is uploaded
-        if ($this->image && $product->image_path) {
-            Storage::disk('public')->delete($product->image_path);
+        // If the product currently has no main image, and we have uploaded new images
+        if (!$product->image_path && !empty($uploadedFiles)) {
+            $firstImg = array_shift($uploadedFiles);
+            $path = $firstImg->store('products', 'public');
+            $validated['image_path'] = $path;
         }
         
         $product->update($validated);
         session()->flash('message', 'Produk berhasil diperbarui!');
     } else {
+        // Creating a new product
+        if (!empty($uploadedFiles)) {
+            $firstImg = array_shift($uploadedFiles);
+            $path = $firstImg->store('products', 'public');
+            $validated['image_path'] = $path;
+        }
+        
         $product = Product::create($validated);
         session()->flash('message', 'Produk berhasil dibuat!');
     }
     
-    // Save additional images if uploaded
-    if ($this->additional_images) {
-        foreach ($this->additional_images as $img) {
+    // Save remaining additional images if uploaded
+    if (!empty($uploadedFiles)) {
+        foreach ($uploadedFiles as $img) {
             $path = $img->store('products', 'public');
             \App\Models\ProductImage::create([
                 'product_id' => $product->id,
@@ -145,6 +147,59 @@ $deleteAdditionalImage = function ($imageId) {
     }
     
     session()->flash('message', 'Foto tambahan berhasil dihapus!');
+};
+
+$deleteMainImage = function () {
+    if (!$this->editingProductId) {
+        $this->current_image_path = null;
+        return;
+    }
+    
+    $product = Product::findOrFail($this->editingProductId);
+    if ($product->image_path) {
+        Storage::disk('public')->delete($product->image_path);
+        $product->update(['image_path' => null]);
+        $this->current_image_path = null;
+    }
+    
+    // Promote first additional image if exists
+    $firstAdditional = \App\Models\ProductImage::where('product_id', $product->id)->first();
+    if ($firstAdditional) {
+        $product->update(['image_path' => $firstAdditional->image_path]);
+        $firstAdditional->delete();
+        
+        $this->current_image_path = $product->image_path;
+        $this->current_additional_images = \App\Models\ProductImage::where('product_id', $product->id)->get();
+    }
+    
+    session()->flash('message', 'Foto utama berhasil dihapus!');
+};
+
+$setMainImage = function ($imageId) {
+    if (!$this->editingProductId) {
+        return;
+    }
+    $product = Product::findOrFail($this->editingProductId);
+    $additionalImg = \App\Models\ProductImage::findOrFail($imageId);
+    
+    $oldMainPath = $product->image_path;
+    $newMainPath = $additionalImg->image_path;
+    
+    if ($oldMainPath) {
+        // Swap paths
+        $product->update(['image_path' => $newMainPath]);
+        $additionalImg->update(['image_path' => $oldMainPath]);
+    } else {
+        // Product has no main image, set this additional image as main and delete the additional image record
+        $product->update(['image_path' => $newMainPath]);
+        $additionalImg->delete();
+    }
+    
+    // Refresh current lists
+    $this->current_image_path = $product->image_path;
+    $this->current_additional_images = \App\Models\ProductImage::where('product_id', $product->id)->get();
+    
+    session()->flash('message', 'Foto utama berhasil diubah!');
 };
 
 $toggleActive = function ($id) {
@@ -352,67 +407,73 @@ $getCategories = function () {
                                     <x-input-error :messages="$errors->get('description')" class="mt-1" />
                                 </div>
 
-                                <!-- Image Upload -->
-                                <div>
-                                    <x-input-label :value="__('Foto Produk')" />
-                                    @if ($image)
-                                        <div class="mt-2 flex items-center gap-3">
-                                            <img src="{{ $image->temporaryUrl() }}" class="w-16 h-16 object-cover rounded-lg border border-indigo-200 dark:border-indigo-800" />
-                                            <span class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold">Preview foto utama baru</span>
-                                        </div>
-                                    @elseif ($current_image_path)
-                                        <div class="mt-2 flex items-center gap-3">
-                                            <img src="{{ Storage::url($current_image_path) }}" class="w-16 h-16 object-cover rounded-lg border" />
-                                            <span class="text-xs text-gray-500">Gambar saat ini</span>
-                                        </div>
-                                    @endif
-                                    
-                                    <input type="file" wire:model="image" id="form_image" class="mt-1 block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 dark:file:bg-indigo-900/30 file:text-indigo-700 dark:file:text-indigo-400 hover:file:bg-indigo-100" />
-                                    <x-input-error :messages="$errors->get('image')" class="mt-1" />
-
-                                    <!-- Loading status -->
-                                    <div wire:loading wire:target="image" class="text-xs text-indigo-600 dark:text-indigo-400 mt-1">Mengunggah gambar...</div>
-                                </div>
-
-                                <!-- Additional Images Upload -->
+                                <!-- Integrated Premium Product Images Section -->
                                 <div class="border-t border-gray-100 dark:border-gray-700 pt-4 mt-4">
-                                    <x-input-label :value="__('Foto Tambahan Produk')" />
+                                    <x-input-label :value="__('Foto-foto Produk (Bisa pilih lebih dari satu)')" />
                                     
-                                    <!-- Display existing additional images -->
-                                    @if (!empty($current_additional_images) && count($current_additional_images) > 0)
-                                        <div class="flex flex-wrap gap-2 mt-2 mb-3">
-                                            @foreach ($current_additional_images as $img)
-                                                <div class="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 group">
-                                                    <img src="{{ Storage::url($img->image_path) }}" class="w-full h-full object-cover" />
-                                                    <button type="button" wire:click="deleteAdditionalImage({{ $img->id }})" class="absolute top-1 right-1 bg-rose-600 hover:bg-rose-700 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-md transition cursor-pointer">
-                                                        ✕
-                                                    </button>
-                                                </div>
-                                            @endforeach
+                                    <!-- Existing saved images gallery -->
+                                    @if ($current_image_path || (!empty($current_additional_images) && count($current_additional_images) > 0))
+                                        <div class="mt-2">
+                                            <span class="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider block mb-1">Galeri Foto Produk Saat Ini:</span>
+                                            <div class="flex flex-wrap gap-3 mb-4">
+                                                <!-- Main Image -->
+                                                @if ($current_image_path)
+                                                    <div class="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-indigo-600 dark:border-indigo-50 group shadow-md">
+                                                        <img src="{{ Storage::url($current_image_path) }}" class="w-full h-full object-cover" />
+                                                        <span class="absolute bottom-0 inset-x-0 bg-indigo-600/90 text-[9px] text-white text-center py-0.5 font-bold uppercase tracking-wider">Utama</span>
+                                                        <button type="button" wire:click="deleteMainImage" class="absolute top-1 right-1 bg-rose-600 hover:bg-rose-700 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-md transition cursor-pointer" title="Hapus foto utama">
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                @endif
+
+                                                <!-- Additional Images -->
+                                                @if (!empty($current_additional_images))
+                                                    @foreach ($current_additional_images as $img)
+                                                        <div class="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 group shadow-sm hover:border-indigo-400 transition">
+                                                            <img src="{{ Storage::url($img->image_path) }}" class="w-full h-full object-cover" />
+                                                            
+                                                            <!-- Set as Main Button on Hover -->
+                                                            <button type="button" wire:click="setMainImage({{ $img->id }})" class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[10px] font-bold transition cursor-pointer">
+                                                                Set Utama
+                                                            </button>
+                                                            
+                                                            <!-- Delete Button -->
+                                                            <button type="button" wire:click="deleteAdditionalImage({{ $img->id }})" class="absolute top-1 right-1 bg-rose-600 hover:bg-rose-700 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-md transition cursor-pointer" title="Hapus foto">
+                                                                ✕
+                                                            </button>
+                                                        </div>
+                                                    @endforeach
+                                                @endif
+                                            </div>
                                         </div>
                                     @endif
-                                    
+
                                     <!-- Display temporary previews of newly chosen additional images -->
                                     @if ($additional_images)
                                         <div class="mt-2">
-                                            <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider block mb-1">Foto Tambahan Baru (Belum Disimpan):</span>
-                                            <div class="flex flex-wrap gap-2 mb-2">
-                                                @foreach ($additional_images as $img)
-                                                    <div class="relative w-16 h-16 rounded-lg overflow-hidden border border-indigo-200 dark:border-indigo-800">
+                                            <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider block mb-1">Foto Baru (Belum Disimpan):</span>
+                                            <div class="flex flex-wrap gap-2 mb-3">
+                                                @foreach ($additional_images as $index => $img)
+                                                    <div class="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-indigo-200 dark:border-indigo-850 shadow-sm">
                                                         <img src="{{ $img->temporaryUrl() }}" class="w-full h-full object-cover" />
-                                                        <span class="absolute bottom-0 inset-x-0 bg-indigo-600/80 text-[10px] text-white text-center py-0.5 font-bold">Baru</span>
+                                                        @if (!$current_image_path && $index === 0)
+                                                            <span class="absolute bottom-0 inset-x-0 bg-emerald-600/90 text-[9px] text-white text-center py-0.5 font-bold uppercase tracking-wider">Calon Utama</span>
+                                                        @else
+                                                            <span class="absolute bottom-0 inset-x-0 bg-indigo-600/80 text-[9px] text-white text-center py-0.5 font-bold uppercase tracking-wider">Baru</span>
+                                                        @endif
                                                     </div>
                                                 @endforeach
                                             </div>
                                         </div>
                                     @endif
-                                    
+
                                     <input type="file" wire:model="additional_images" id="form_additional_images" multiple class="mt-1 block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 dark:file:bg-indigo-900/30 file:text-indigo-700 dark:file:text-indigo-400 hover:file:bg-indigo-100" />
                                     <x-input-error :messages="$errors->get('additional_images.*')" class="mt-1" />
                                     <x-input-error :messages="$errors->get('additional_images')" class="mt-1" />
 
                                     <!-- Loading status -->
-                                    <div wire:loading wire:target="additional_images" class="text-xs text-indigo-600 dark:text-indigo-400 mt-1">Mengunggah gambar tambahan...</div>
+                                    <div wire:loading wire:target="additional_images" class="text-xs text-indigo-600 dark:text-indigo-400 mt-1">Mengunggah gambar...</div>
                                 </div>
                             </div>
                         </div>

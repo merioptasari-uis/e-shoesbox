@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Merged main product image and additional supplementary images inputs into a single unified gallery file input in the admin panel with support for setting images as main, swapping, and auto-promoting on deletion.
 - Added live temporary image upload previews for main and additional images inside the admin product creation/edit form.
 - Implemented multiple product supplementary image uploads in the Admin Products panel with live previews and delete actions.
 - Configured SVG and ICO favicon links in app and guest layout templates.

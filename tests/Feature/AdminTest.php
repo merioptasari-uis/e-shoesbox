@@ -179,14 +179,53 @@ test('admin can upload multiple images and delete an additional image', function
 
     $product = Product::where('name', 'Multi Image Shoe')->first();
     expect($product)->not->toBeNull();
-    expect($product->images)->toHaveCount(3);
+    expect($product->image_path)->not->toBeNull();
+    expect($product->images)->toHaveCount(2);
 
     $firstImage = $product->images->first();
 
-    // Now test deleting one image
+    // Test setting an additional image as main image (swap)
+    $oldMainPath = $product->image_path;
+    $newMainPath = $firstImage->image_path;
+
+    Volt::test('pages.admin.products')
+        ->call('openEditModal', $product->id)
+        ->call('setMainImage', $firstImage->id)
+        ->assertHasNoErrors();
+
+    $product = $product->fresh();
+    expect($product->image_path)->toBe($newMainPath);
+    expect($product->images->where('image_path', $oldMainPath))->toHaveCount(1);
+
+    // Test deleting the main image, which should promote the first additional image to main
+    $remainingAdditional = $product->images->first();
+
+    Volt::test('pages.admin.products')
+        ->call('openEditModal', $product->id)
+        ->call('deleteMainImage')
+        ->assertHasNoErrors();
+
+    $product = $product->fresh();
+    expect($product->image_path)->toBe($remainingAdditional->image_path);
+    expect($product->images)->toHaveCount(1); // One remains after promoting the other
+
+    // Now test deleting one additional image
+    // Let's recreate product with images to test deleting additional image
+    $file4 = UploadedFile::fake()->image('photo4.jpg');
+    $file5 = UploadedFile::fake()->image('photo5.jpg');
+    Volt::test('pages.admin.products')
+        ->call('openEditModal', $product->id)
+        ->set('additional_images', [$file4, $file5])
+        ->call('saveProduct')
+        ->assertHasNoErrors();
+
+    $product = $product->fresh();
+    expect($product->images)->toHaveCount(3); // 1 remaining + 2 new
+    $firstAdditional = $product->images->first();
+
     Volt::test('pages.admin.products')
         ->set('editingProductId', $product->id)
-        ->call('deleteAdditionalImage', $firstImage->id)
+        ->call('deleteAdditionalImage', $firstAdditional->id)
         ->assertHasNoErrors();
 
     expect($product->fresh()->images)->toHaveCount(2);
