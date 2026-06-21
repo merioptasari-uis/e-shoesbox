@@ -1,9 +1,13 @@
 <?php
 
+use App\Http\Controllers\Api\MidtransWebhookController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
 Volt::route('/', 'pages.shop.index')->name('shop.index');
+Volt::route('cart', 'pages.shop.cart')->middleware(['auth'])->name('cart');
+Volt::route('order/{order}', 'pages.shop.order-details')->middleware(['auth'])->name('order.details');
+Route::post('api/midtrans/notification', [MidtransWebhookController::class, 'handle'])->name('midtrans.webhook');
 
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
@@ -15,6 +19,7 @@ Route::view('profile', 'profile')
 
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Volt::route('admin/products', 'pages.admin.products')->name('admin.products');
+    Volt::route('admin/orders', 'pages.admin.orders')->name('admin.orders');
 });
 
 require __DIR__.'/auth.php';
