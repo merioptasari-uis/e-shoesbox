@@ -22,3 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed admin products page syntax error by correctly importing and invoking `usesFileUploads` and `layout` using functional Volt syntax.
 - Configured explicit layout mapping `layouts.app` on the admin orders class-based Volt component.
 - Resolved "Call to undefined function layout()" error in admin view templates.
+- Disabled email verification requirements across all routes and user registration.
+- Removed `MustVerifyEmail` implementation from the `User` model.
+- Removed unused verification controllers, view files, and email verification feature tests.

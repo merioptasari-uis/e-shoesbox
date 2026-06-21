@@ -10,14 +10,14 @@ Volt::route('order/{order}', 'pages.shop.order-details')->middleware(['auth'])->
 Route::post('api/midtrans/notification', [MidtransWebhookController::class, 'handle'])->name('midtrans.webhook');
 
 Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth'])
     ->name('dashboard');
 
 Route::view('profile', 'profile')
     ->middleware(['auth'])
     ->name('profile');
 
-Route::middleware(['auth', 'verified', 'admin'])->group(function () {
+Route::middleware(['auth', 'admin'])->group(function () {
     Volt::route('admin/products', 'pages.admin.products')->name('admin.products');
     Volt::route('admin/orders', 'pages.admin.orders')->name('admin.orders');
 });
