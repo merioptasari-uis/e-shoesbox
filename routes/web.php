@@ -20,6 +20,7 @@ Route::view('profile', 'profile')
 Route::middleware(['auth', 'admin'])->group(function () {
     Volt::route('admin/products', 'pages.admin.products')->name('admin.products');
     Volt::route('admin/orders', 'pages.admin.orders')->name('admin.orders');
+    Volt::route('admin/vouchers', 'pages.admin.vouchers')->name('admin.vouchers');
 });
 
 require __DIR__.'/auth.php';

@@ -23,6 +23,7 @@ state([
     'name' => '',
     'description' => '',
     'price' => '',
+    'discount_price' => '',
     'stock' => '',
     'weight' => '',
     'image' => null,
@@ -34,6 +35,7 @@ rules([
     'name' => ['required', 'string', 'max:255'],
     'description' => ['required', 'string'],
     'price' => ['required', 'numeric', 'min:0'],
+    'discount_price' => ['nullable', 'numeric', 'min:0'],
     'stock' => ['required', 'integer', 'min:0'],
     'weight' => ['required', 'integer', 'min:0'],
     'image' => ['nullable', 'image', 'max:2048'], // Max 2MB
@@ -41,7 +43,7 @@ rules([
 
 $openCreateModal = function () {
     $this->resetErrorBag();
-    $this->reset(['editingProductId', 'category_id', 'name', 'description', 'price', 'stock', 'weight', 'image', 'current_image_path']);
+    $this->reset(['editingProductId', 'category_id', 'name', 'description', 'price', 'discount_price', 'stock', 'weight', 'image', 'current_image_path']);
     // Set default category if exists
     $firstCategory = Category::first();
     if ($firstCategory) {
@@ -59,6 +61,7 @@ $openEditModal = function ($id) {
     $this->name = $product->name;
     $this->description = $product->description;
     $this->price = $product->price;
+    $this->discount_price = $product->discount_price;
     $this->stock = $product->stock;
     $this->weight = $product->weight;
     $this->current_image_path = $product->image_path;
@@ -68,7 +71,13 @@ $openEditModal = function ($id) {
 };
 
 $saveProduct = function () {
+    if ($this->discount_price !== '' && $this->discount_price !== null && (float) $this->discount_price >= (float) $this->price) {
+        $this->addError('discount_price', 'Discount price must be less than original price.');
+        return;
+    }
+
     $validated = $this->validate();
+    $validated['discount_price'] = $this->discount_price !== '' && $this->discount_price !== null ? $this->discount_price : null;
     
     // Handle image upload if provided
     if ($this->image) {
@@ -195,7 +204,14 @@ $getCategories = function () {
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        Rp {{ number_format($product->price, 0, ',', '.') }}
+                                        @if($product->discount_price)
+                                            <div class="flex flex-col">
+                                                <span class="text-xs text-rose-500 line-through">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
+                                                <span>Rp {{ number_format($product->discount_price, 0, ',', '.') }}</span>
+                                            </div>
+                                        @else
+                                            Rp {{ number_format($product->price, 0, ',', '.') }}
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                                         {{ $product->stock }} units
@@ -266,26 +282,34 @@ $getCategories = function () {
                                     <x-input-error :messages="$errors->get('category_id')" class="mt-1" />
                                 </div>
 
-                                <div class="grid grid-cols-3 gap-4">
+                                <div class="grid grid-cols-2 gap-4">
                                     <!-- Price -->
-                                    <div class="col-span-2">
+                                    <div>
                                         <x-input-label for="form_price" :value="__('Price (Rp)')" />
                                         <x-text-input wire:model="price" id="form_price" class="block mt-1 w-full" type="number" required />
                                         <x-input-error :messages="$errors->get('price')" class="mt-1" />
                                     </div>
+                                    <!-- Discount Price -->
+                                    <div>
+                                        <x-input-label for="form_discount_price" :value="__('Discount Price (Rp) - Optional')" />
+                                        <x-text-input wire:model="discount_price" id="form_discount_price" class="block mt-1 w-full" type="number" />
+                                        <x-input-error :messages="$errors->get('discount_price')" class="mt-1" />
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
                                     <!-- Stock -->
                                     <div>
                                         <x-input-label for="form_stock" :value="__('Stock')" />
                                         <x-text-input wire:model="stock" id="form_stock" class="block mt-1 w-full" type="number" required />
                                         <x-input-error :messages="$errors->get('stock')" class="mt-1" />
                                     </div>
-                                </div>
-
-                                <!-- Weight -->
-                                <div>
-                                    <x-input-label for="form_weight" :value="__('Weight (grams)')" />
-                                    <x-text-input wire:model="weight" id="form_weight" class="block mt-1 w-full" type="number" required />
-                                    <x-input-error :messages="$errors->get('weight')" class="mt-1" />
+                                    <!-- Weight -->
+                                    <div>
+                                        <x-input-label for="form_weight" :value="__('Weight (grams)')" />
+                                        <x-text-input wire:model="weight" id="form_weight" class="block mt-1 w-full" type="number" required />
+                                        <x-input-error :messages="$errors->get('weight')" class="mt-1" />
+                                    </div>
                                 </div>
 
                                 <!-- Description -->

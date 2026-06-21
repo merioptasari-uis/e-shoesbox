@@ -52,6 +52,9 @@ on(['cart-updated' => function () {
                             <x-nav-link :href="route('admin.orders')" :active="request()->routeIs('admin.orders')" wire:navigate>
                                 {{ __('Orders') }}
                             </x-nav-link>
+                            <x-nav-link :href="route('admin.vouchers')" :active="request()->routeIs('admin.vouchers')" wire:navigate>
+                                {{ __('Vouchers') }}
+                            </x-nav-link>
                         @endif
                     @endif
                 </div>
@@ -141,6 +144,9 @@ on(['cart-updated' => function () {
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('admin.orders')" :active="request()->routeIs('admin.orders')" wire:navigate>
                         {{ __('Orders') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.vouchers')" :active="request()->routeIs('admin.vouchers')" wire:navigate>
+                        {{ __('Vouchers') }}
                     </x-responsive-nav-link>
                 @endif
             @endif
