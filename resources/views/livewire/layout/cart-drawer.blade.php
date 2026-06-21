@@ -37,7 +37,7 @@ new class extends Component
         $item = CartItem::findOrFail($itemId);
         
         if ($item->quantity + 1 > $item->product->stock) {
-            $this->dispatch('notify', type: 'error', message: 'Cannot add more. Insufficient stock!');
+            $this->dispatch('notify', type: 'error', message: 'Tidak dapat menambah lebih banyak. Stok tidak mencukupi!');
             return;
         }
 
@@ -105,14 +105,14 @@ new class extends Component
                     <!-- Drawer Header -->
                     <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-700">
                         <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100" id="slide-over-title">
-                            Shopping Cart
+                            Keranjang Belanja
                         </h2>
                         <button 
                             type="button" 
                             class="rounded-xl p-2 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition" 
                             @click="cartOpen = false"
                         >
-                            <span class="sr-only">Close panel</span>
+                            <span class="sr-only">Tutup panel</span>
                             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
@@ -124,8 +124,8 @@ new class extends Component
                                 <div class="w-20 h-20 rounded-full bg-gray-50 dark:bg-gray-700 flex items-center justify-center mb-4 border border-dashed border-gray-200 dark:border-gray-600">
                                     <svg class="h-10 w-10 text-gray-450 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                                 </div>
-                                <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Your cart is empty</h3>
-                                <p class="text-sm text-gray-500 mt-1">Start adding premium shoes to your cart!</p>
+                                <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Keranjang Anda kosong</h3>
+                                <p class="text-sm text-gray-500 mt-1">Mulai tambahkan sepatu premium ke keranjang Anda!</p>
                             </div>
                         @else
                             <div class="space-y-4">
@@ -195,7 +195,7 @@ new class extends Component
                                 <span>Rp {{ number_format($this->total, 0, ',', '.') }}</span>
                             </div>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                                Shipping and discounts will be computed at checkout.
+                                Biaya pengiriman dan diskon akan dihitung saat checkout.
                             </p>
                             <a 
                                 href="{{ url('/cart') }}" 
@@ -203,7 +203,7 @@ new class extends Component
                                 class="w-full flex items-center justify-center px-6 py-3.5 border border-transparent text-sm font-semibold rounded-2xl text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-lg shadow-indigo-100 dark:shadow-none"
                                 wire:navigate
                             >
-                                Proceed to Checkout
+                                Lanjut ke Pembayaran
                             </a>
                         </div>
                     @endif

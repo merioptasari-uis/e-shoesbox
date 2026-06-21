@@ -137,7 +137,7 @@ new #[Layout('layouts.app')] class extends Component
     {
         $item = CartItem::findOrFail($itemId);
         if ($item->quantity + 1 > $item->product->stock) {
-            $this->dispatch('notify', type: 'error', message: 'Cannot add more. Insufficient stock!');
+            $this->dispatch('notify', type: 'error', message: 'Tidak dapat menambah lebih banyak. Stok tidak mencukupi!');
             return;
         }
         $item->increment('quantity');
@@ -182,14 +182,14 @@ new #[Layout('layouts.app')] class extends Component
 
         $cartItems = $this->items;
         if ($cartItems->isEmpty()) {
-            $this->dispatch('notify', type: 'error', message: 'Your cart is empty!');
+            $this->dispatch('notify', type: 'error', message: 'Keranjang belanja Anda kosong!');
             return;
         }
 
         // Verify stock for all items
         foreach ($cartItems as $item) {
             if ($item->product->stock < $item->quantity) {
-                $this->dispatch('notify', type: 'error', message: "Insufficient stock for {$item->product->name}!");
+                $this->dispatch('notify', type: 'error', message: "Stok tidak mencukupi untuk {$item->product->name}!");
                 return;
             }
         }
@@ -300,7 +300,7 @@ new #[Layout('layouts.app')] class extends Component
 
         } catch (\Exception $e) {
             Log::error('Order placement failed: ' . $e->getMessage());
-            $this->dispatch('notify', type: 'error', message: 'Failed to place order: ' . $e->getMessage());
+            $this->dispatch('notify', type: 'error', message: 'Gagal membuat pesanan: ' . $e->getMessage());
         }
     }
 
@@ -323,10 +323,10 @@ new #[Layout('layouts.app')] class extends Component
 
         if ($voucher->type === 'shipping') {
             $this->appliedShippingVoucher = $voucher;
-            $this->dispatch('notify', type: 'success', message: 'Shipping voucher applied!');
+            $this->dispatch('notify', type: 'success', message: 'Voucher gratis ongkir berhasil digunakan!');
         } else {
             $this->appliedProductVoucher = $voucher;
-            $this->dispatch('notify', type: 'success', message: 'Product discount voucher applied!');
+            $this->dispatch('notify', type: 'success', message: 'Voucher diskon produk berhasil digunakan!');
         }
 
         $this->voucherCode = '';
@@ -337,10 +337,10 @@ new #[Layout('layouts.app')] class extends Component
     {
         if ($type === 'shipping') {
             $this->appliedShippingVoucher = null;
-            $this->dispatch('notify', type: 'info', message: 'Shipping voucher removed.');
+            $this->dispatch('notify', type: 'info', message: 'Voucher gratis ongkir dihapus.');
         } elseif ($type === 'product') {
             $this->appliedProductVoucher = null;
-            $this->dispatch('notify', type: 'info', message: 'Discount voucher removed.');
+            $this->dispatch('notify', type: 'info', message: 'Voucher diskon dihapus.');
         }
         $this->revalidateAppliedVouchers();
     }
@@ -354,7 +354,7 @@ new #[Layout('layouts.app')] class extends Component
             $validation = $voucherService->validate($this->appliedProductVoucher->code, $subtotal, Auth::id());
             if (!$validation['isValid']) {
                 $this->appliedProductVoucher = null;
-                $this->dispatch('notify', type: 'warning', message: "Voucher {$validation['voucher']?->code} removed: {$validation['message']}");
+                $this->dispatch('notify', type: 'warning', message: "Voucher {$validation['voucher']?->code} dihapus: {$validation['message']}");
             }
         }
 
@@ -362,7 +362,7 @@ new #[Layout('layouts.app')] class extends Component
             $validation = $voucherService->validate($this->appliedShippingVoucher->code, $subtotal, Auth::id());
             if (!$validation['isValid']) {
                 $this->appliedShippingVoucher = null;
-                $this->dispatch('notify', type: 'warning', message: "Voucher {$validation['voucher']?->code} removed: {$validation['message']}");
+                $this->dispatch('notify', type: 'warning', message: "Voucher {$validation['voucher']?->code} dihapus: {$validation['message']}");
             }
         }
     }
@@ -379,17 +379,17 @@ new #[Layout('layouts.app')] class extends Component
 
 <div class="py-12 bg-gray-50 dark:bg-gray-900 min-h-screen">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-8 tracking-tight">Checkout</h1>
+        <h1 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-8 tracking-tight">Penyelesaian Pesanan</h1>
 
         @if($this->items->isEmpty())
             <div class="bg-white dark:bg-gray-800 rounded-3xl p-12 text-center shadow-sm border border-gray-100 dark:border-gray-700 max-w-lg mx-auto">
                 <div class="w-20 h-20 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center mb-6 mx-auto">
                     <svg class="h-10 w-10 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                 </div>
-                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Your checkout cart is empty</h3>
-                <p class="text-sm text-gray-500 mb-6">Select from our collection of premium footwear before finalizing checkout.</p>
+                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Keranjang belanja Anda kosong</h3>
+                <p class="text-sm text-gray-500 mb-6">Silakan pilih produk sepatu premium kami sebelum melakukan penyelesaian pesanan.</p>
                 <a href="{{ url('/') }}" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-sm font-semibold rounded-2xl text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-md shadow-indigo-150 dark:shadow-none" wire:navigate>
-                    Browse Shoes
+                    Jelajahi Sepatu
                 </a>
             </div>
         @else
@@ -398,7 +398,7 @@ new #[Layout('layouts.app')] class extends Component
                 <div class="lg:col-span-2 space-y-8">
                     <!-- Items Section -->
                     <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6">1. Review Items</h2>
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6">1. Tinjau Item Belanja</h2>
                         <div class="space-y-4">
                             @foreach($this->items as $item)
                                 <div class="flex items-center gap-4 py-4 {{ !$loop->last ? 'border-b border-gray-100 dark:border-gray-750' : '' }}">
@@ -449,7 +449,7 @@ new #[Layout('layouts.app')] class extends Component
                                             @endif
                                         </div>
                                         <button wire:click="remove({{ $item->id }})" class="text-xs text-gray-400 hover:text-rose-600 transition mt-2">
-                                            Remove
+                                            Hapus
                                         </button>
                                     </div>
                                 </div>
@@ -459,19 +459,19 @@ new #[Layout('layouts.app')] class extends Component
 
                     <!-- Shipping Address Section -->
                     <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 space-y-6">
-                        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-50 dark:border-gray-750 pb-4">2. Shipping Details</h2>
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-50 dark:border-gray-750 pb-4">2. Detail Pengiriman</h2>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <!-- Recipient Name -->
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-450 uppercase tracking-wider mb-2">Recipient Name</label>
+                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-450 uppercase tracking-wider mb-2">Nama Penerima</label>
                                 <input wire:model="recipientName" type="text" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 @error('recipientName') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                             </div>
 
                             <!-- Phone Number -->
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Phone Number</label>
+                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-450 uppercase tracking-wider mb-2">Nomor Telepon</label>
                                 <input wire:model="phoneNumber" type="text" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 @error('phoneNumber') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                             </div>
@@ -479,17 +479,17 @@ new #[Layout('layouts.app')] class extends Component
 
                         <!-- Address Line -->
                         <div>
-                            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Full Address</label>
-                            <textarea wire:model="addressLine" rows="3" placeholder="Street Name, Building/Unit, Landmark" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Alamat Lengkap</label>
+                            <textarea wire:model="addressLine" rows="3" placeholder="Nama Jalan, Gedung/Unit, Patokan" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
                             @error('addressLine') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <!-- Province Selector -->
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Province</label>
-                                <select wire:model.live="provinceId" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-950 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                    <option value="">Select Province</option>
+                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Provinsi</label>
+                                <select wire:model.live="provinceId" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-955 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="">Pilih Provinsi</option>
                                     @foreach($provinces as $prov)
                                         <option value="{{ $prov->id }}">{{ $prov->name }}</option>
                                     @endforeach
@@ -499,9 +499,9 @@ new #[Layout('layouts.app')] class extends Component
 
                             <!-- City Selector -->
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">City</label>
-                                <select wire:model.live="cityId" {{ !$provinceId ? 'disabled' : '' }} class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-950 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed">
-                                    <option value="">Select City</option>
+                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Kota / Kabupaten</label>
+                                <select wire:model.live="cityId" {{ !$provinceId ? 'disabled' : '' }} class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-955 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed">
+                                    <option value="">Pilih Kota / Kabupaten</option>
                                     @foreach($cities as $city)
                                         <option value="{{ $city->id }}">{{ $city->name }} ({{ $city->type }})</option>
                                     @endforeach
@@ -512,7 +512,7 @@ new #[Layout('layouts.app')] class extends Component
 
                         <!-- Courier Selection Card Grid -->
                         <div x-data="{ selected: @entangle('courier') }">
-                            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Select Courier</label>
+                            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Pilih Kurir</label>
                             <div class="grid grid-cols-3 gap-4">
                                 <!-- JNE -->
                                 <div 
@@ -548,7 +548,7 @@ new #[Layout('layouts.app')] class extends Component
                         <!-- Shipping Service Choices -->
                         @if(!empty($shippingServices))
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Available Services</label>
+                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Layanan Tersedia</label>
                                 <div class="space-y-2">
                                     @foreach($shippingServices as $srv)
                                         <div 
@@ -557,7 +557,7 @@ new #[Layout('layouts.app')] class extends Component
                                         >
                                             <div>
                                                 <span class="text-sm font-extrabold text-gray-900 dark:text-gray-100 uppercase">{{ $srv['service'] }}</span>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $srv['description'] }} - {{ $srv['etd'] }} days</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $srv['description'] }} - {{ $srv['etd'] }} hari</p>
                                             </div>
                                             <span class="text-sm font-bold text-gray-900 dark:text-gray-100">
                                                 Rp {{ number_format($srv['cost'], 0, ',', '.') }}
@@ -569,7 +569,7 @@ new #[Layout('layouts.app')] class extends Component
                             </div>
                         @elseif($courier && empty($shippingServices))
                             <div class="p-4 bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300 rounded-2xl text-xs font-medium border border-amber-100 dark:border-amber-900/30">
-                                Loading shipping services... Make sure the destination city is selected.
+                                Memuat layanan pengiriman... Pastikan Kota/Kabupaten tujuan telah terpilih.
                             </div>
                         @endif
                     </div>
@@ -578,12 +578,12 @@ new #[Layout('layouts.app')] class extends Component
                 <!-- Sticky Summary Receipt -->
                 <div class="lg:col-span-1 mt-8 lg:mt-0">
                     <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 sticky top-6 space-y-6">
-                        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-50 dark:border-gray-750 pb-4">Order Summary</h2>
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-50 dark:border-gray-750 pb-4">Ringkasan Pesanan</h2>
 
                         <!-- Applied Vouchers Badge List -->
                         @if($appliedProductVoucher || $appliedShippingVoucher)
                             <div class="space-y-2">
-                                <span class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Applied Vouchers</span>
+                                <span class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Voucher Diterapkan</span>
                                 <div class="flex flex-col gap-2">
                                     @if($appliedProductVoucher)
                                         <div class="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 px-3 py-2 rounded-xl text-xs font-semibold border border-emerald-100 dark:border-emerald-900/30">
@@ -600,7 +600,7 @@ new #[Layout('layouts.app')] class extends Component
                                         <div class="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 px-3 py-2 rounded-xl text-xs font-semibold border border-emerald-100 dark:border-emerald-900/30">
                                             <div class="flex items-center gap-1.5 bg-transparent">
                                                 <svg class="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                                <span>{{ $appliedShippingVoucher->code }} (Free Ship)</span>
+                                                <span>{{ $appliedShippingVoucher->code }} (Bebas Ongkir)</span>
                                             </div>
                                             <button wire:click="removeVoucher('shipping')" class="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-250 font-bold transition ml-2">
                                                 ✕
@@ -613,10 +613,10 @@ new #[Layout('layouts.app')] class extends Component
 
                         <!-- Voucher Promo Input Form -->
                         <div class="space-y-2 border-b border-gray-50 dark:border-gray-750 pb-4">
-                            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Promo Code</label>
+                            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Kode Voucher / Promo</label>
                             <div class="flex gap-2">
-                                <input wire:model="voucherCode" type="text" placeholder="Promo / Voucher Code" class="flex-1 border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 text-sm py-2 px-3">
-                                <button wire:click="applyVoucher" class="px-4 py-2 text-xs font-semibold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 transition">Apply</button>
+                                <input wire:model="voucherCode" type="text" placeholder="Masukkan kode promo..." class="flex-1 border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 text-sm py-2 px-3">
+                                <button wire:click="applyVoucher" class="px-4 py-2 text-xs font-semibold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 transition">Gunakan</button>
                             </div>
                             @error('voucherCode') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
@@ -628,28 +628,28 @@ new #[Layout('layouts.app')] class extends Component
                             </div>
                             @if($this->productDiscount > 0)
                                 <div class="flex justify-between text-sm text-emerald-600 dark:text-emerald-400 font-semibold">
-                                    <span>Voucher Discount</span>
+                                    <span>Potongan Voucher</span>
                                     <span>- Rp {{ number_format($this->productDiscount, 0, ',', '.') }}</span>
                                 </div>
                             @endif
                             <div class="flex justify-between text-sm text-gray-500">
-                                <span>Total Weight</span>
-                                <span class="font-semibold text-gray-900 dark:text-gray-100">{{ number_format($this->totalWeight) }} grams</span>
+                                <span>Total Berat</span>
+                                <span class="font-semibold text-gray-900 dark:text-gray-100">{{ number_format($this->totalWeight) }} gram</span>
                             </div>
                             <div class="flex justify-between text-sm text-gray-500">
-                                <span>Shipping Cost</span>
+                                <span>Ongkos Kirim</span>
                                 <span class="font-semibold text-gray-900 dark:text-gray-100">
-                                    {{ $shippingCost > 0 ? 'Rp ' . number_format($shippingCost, 0, ',', '.') : 'Choose Service' }}
+                                    {{ $shippingCost > 0 ? 'Rp ' . number_format($shippingCost, 0, ',', '.') : 'Pilih Layanan' }}
                                 </span>
                             </div>
                             @if($this->shippingDiscount > 0)
                                 <div class="flex justify-between text-sm text-emerald-600 dark:text-emerald-400 font-semibold">
-                                    <span>Shipping Discount</span>
+                                    <span>Diskon Ongkir</span>
                                     <span>- Rp {{ number_format($this->shippingDiscount, 0, ',', '.') }}</span>
                                 </div>
                             @endif
                             <div class="border-t border-gray-100 dark:border-gray-750 pt-4 flex justify-between text-base font-extrabold text-gray-900 dark:text-gray-100">
-                                <span>Total Amount</span>
+                                <span>Total Pembayaran</span>
                                 <span>Rp {{ number_format($this->total, 0, ',', '.') }}</span>
                             </div>
                         </div>
@@ -658,12 +658,12 @@ new #[Layout('layouts.app')] class extends Component
                             wire:click="placeOrder" 
                             class="w-full flex items-center justify-center px-6 py-4 border border-transparent text-sm font-semibold rounded-2xl text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-lg shadow-indigo-150 dark:shadow-none"
                         >
-                            Proceed to Payment
+                            Lanjutkan ke Pembayaran
                         </button>
 
                         <div class="flex items-center gap-2 justify-center text-xs text-gray-400">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                            Secure Checkout powered by Midtrans
+                            Pembayaran Aman didukung oleh Midtrans
                         </div>
                     </div>
                 </div>
@@ -685,7 +685,7 @@ new #[Layout('layouts.app')] class extends Component
                 const orderId = data.orderId;
 
                 if (!snapToken || snapToken.startsWith('mock-snap-token')) {
-                    alert('Mock payment token generated. Redirecting to Order Status Polling page...');
+                    alert('Token pembayaran tiruan dibuat. Mengalihkan ke halaman status pesanan...');
                     window.location.href = '/order/' + orderId;
                     return;
                 }
@@ -698,10 +698,10 @@ new #[Layout('layouts.app')] class extends Component
                         window.location.href = '/order/' + orderId;
                     },
                     onError: function(result) {
-                        alert("Payment failed!");
+                        alert("Pembayaran gagal!");
                     },
                     onClose: function() {
-                        alert('You closed the payment popup without finishing payment.');
+                        alert('Anda menutup popup pembayaran sebelum menyelesaikan transaksi.');
                     }
                 });
             });

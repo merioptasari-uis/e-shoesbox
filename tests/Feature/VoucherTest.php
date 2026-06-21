@@ -24,7 +24,7 @@ test('voucher with inactive status is invalid', function () {
 
     $res = $this->voucherService->validate('INACTIVE', 50000, $this->customer->id);
     expect($res['isValid'])->toBeFalse();
-    expect($res['message'])->toContain('no longer active');
+    expect($res['message'])->toContain('tidak aktif');
 });
 
 test('voucher expired is invalid', function () {
@@ -37,7 +37,7 @@ test('voucher expired is invalid', function () {
 
     $res = $this->voucherService->validate('EXPIRED', 50000, $this->customer->id);
     expect($res['isValid'])->toBeFalse();
-    expect($res['message'])->toContain('expired');
+    expect($res['message'])->toContain('kedaluwarsa');
 });
 
 test('voucher min spend is respected', function () {
@@ -50,7 +50,7 @@ test('voucher min spend is respected', function () {
 
     $res = $this->voucherService->validate('MINSPEND', 50000, $this->customer->id);
     expect($res['isValid'])->toBeFalse();
-    expect($res['message'])->toContain('Minimum spend');
+    expect($res['message'])->toContain('Minimal belanja');
 
     $res2 = $this->voucherService->validate('MINSPEND', 120000, $this->customer->id);
     expect($res2['isValid'])->toBeTrue();
@@ -67,7 +67,7 @@ test('voucher total limit is respected', function () {
 
     $res = $this->voucherService->validate('TOTALLIMIT', 50000, $this->customer->id);
     expect($res['isValid'])->toBeFalse();
-    expect($res['message'])->toContain('usage limit has been reached');
+    expect($res['message'])->toContain('Batas penggunaan');
 });
 
 test('voucher per user limit is respected', function () {
@@ -111,7 +111,7 @@ test('voucher per user limit is respected', function () {
     // Validation should fail now
     $res2 = $this->voucherService->validate('USERLIMIT', 50000, $this->customer->id);
     expect($res2['isValid'])->toBeFalse();
-    expect($res2['message'])->toContain('reached the usage limit');
+    expect($res2['message'])->toContain('mencapai batas penggunaan');
 
     // If order is cancelled, it should be valid again
     $order->update(['status' => 'cancelled']);

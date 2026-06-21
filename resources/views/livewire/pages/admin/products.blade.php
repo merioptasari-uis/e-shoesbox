@@ -72,7 +72,7 @@ $openEditModal = function ($id) {
 
 $saveProduct = function () {
     if ($this->discount_price !== '' && $this->discount_price !== null && (float) $this->discount_price >= (float) $this->price) {
-        $this->addError('discount_price', 'Discount price must be less than original price.');
+        $this->addError('discount_price', 'Harga diskon harus lebih kecil dari harga asli.');
         return;
     }
 
@@ -96,10 +96,10 @@ $saveProduct = function () {
         }
         
         $product->update($validated);
-        session()->flash('message', 'Product updated successfully!');
+        session()->flash('message', 'Produk berhasil diperbarui!');
     } else {
         Product::create($validated);
-        session()->flash('message', 'Product created successfully!');
+        session()->flash('message', 'Produk berhasil dibuat!');
     }
     
     $this->isModalOpen = false;
@@ -111,7 +111,7 @@ $deleteProduct = function ($id) {
         Storage::disk('public')->delete($product->image_path);
     }
     $product->delete();
-    session()->flash('message', 'Product deleted successfully!');
+    session()->flash('message', 'Produk berhasil dihapus!');
 };
 
 $toggleActive = function ($id) {
@@ -136,7 +136,7 @@ $getCategories = function () {
 <div>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Products Management') }}
+            {{ __('Manajemen Produk') }}
         </h2>
     </x-slot>
 
@@ -157,11 +157,11 @@ $getCategories = function () {
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                             🔍
                         </span>
-                        <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search products..." class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                        <input wire:model.live.debounce.300ms="search" type="text" placeholder="Cari produk..." class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
                     </div>
                     <div>
                         <button wire:click="openCreateModal" class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition cursor-pointer">
-                            ➕ Add New Product
+                            ➕ Tambah Produk Baru
                         </button>
                     </div>
                 </div>
@@ -171,13 +171,13 @@ $getCategories = function () {
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50/70 dark:bg-gray-900/30">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Product</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Price</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Stock</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Weight</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Produk</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Kategori</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Harga</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Stok</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Berat</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                                <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
@@ -214,10 +214,10 @@ $getCategories = function () {
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                                        {{ $product->stock }} units
+                                        {{ $product->stock }} unit
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                                        {{ $product->weight }} g
+                                        {{ $product->weight }} gram
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <button wire:click="toggleActive({{ $product->id }})" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none {{ $product->is_active ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700' }}">
@@ -228,16 +228,16 @@ $getCategories = function () {
                                         <button wire:click="openEditModal({{ $product->id }})" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-950 dark:hover:text-indigo-300 cursor-pointer mr-3">
                                             Edit
                                         </button>
-                                        <button wire:click="deleteProduct({{ $product->id }})" wire:confirm="Are you sure you want to delete this product?" class="text-rose-600 dark:text-rose-400 hover:text-rose-950 dark:hover:text-rose-300 cursor-pointer">
-                                            Delete
+                                        <button wire:click="deleteProduct({{ $product->id }})" wire:confirm="Apakah Anda yakin ingin menghapus produk ini?" class="text-rose-600 dark:text-rose-400 hover:text-rose-950 dark:hover:text-rose-300 cursor-pointer">
+                                            Hapus
                                         </button>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
                                     <td colspan="7" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                                        <div class="text-lg">No products found.</div>
-                                        <div class="text-xs text-gray-400 mt-1">Try expanding your search query.</div>
+                                        <div class="text-lg">Produk tidak ditemukan.</div>
+                                        <div class="text-xs text-gray-400 mt-1">Coba perluas kata pencarian Anda.</div>
                                     </td>
                                 </tr>
                             @endforelse
@@ -260,20 +260,20 @@ $getCategories = function () {
                     <form wire:submit="saveProduct">
                         <div class="bg-white dark:bg-gray-800 px-6 pt-6 pb-4 sm:p-6">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4" id="modal-title">
-                                {{ $editingProductId ? 'Edit Product' : 'Add New Product' }}
+                                {{ $editingProductId ? 'Edit Produk' : 'Tambah Produk Baru' }}
                             </h3>
 
                             <div class="space-y-4">
                                 <!-- Product Name -->
                                 <div>
-                                    <x-input-label for="form_name" :value="__('Product Name')" />
+                                    <x-input-label for="form_name" :value="__('Nama Produk')" />
                                     <x-text-input wire:model="name" id="form_name" class="block mt-1 w-full" type="text" required />
                                     <x-input-error :messages="$errors->get('name')" class="mt-1" />
                                 </div>
 
                                 <!-- Category Selection -->
                                 <div>
-                                    <x-input-label for="form_category" :value="__('Category')" />
+                                    <x-input-label for="form_category" :value="__('Kategori')" />
                                     <select wire:model="category_id" id="form_category" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                         @foreach ($this->getCategories() as $category)
                                             <option value="{{ $category->id }}">{{ $category->name }}</option>
@@ -285,13 +285,13 @@ $getCategories = function () {
                                 <div class="grid grid-cols-2 gap-4">
                                     <!-- Price -->
                                     <div>
-                                        <x-input-label for="form_price" :value="__('Price (Rp)')" />
+                                        <x-input-label for="form_price" :value="__('Harga (Rp)')" />
                                         <x-text-input wire:model="price" id="form_price" class="block mt-1 w-full" type="number" required />
                                         <x-input-error :messages="$errors->get('price')" class="mt-1" />
                                     </div>
                                     <!-- Discount Price -->
                                     <div>
-                                        <x-input-label for="form_discount_price" :value="__('Discount Price (Rp) - Optional')" />
+                                        <x-input-label for="form_discount_price" :value="__('Harga Diskon (Rp) - Opsional')" />
                                         <x-text-input wire:model="discount_price" id="form_discount_price" class="block mt-1 w-full" type="number" />
                                         <x-input-error :messages="$errors->get('discount_price')" class="mt-1" />
                                     </div>
@@ -300,13 +300,13 @@ $getCategories = function () {
                                 <div class="grid grid-cols-2 gap-4">
                                     <!-- Stock -->
                                     <div>
-                                        <x-input-label for="form_stock" :value="__('Stock')" />
+                                        <x-input-label for="form_stock" :value="__('Stok')" />
                                         <x-text-input wire:model="stock" id="form_stock" class="block mt-1 w-full" type="number" required />
                                         <x-input-error :messages="$errors->get('stock')" class="mt-1" />
                                     </div>
                                     <!-- Weight -->
                                     <div>
-                                        <x-input-label for="form_weight" :value="__('Weight (grams)')" />
+                                        <x-input-label for="form_weight" :value="__('Berat (gram)')" />
                                         <x-text-input wire:model="weight" id="form_weight" class="block mt-1 w-full" type="number" required />
                                         <x-input-error :messages="$errors->get('weight')" class="mt-1" />
                                     </div>
@@ -314,18 +314,18 @@ $getCategories = function () {
 
                                 <!-- Description -->
                                 <div>
-                                    <x-input-label for="form_description" :value="__('Description')" />
+                                    <x-input-label for="form_description" :value="__('Deskripsi')" />
                                     <textarea wire:model="description" id="form_description" rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-350 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
                                     <x-input-error :messages="$errors->get('description')" class="mt-1" />
                                 </div>
 
                                 <!-- Image Upload -->
                                 <div>
-                                    <x-input-label :value="__('Product Image')" />
+                                    <x-input-label :value="__('Foto Produk')" />
                                     @if ($current_image_path)
                                         <div class="mt-2 mb-2 flex items-center gap-4">
                                             <img src="{{ Storage::url($current_image_path) }}" class="w-16 h-16 object-cover rounded-lg border" />
-                                            <span class="text-xs text-gray-500">Current image</span>
+                                            <span class="text-xs text-gray-500">Gambar saat ini</span>
                                         </div>
                                     @endif
                                     
@@ -333,16 +333,16 @@ $getCategories = function () {
                                     <x-input-error :messages="$errors->get('image')" class="mt-1" />
 
                                     <!-- Loading status -->
-                                    <div wire:loading wire:target="image" class="text-xs text-indigo-600 dark:text-indigo-400 mt-1">Uploading image...</div>
+                                    <div wire:loading wire:target="image" class="text-xs text-indigo-600 dark:text-indigo-400 mt-1">Mengunggah gambar...</div>
                                 </div>
                             </div>
                         </div>
                         <div class="bg-gray-50 dark:bg-gray-900/30 px-6 py-4 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
                             <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm cursor-pointer">
-                                Save Product
+                                Simpan Produk
                             </button>
-                            <button type="button" wire:click="$set('isModalOpen', false)" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-700 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm cursor-pointer">
-                                Cancel
+                            <button type="button" wire:click="$set('isModalOpen', false)" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-700 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-55 dark:hover:bg-gray-705 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm cursor-pointer">
+                                Batal
                             </button>
                         </div>
                     </form>

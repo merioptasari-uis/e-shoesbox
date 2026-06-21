@@ -102,7 +102,7 @@ new #[Layout('layouts.app')] class extends Component
             }
 
             $this->order->load('payment');
-            $this->dispatch('notify', type: 'success', message: 'Simulated payment settlement successfully!');
+            $this->dispatch('notify', type: 'success', message: 'Simulasi penyelesaian pembayaran berhasil!');
         }
     }
 };
@@ -113,11 +113,11 @@ new #[Layout('layouts.app')] class extends Component
         <!-- Order Header -->
         <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest block mb-1">Invoice Details</span>
+                <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest block mb-1">Detail Faktur</span>
                 <h1 class="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">
                     {{ $order->order_number }}
                 </h1>
-                <p class="text-xs text-gray-500 mt-1">Placed on {{ $order->created_at->format('d M Y H:i') }}</p>
+                <p class="text-xs text-gray-500 mt-1">Dibuat pada {{ $order->created_at->format('d M Y H:i') }}</p>
             </div>
 
             <div>
@@ -129,7 +129,7 @@ new #[Layout('layouts.app')] class extends Component
                     {{ $order->status === 'shipping' ? 'bg-indigo-50 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900/30' : '' }}
                     {{ $order->status === 'cancelled' ? 'bg-rose-50 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border border-rose-100 dark:border-rose-900/30' : '' }}
                 ">
-                    {{ $order->status }}
+                    {{ match ($order->status) { 'pending' => 'Menunggu Pembayaran', 'processing' => 'Diproses', 'shipping' => 'Dalam Pengiriman', 'completed' => 'Selesai', 'cancelled' => 'Dibatalkan', default => $order->status } }}
                 </span>
             </div>
         </div>
@@ -138,12 +138,12 @@ new #[Layout('layouts.app')] class extends Component
         @if($order->status === 'pending')
             <div class="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/30 rounded-3xl p-6 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block mb-1">Developer Sandbox Tools</span>
-                    <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100">Simulate Payment Completion</h3>
-                    <p class="text-xs text-gray-500 mt-0.5">Use this button to simulate a successful settlement from Midtrans.</p>
+                    <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block mb-1">Alat Sandbox Developer</span>
+                    <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100">Simulasikan Penyelesaian Pembayaran</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">Gunakan tombol ini untuk mensimulasikan penyelesaian sukses dari Midtrans.</p>
                 </div>
                 <button wire:click="simulateSettlement" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-xs font-semibold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 transition shadow">
-                    Settle Payment
+                    Selesaikan Pembayaran
                 </button>
             </div>
         @endif
@@ -151,13 +151,13 @@ new #[Layout('layouts.app')] class extends Component
         <div class="space-y-6">
             <!-- Items ordered -->
             <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 mb-4">Items Ordered</h2>
+                <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 mb-4">Produk yang Dipesan</h2>
                 <div class="space-y-4">
                     @foreach($order->items as $item)
                         <div class="flex items-center gap-4 py-2 {{ !$loop->last ? 'border-b border-gray-50 dark:border-gray-750' : '' }}">
                             <div class="flex-1">
                                 <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ $item->name }}</h4>
-                                <p class="text-xs text-gray-500 mt-0.5">Qty: {{ $item->quantity }} x Rp {{ number_format($item->price, 0, ',', '.') }}</p>
+                                <p class="text-xs text-gray-500 mt-0.5">Jumlah: {{ $item->quantity }} x Rp {{ number_format($item->price, 0, ',', '.') }}</p>
                             </div>
                             <span class="text-sm font-extrabold text-gray-900 dark:text-gray-100">
                                 Rp {{ number_format($item->price * $item->quantity, 0, ',', '.') }}
@@ -169,31 +169,31 @@ new #[Layout('layouts.app')] class extends Component
 
             <!-- Shipping address details -->
             <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 mb-4">Delivery Information</h2>
+                <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 mb-4">Informasi Pengiriman</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
                     <div>
-                        <span class="text-xs text-gray-400 block mb-1">Recipient Name & Contact</span>
+                        <span class="text-xs text-gray-400 block mb-1">Nama Penerima & Kontak</span>
                         <p class="font-bold text-gray-900 dark:text-gray-100">{{ $order->shipping_recipient_name }}</p>
                         <p class="text-gray-500 mt-0.5">{{ $order->shipping_phone_number }}</p>
                     </div>
 
                     <div>
-                        <span class="text-xs text-gray-400 block mb-1">Shipping Destination</span>
+                        <span class="text-xs text-gray-400 block mb-1">Tujuan Pengiriman</span>
                         <p class="font-semibold text-gray-950 dark:text-gray-100">{{ $order->shipping_address_line }}</p>
                         <p class="text-gray-500 mt-0.5">{{ $order->shipping_city }}, {{ $order->shipping_province }} {{ $order->shipping_postal_code }}</p>
                     </div>
 
                     <div>
-                        <span class="text-xs text-gray-400 block mb-1">Courier Method</span>
+                        <span class="text-xs text-gray-400 block mb-1">Metode Kurir</span>
                         <p class="font-extrabold text-gray-900 dark:text-gray-105 uppercase">{{ $order->shipping_courier }} - {{ $order->shipping_service }}</p>
                     </div>
 
                     <div>
-                        <span class="text-xs text-gray-400 block mb-1">Tracking Number</span>
+                        <span class="text-xs text-gray-400 block mb-1">Nomor Resi / Pelacakan</span>
                         @if($order->tracking_number)
                             <p class="font-extrabold text-indigo-600 dark:text-indigo-400 uppercase">{{ $order->tracking_number }}</p>
                         @else
-                            <p class="text-gray-400 italic">Not shipped yet</p>
+                            <p class="text-gray-400 italic">Belum dikirim</p>
                         @endif
                     </div>
                 </div>
@@ -201,51 +201,51 @@ new #[Layout('layouts.app')] class extends Component
 
             <!-- Payment Summary -->
             <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 mb-4">Payment Summary</h2>
+                <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 mb-4">Ringkasan Pembayaran</h2>
                 
                 <div class="space-y-3 mb-6 border-b border-gray-100 dark:border-gray-750 pb-4">
                     <div class="flex justify-between text-sm text-gray-500">
-                        <span>Items Subtotal</span>
+                        <span>Subtotal Produk</span>
                         <span class="font-semibold text-gray-900 dark:text-gray-105">Rp {{ number_format($order->subtotal_amount, 0, ',', '.') }}</span>
                     </div>
                     @if($order->discount_amount > 0)
                         <div class="flex justify-between text-sm text-emerald-600 dark:text-emerald-400 font-semibold">
-                            <span>Voucher Discount</span>
+                            <span>Diskon Voucher</span>
                             <span>- Rp {{ number_format($order->discount_amount, 0, ',', '.') }}</span>
                         </div>
                     @endif
                     <div class="flex justify-between text-sm text-gray-500">
-                        <span>Shipping Cost</span>
+                        <span>Biaya Pengiriman</span>
                         <span class="font-semibold text-gray-900 dark:text-gray-105">Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</span>
                     </div>
                     @if($order->shipping_discount_amount > 0)
                         <div class="flex justify-between text-sm text-emerald-600 dark:text-emerald-400 font-semibold">
-                            <span>Shipping Discount</span>
+                            <span>Diskon Ongkir</span>
                             <span>- Rp {{ number_format($order->shipping_discount_amount, 0, ',', '.') }}</span>
                         </div>
                     @endif
                     <div class="flex justify-between text-base font-extrabold text-gray-900 dark:text-gray-100 pt-2">
-                        <span>Total Paid</span>
+                        <span>Total yang Dibayar</span>
                         <span>Rp {{ number_format($order->total_amount, 0, ',', '.') }}</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm bg-gray-50 dark:bg-gray-750/30 p-4 rounded-2xl border border-gray-100 dark:border-gray-750">
                     <div>
-                        <span class="text-xs text-gray-400 block mb-1">Payment Method</span>
+                        <span class="text-xs text-gray-400 block mb-1">Metode Pembayaran</span>
                         <p class="font-bold text-gray-900 dark:text-gray-100 uppercase">
-                            {{ $order->payment?->payment_type ? str_replace('_', ' ', $order->payment->payment_type) : 'Midtrans gateway' }}
+                            {{ $order->payment?->payment_type ? str_replace('_', ' ', $order->payment->payment_type) : 'Gerbang Pembayaran Midtrans' }}
                         </p>
                     </div>
 
                     <div>
-                        <span class="text-xs text-gray-400 block mb-1">Payment Status</span>
+                        <span class="text-xs text-gray-400 block mb-1">Status Pembayaran</span>
                         <span class="font-extrabold uppercase
                             {{ $order->payment?->status === 'settlement' ? 'text-emerald-600 dark:text-emerald-400' : '' }}
-                            {{ $order->payment?->status === 'pending' ? 'text-amber-500 dark:text-amber-400' : '' }}
+                            {{ $order->payment?->status === 'pending' ? 'text-amber-505 dark:text-amber-400' : '' }}
                             {{ in_array($order->payment?->status, ['expire', 'cancel']) ? 'text-rose-600 dark:text-rose-400' : '' }}
                         ">
-                            {{ $order->payment?->status ?? 'pending' }}
+                            {{ match ($order->payment?->status ?? 'pending') { 'pending' => 'MENUNGGU PEMBAYARAN', 'settlement' => 'LUNAS', 'expire' => 'KADALUARSA', 'cancel' => 'BATAL', default => strtoupper($order->payment?->status ?? 'PENDING') } }}
                         </span>
                     </div>
                 </div>
@@ -257,7 +257,7 @@ new #[Layout('layouts.app')] class extends Component
                             id="pay-button"
                             class="w-full flex items-center justify-center px-6 py-4 border border-transparent text-sm font-semibold rounded-2xl text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-lg shadow-indigo-150 dark:shadow-none"
                         >
-                            Complete Payment
+                            Bayar Sekarang
                         </button>
                     </div>
 
@@ -275,7 +275,7 @@ new #[Layout('layouts.app')] class extends Component
                                     const snapToken = '{{ $order->payment->snap_token }}';
                                     
                                     if (snapToken.startsWith('mock-snap-token')) {
-                                        alert('Simulating payment sandbox popup.');
+                                        alert('Mensimulasikan popup sandbox pembayaran.');
                                         $wire.simulateSettlement();
                                         return;
                                     }
@@ -288,10 +288,10 @@ new #[Layout('layouts.app')] class extends Component
                                             $wire.checkPaymentStatus();
                                         },
                                         onError: function(result) {
-                                            alert("Payment failed!");
+                                            alert("Pembayaran gagal!");
                                         },
                                         onClose: function() {
-                                            alert('Popup closed. You can retry paying by clicking Complete Payment.');
+                                            alert('Popup ditutup. Anda dapat mencoba membayar kembali dengan mengklik Bayar Sekarang.');
                                         }
                                     });
                                 });

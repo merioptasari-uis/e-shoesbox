@@ -39,7 +39,7 @@ on(['cart-updated' => function () {
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="url('/')" :active="request()->is('/')" wire:navigate>
-                        {{ __('Shop') }}
+                        {{ __('Belanja') }}
                     </x-nav-link>
                     @if (auth()->check())
                         <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
@@ -47,13 +47,13 @@ on(['cart-updated' => function () {
                         </x-nav-link>
                         @if (auth()->user()->isAdmin())
                             <x-nav-link :href="route('admin.products')" :active="request()->routeIs('admin.products')" wire:navigate>
-                                {{ __('Products') }}
+                                {{ __('Produk') }}
                             </x-nav-link>
                             <x-nav-link :href="route('admin.orders')" :active="request()->routeIs('admin.orders')" wire:navigate>
-                                {{ __('Orders') }}
+                                {{ __('Pesanan') }}
                             </x-nav-link>
                             <x-nav-link :href="route('admin.vouchers')" :active="request()->routeIs('admin.vouchers')" wire:navigate>
-                                {{ __('Vouchers') }}
+                                {{ __('Voucher') }}
                             </x-nav-link>
                         @endif
                     @endif
@@ -94,21 +94,21 @@ on(['cart-updated' => function () {
 
                         <x-slot name="content">
                             <x-dropdown-link :href="route('profile')" wire:navigate>
-                                {{ __('Profile') }}
+                                {{ __('Profil') }}
                             </x-dropdown-link>
 
                             <!-- Authentication -->
                             <button wire:click="logout" class="w-full text-start">
                                 <x-dropdown-link>
-                                    {{ __('Log Out') }}
+                                    {{ __('Keluar') }}
                                 </x-dropdown-link>
                             </button>
                         </x-slot>
                     </x-dropdown>
                 @else
                     <div class="space-x-4">
-                        <a href="{{ route('login') }}" class="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" wire:navigate>Login</a>
-                        <a href="{{ route('register') }}" class="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" wire:navigate>Register</a>
+                        <a href="{{ route('login') }}" class="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" wire:navigate>Masuk</a>
+                        <a href="{{ route('register') }}" class="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" wire:navigate>Daftar</a>
                     </div>
                 @endif
             </div>
@@ -129,24 +129,24 @@ on(['cart-updated' => function () {
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="url('/')" :active="request()->is('/')" wire:navigate>
-                {{ __('Shop') }}
+                {{ __('Belanja') }}
             </x-responsive-nav-link>
             @if (auth()->check())
                 <x-responsive-nav-link :href="url('/cart')" :active="request()->is('cart')" wire:navigate>
-                    {{ __('Cart') }} ({{ $this->cartCount }})
+                    {{ __('Keranjang') }} ({{ $this->cartCount }})
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
                     {{ __('Dashboard') }}
                 </x-responsive-nav-link>
                 @if (auth()->user()->isAdmin())
                     <x-responsive-nav-link :href="route('admin.products')" :active="request()->routeIs('admin.products')" wire:navigate>
-                        {{ __('Products') }}
+                        {{ __('Produk') }}
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('admin.orders')" :active="request()->routeIs('admin.orders')" wire:navigate>
-                        {{ __('Orders') }}
+                        {{ __('Pesanan') }}
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('admin.vouchers')" :active="request()->routeIs('admin.vouchers')" wire:navigate>
-                        {{ __('Vouchers') }}
+                        {{ __('Voucher') }}
                     </x-responsive-nav-link>
                 @endif
             @endif
@@ -162,23 +162,23 @@ on(['cart-updated' => function () {
 
                 <div class="mt-3 space-y-1">
                     <x-responsive-nav-link :href="route('profile')" wire:navigate>
-                        {{ __('Profile') }}
+                        {{ __('Profil') }}
                     </x-responsive-nav-link>
 
                     <!-- Authentication -->
                     <button wire:click="logout" class="w-full text-start">
                         <x-responsive-nav-link>
-                            {{ __('Log Out') }}
+                            {{ __('Keluar') }}
                         </x-responsive-nav-link>
                     </button>
                 </div>
             @else
                 <div class="mt-3 space-y-1 px-4">
                     <x-responsive-nav-link :href="route('login')" wire:navigate>
-                        {{ __('Login') }}
+                        {{ __('Masuk') }}
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('register')" wire:navigate>
-                        {{ __('Register') }}
+                        {{ __('Daftar') }}
                     </x-responsive-nav-link>
                 </div>
             @endif

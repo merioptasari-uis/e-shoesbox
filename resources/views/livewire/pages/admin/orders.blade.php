@@ -67,7 +67,7 @@ new #[Layout('layouts.app')] class extends Component
             }
         }
 
-        $this->dispatch('notify', type: 'success', message: 'Order updated successfully!');
+        $this->dispatch('notify', type: 'success', message: 'Pesanan berhasil diperbarui!');
         $this->closeDetails();
     }
 
@@ -84,8 +84,8 @@ new #[Layout('layouts.app')] class extends Component
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
             <div>
-                <h1 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">Order Management</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Review orders, manage fulfillment tracking, and update status cycles.</p>
+                <h1 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">Manajemen Pesanan</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Tinjau pesanan, kelola pelacakan pengiriman, dan perbarui siklus status.</p>
             </div>
         </div>
 
@@ -97,20 +97,20 @@ new #[Layout('layouts.app')] class extends Component
                         <table class="min-w-full divide-y divide-gray-100 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700/30">
                                 <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Invoice</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Courier</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Faktur</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Pelanggan</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Kurir</th>
                                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Total</th>
                                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Payment</th>
-                                    <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Pembayaran</th>
+                                    <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100 dark:divide-gray-700 bg-white dark:bg-gray-800">
                                 @if($this->orders->isEmpty())
                                     <tr>
                                         <td colspan="7" class="px-6 py-12 text-center text-gray-500">
-                                            No transactions placed yet.
+                                            Belum ada transaksi.
                                         </td>
                                     </tr>
                                 @else
@@ -137,7 +137,7 @@ new #[Layout('layouts.app')] class extends Component
                                                     {{ $o->status === 'shipping' ? 'bg-indigo-50 text-indigo-805 dark:bg-indigo-950 dark:text-indigo-305' : '' }}
                                                     {{ $o->status === 'cancelled' ? 'bg-rose-50 text-rose-800 dark:bg-rose-950 dark:text-rose-300' : '' }}
                                                 ">
-                                                    {{ $o->status }}
+                                                    {{ match ($o->status) { 'pending' => 'Menunggu', 'processing' => 'Diproses', 'shipping' => 'Dikirim', 'completed' => 'Selesai', 'cancelled' => 'Dibatalkan', default => $o->status } }}
                                                 </span>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
@@ -146,12 +146,12 @@ new #[Layout('layouts.app')] class extends Component
                                                     {{ $o->payment?->status === 'pending' ? 'bg-amber-50 text-amber-800 dark:bg-amber-950/20 dark:text-amber-300' : '' }}
                                                     {{ in_array($o->payment?->status, ['expire', 'cancel']) ? 'bg-rose-50 text-rose-800 dark:bg-rose-950 dark:text-rose-300' : '' }}
                                                 ">
-                                                    {{ $o->payment?->status ?? 'pending' }}
+                                                    {{ match ($o->payment?->status ?? 'pending') { 'pending' => 'MENUNGGU', 'settlement' => 'LUNAS', 'expire' => 'KADALUARSA', 'cancel' => 'BATAL', default => strtoupper($o->payment?->status ?? 'PENDING') } }}
                                                 </span>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold">
                                                 <button class="text-indigo-600 hover:text-indigo-900 transition dark:text-indigo-400 dark:hover:text-indigo-300">
-                                                    Fulfill
+                                                    Proses
                                                 </button>
                                             </td>
                                         </tr>
@@ -172,7 +172,7 @@ new #[Layout('layouts.app')] class extends Component
                     <div class="lg:col-span-1 mt-8 lg:mt-0">
                         <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 sticky top-6 space-y-6">
                             <div class="flex items-center justify-between border-b border-gray-50 dark:border-gray-700 pb-4">
-                                <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100">Fulfillment details</h2>
+                                <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100">Detail Pemenuhan</h2>
                                 <button wire:click="closeDetails" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                 </button>
@@ -180,15 +180,15 @@ new #[Layout('layouts.app')] class extends Component
 
                             <!-- Invoice and Info -->
                             <div class="space-y-1">
-                                <span class="text-xs text-gray-400 block">Order Number</span>
+                                <span class="text-xs text-gray-400 block">Nomor Pesanan</span>
                                 <span class="text-base font-extrabold text-gray-900 dark:text-gray-100">{{ $detailOrder->order_number }}</span>
-                                <p class="text-xs text-gray-500">Customer: {{ $detailOrder->shipping_recipient_name }} ({{ $detailOrder->shipping_phone_number }})</p>
+                                <p class="text-xs text-gray-500">Pelanggan: {{ $detailOrder->shipping_recipient_name }} ({{ $detailOrder->shipping_phone_number }})</p>
                                 <p class="text-xs text-gray-500">{{ $detailOrder->shipping_address_line }}, {{ $detailOrder->shipping_city }}, {{ $detailOrder->shipping_province }}</p>
                             </div>
 
                             <!-- Items -->
                             <div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-2xl border border-gray-100 dark:border-gray-700/50 space-y-3">
-                                <h3 class="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Items</h3>
+                                <h3 class="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Produk</h3>
                                 @foreach($detailOrder->items as $i)
                                     <div class="flex justify-between text-xs text-gray-900 dark:text-gray-100">
                                         <span class="font-medium">{{ $i->name }} (x{{ $i->quantity }})</span>
@@ -196,7 +196,7 @@ new #[Layout('layouts.app')] class extends Component
                                     </div>
                                 @endforeach
                                 <div class="border-t border-gray-200 dark:border-gray-600 pt-2 flex justify-between text-xs font-bold text-gray-900 dark:text-gray-100">
-                                    <span>Total Value</span>
+                                    <span>Total Nilai</span>
                                     <span>Rp {{ number_format($detailOrder->total_amount, 0, ',', '.') }}</span>
                                 </div>
                             </div>
@@ -205,23 +205,23 @@ new #[Layout('layouts.app')] class extends Component
                             <div class="space-y-4">
                                 <!-- Order Status -->
                                 <div>
-                                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Fulfillment Status</label>
+                                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Status Pemenuhan</label>
                                     <select wire:model="orderStatus" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-950 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                        <option value="pending">Pending Payment</option>
-                                        <option value="processing">Processing (Preparing)</option>
-                                        <option value="shipping">Shipping (Dispatched)</option>
-                                        <option value="completed">Completed</option>
-                                        <option value="cancelled">Cancelled</option>
+                                        <option value="pending">Menunggu Pembayaran</option>
+                                        <option value="processing">Diproses (Dipersiapkan)</option>
+                                        <option value="shipping">Dikirim (Dalam Perjalanan)</option>
+                                        <option value="completed">Selesai</option>
+                                        <option value="cancelled">Dibatalkan</option>
                                     </select>
                                 </div>
 
                                 <!-- Tracking Number -->
                                 <div>
-                                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Tracking Number / Receipt</label>
+                                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Nomor Resi / Pelacakan</label>
                                     <input 
                                         wire:model="trackingNumber" 
                                         type="text" 
-                                        placeholder="e.g. JNE123456789"
+                                        placeholder="contoh: JNE123456789"
                                         class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                     >
                                 </div>
@@ -229,10 +229,10 @@ new #[Layout('layouts.app')] class extends Component
 
                             <div class="flex gap-2">
                                 <button wire:click="closeDetails" class="w-1/2 px-4 py-3 bg-gray-100 hover:bg-gray-250 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold text-sm rounded-xl transition">
-                                    Cancel
+                                    Batal
                                 </button>
                                 <button wire:click="updateOrder" class="w-1/2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl transition shadow">
-                                    Save Changes
+                                    Simpan Perubahan
                                 </button>
                             </div>
                         </div>
