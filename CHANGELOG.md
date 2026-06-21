@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Implemented database-driven Campaign & Slideshow Event management system with support for background gradient styles, badge text, promo tag integration, and expiration constraints.
+- Built Campaign CRUD administration panel under `/admin/campaigns` protected by `admin` middleware.
+- Integrated dynamic active campaigns query on storefront homepage slideshow with automated date range check (`scopeActive`) and fallback slideshow slides when no campaigns are active.
 - Overhauled the customer catalog page UI (`shop/index.blade.php`) to feel like a premium, feature-rich marketplace (Tokopedia/Shopee styling), implementing an auto-playing Alpine.js hero carousel banner, seasonal themed promotions, and visual coupon sidebar cards.
 - Integrated min/max price range filters with instant reactive debounce inside the Livewire/Volt shop catalog search sidebar.
 - Added copyable discount codes with instant clipboard write feedback (e.g., `COBAINBARU`).
@@ -40,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronized brand logo component rendering to target custom public/logo.png brand asset across layout files.
 
 ### Fixed
+- Fixed product details modal failing to open after catalog updates by upgrading computed property getters to Livewire v3 `#[Computed]` attributes and adding unique `wire:key` attributes on loop elements.
 - Fixed catalog layout and grid alignment on the main shop catalog page by correcting malformed HTML tags.
 - Standardized all scattered non-standard Tailwind color class weights (e.g., gray-750, gray-850, indigo-650) to valid standard equivalents.
 - Updated global application title name config to "e-shoesbox" across templates.

@@ -93,3 +93,26 @@ test('themed holiday promo badges are rendered', function () {
         ->assertStatus(200)
         ->assertSee('🕌 Idul Fitri');
 });
+
+test('customer can click product and open detail modal', function () {
+    $product = Product::create([
+        'category_id' => $this->category->id,
+        'name' => 'Detail Shoe Test',
+        'slug' => 'detail-shoe-test',
+        'description' => 'Great product details description test',
+        'price' => 100000,
+        'is_active' => true,
+    ]);
+
+    Volt::test('pages.shop.index')
+        ->assertSet('isDetailModalOpen', false)
+        ->assertSet('selectedProductId', null)
+        ->call('openDetailModal', $product->id)
+        ->assertSet('isDetailModalOpen', true)
+        ->assertSet('selectedProductId', $product->id)
+        ->assertSee('Detail Shoe Test')
+        ->assertSee('Great product details description test')
+        ->call('closeDetailModal')
+        ->assertSet('isDetailModalOpen', false)
+        ->assertSet('selectedProductId', null);
+});

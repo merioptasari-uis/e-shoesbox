@@ -55,6 +55,9 @@ on(['cart-updated' => function () {
                             <x-nav-link :href="route('admin.vouchers')" :active="request()->routeIs('admin.vouchers')" wire:navigate>
                                 {{ __('Voucher') }}
                             </x-nav-link>
+                            <x-nav-link :href="route('admin.campaigns')" :active="request()->routeIs('admin.campaigns')" wire:navigate>
+                                {{ __('Campaign') }}
+                            </x-nav-link>
                         @endif
                     @endif
                 </div>
@@ -147,6 +150,9 @@ on(['cart-updated' => function () {
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('admin.vouchers')" :active="request()->routeIs('admin.vouchers')" wire:navigate>
                         {{ __('Voucher') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.campaigns')" :active="request()->routeIs('admin.campaigns')" wire:navigate>
+                        {{ __('Campaign') }}
                     </x-responsive-nav-link>
                 @endif
             @endif

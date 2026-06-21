@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\CartItem;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Computed;
 use Livewire\WithPagination;
 
 new #[Layout('layouts.app')] class extends Component
@@ -83,7 +84,8 @@ new #[Layout('layouts.app')] class extends Component
         $this->selectedImageIndex = $index;
     }
 
-    public function getSelectedProductProperty(): ?Product
+    #[Computed]
+    public function selectedProduct(): ?Product
     {
         if (!$this->selectedProductId) {
             return null;
@@ -91,7 +93,8 @@ new #[Layout('layouts.app')] class extends Component
         return Product::with(['category', 'images'])->find($this->selectedProductId);
     }
 
-    public function getProductGalleryProperty(): array
+    #[Computed]
+    public function productGallery(): array
     {
         $product = $this->selectedProduct;
         if (!$product) {
@@ -153,6 +156,7 @@ new #[Layout('layouts.app')] class extends Component
         return [
             'products' => $query->paginate(12),
             'categories' => Category::all(),
+            'campaigns' => App\Models\Campaign::active()->get(),
         ];
     }
 
@@ -202,81 +206,128 @@ new #[Layout('layouts.app')] class extends Component
 };
 ?>
 
-<<div class="py-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
+@php
+    $slidesCount = $campaigns->isEmpty() ? 3 : $campaigns->count();
+@endphp
+<div class="py-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
     <!-- Premium Banner & Promotion Carousel Hero -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Left Banner Slider (2 Columns on Large Screens) -->
             <div class="lg:col-span-2 relative overflow-hidden rounded-[32px] shadow-lg bg-gray-900 h-[280px] sm:h-[350px] group"
-                 x-data="{ activeSlide: 0, totalSlides: 3, timer: null }"
+                 x-data="{ activeSlide: 0, totalSlides: {{ $slidesCount }}, timer: null }"
                  x-init="timer = setInterval(() => { activeSlide = (activeSlide + 1) % totalSlides }, 6000)"
                  @mouseenter="clearInterval(timer)"
                  @mouseleave="timer = setInterval(() => { activeSlide = (activeSlide + 1) % totalSlides }, 6000)">
                 
-                <!-- Slide 1 (Holiday / Ramadhan Festive) -->
-                <div x-show="activeSlide === 0" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="absolute inset-0 bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-700 flex items-center p-8 sm:p-12">
-                    <div class="relative z-10 max-w-md">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-black bg-white/20 text-white mb-4 backdrop-blur-md">
-                            🕌 FESTIVAL HARI RAYA
-                        </span>
-                        <h2 class="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight mb-3">
-                            Idul Fitri Mega Promo! Diskon Hingga 70%
-                        </h2>
-                        <p class="text-xs sm:text-sm text-emerald-50 mb-6">
-                            Lengkapi penampilan suci Anda dengan sneakers premium terbaik kami. Dapatkan diskon spesial & gratis ongkir.
-                        </p>
-                        <a href="#catalog" class="inline-flex items-center justify-center px-5 py-2.5 text-xs sm:text-sm font-bold rounded-2xl text-emerald-700 bg-white hover:bg-emerald-50 transition transform hover:scale-105 shadow-md">
-                            Beli Sekarang ➜
-                        </a>
+                @if($campaigns->isNotEmpty())
+                    @foreach($campaigns as $index => $camp)
+                        @php
+                            $gradientClasses = match($camp->bg_gradient) {
+                                'emerald' => 'from-emerald-600 via-teal-650 to-indigo-700',
+                                'rose' => 'from-rose-600 via-red-550 to-orange-500',
+                                'amber' => 'from-amber-500 via-yellow-550 to-orange-600',
+                                'purple' => 'from-purple-600 via-pink-600 to-rose-700',
+                                default => 'from-indigo-600 via-purple-600 to-pink-500',
+                            };
+                            
+                            $promoEmoji = match($camp->promo_tag) {
+                                'Idul Fitri', 'Ramadhan' => '🕌',
+                                'Natal' => '🎄',
+                                'Imlek' => '🏮',
+                                'Tahun Baru' => '🎆',
+                                default => '✨',
+                            };
+                        @endphp
+                        <div x-show="activeSlide === {{ $index }}" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="absolute inset-0 bg-gradient-to-r {{ $gradientClasses }} flex items-center p-8 sm:p-12" style="{{ $index === 0 ? '' : 'display: none;' }}">
+                            <div class="relative z-10 max-w-md">
+                                @if($camp->badge_text)
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-black bg-white/20 text-white mb-4 backdrop-blur-md">
+                                        {{ $promoEmoji }} {{ strtoupper($camp->badge_text) }}
+                                    </span>
+                                @endif
+                                <h2 class="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight mb-3">
+                                    {{ $camp->title }}
+                                </h2>
+                                @if($camp->subtitle)
+                                    <p class="text-xs sm:text-sm text-white/95 mb-6">
+                                        {{ $camp->subtitle }}
+                                    </p>
+                                @endif
+                                <a href="{{ $camp->button_link }}" class="inline-flex items-center justify-center px-5 py-2.5 text-xs sm:text-sm font-bold rounded-2xl text-gray-800 bg-white hover:bg-gray-50 transition transform hover:scale-105 shadow-md">
+                                    {{ $camp->button_text }} ➜
+                                </a>
+                            </div>
+                            <div class="absolute -right-10 -bottom-10 w-64 h-64 rounded-full bg-white/10 blur-3xl"></div>
+                            <span class="absolute right-12 bottom-12 text-8xl sm:text-9xl opacity-20 pointer-events-none select-none">{{ $promoEmoji }}</span>
+                        </div>
+                    @endforeach
+                @else
+                    <!-- Fallback Slide 1 (Holiday / Ramadhan Festive) -->
+                    <div x-show="activeSlide === 0" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="absolute inset-0 bg-gradient-to-r from-emerald-600 via-teal-650 to-indigo-700 flex items-center p-8 sm:p-12">
+                        <div class="relative z-10 max-w-md">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-black bg-white/20 text-white mb-4 backdrop-blur-md">
+                                🕌 FESTIVAL HARI RAYA
+                            </span>
+                            <h2 class="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight mb-3">
+                                Idul Fitri Mega Promo! Diskon Hingga 70%
+                            </h2>
+                            <p class="text-xs sm:text-sm text-emerald-50 mb-6">
+                                Lengkapi penampilan suci Anda dengan sneakers premium terbaik kami. Dapatkan diskon spesial & gratis ongkir.
+                            </p>
+                            <a href="#catalog" class="inline-flex items-center justify-center px-5 py-2.5 text-xs sm:text-sm font-bold rounded-2xl text-emerald-700 bg-white hover:bg-emerald-50 transition transform hover:scale-105 shadow-md">
+                                Beli Sekarang ➜
+                            </a>
+                        </div>
+                        <!-- Decorative elements -->
+                        <div class="absolute -right-10 -bottom-10 w-64 h-64 rounded-full bg-white/10 blur-3xl"></div>
+                        <span class="absolute right-12 bottom-12 text-8xl sm:text-9xl opacity-20 pointer-events-none select-none">🕌</span>
                     </div>
-                    <!-- Decorative elements -->
-                    <div class="absolute -right-10 -bottom-10 w-64 h-64 rounded-full bg-white/10 blur-3xl"></div>
-                    <span class="absolute right-12 bottom-12 text-8xl sm:text-9xl opacity-20 pointer-events-none select-none">🕌</span>
-                </div>
 
-                <!-- Slide 2 (Sneakers / Sports Fashion) -->
-                <div x-show="activeSlide === 1" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 flex items-center p-8 sm:p-12" style="display: none;">
-                    <div class="relative z-10 max-w-md">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-black bg-white/20 text-white mb-4 backdrop-blur-md">
-                            ⚡ NEW RELEASES
-                        </span>
-                        <h2 class="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight mb-3">
-                            Mid-Year Sneaker Festival
-                        </h2>
-                        <p class="text-xs sm:text-sm text-indigo-50 mb-6">
-                            Temukan rilisan eksklusif dan varian warna terbaru dari model terlaris kami. Langkah lebih trendi, performa maksimal.
-                        </p>
-                        <a href="#catalog" class="inline-flex items-center justify-center px-5 py-2.5 text-xs sm:text-sm font-bold rounded-2xl text-indigo-700 bg-white hover:bg-indigo-50 transition transform hover:scale-105 shadow-md">
-                            Lihat Koleksi ➜
-                        </a>
+                    <!-- Fallback Slide 2 (Sneakers / Sports Fashion) -->
+                    <div x-show="activeSlide === 1" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 flex items-center p-8 sm:p-12" style="display: none;">
+                        <div class="relative z-10 max-w-md">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-black bg-white/20 text-white mb-4 backdrop-blur-md">
+                                ⚡ NEW RELEASES
+                            </span>
+                            <h2 class="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight mb-3">
+                                Mid-Year Sneaker Festival
+                            </h2>
+                            <p class="text-xs sm:text-sm text-indigo-50 mb-6">
+                                Temukan rilisan eksklusif dan varian warna terbaru dari model terlaris kami. Langkah lebih trendi, performa maksimal.
+                            </p>
+                            <a href="#catalog" class="inline-flex items-center justify-center px-5 py-2.5 text-xs sm:text-sm font-bold rounded-2xl text-indigo-700 bg-white hover:bg-indigo-50 transition transform hover:scale-105 shadow-md">
+                                Lihat Koleksi ➜
+                            </a>
+                        </div>
+                        <div class="absolute -left-10 -top-10 w-64 h-64 rounded-full bg-purple-500/25 blur-3xl"></div>
+                        <span class="absolute right-16 bottom-10 text-8xl sm:text-9xl opacity-20 pointer-events-none select-none">👟</span>
                     </div>
-                    <div class="absolute -left-10 -top-10 w-64 h-64 rounded-full bg-purple-500/25 blur-3xl"></div>
-                    <span class="absolute right-16 bottom-10 text-8xl sm:text-9xl opacity-20 pointer-events-none select-none">👟</span>
-                </div>
 
-                <!-- Slide 3 (Voucher Promotion) -->
-                <div x-show="activeSlide === 2" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="absolute inset-0 bg-gradient-to-r from-rose-600 via-red-500 to-orange-500 flex items-center p-8 sm:p-12" style="display: none;">
-                    <div class="relative z-10 max-w-md">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-black bg-white/20 text-white mb-4 backdrop-blur-md">
-                            🔥 EXTRA CASHBACK
-                        </span>
-                        <h2 class="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight mb-3">
-                            Ekstra Cashback 10% Hingga Rp 50.000
-                        </h2>
-                        <p class="text-xs sm:text-sm text-red-50 mb-6">
-                            Gunakan voucher belanja bertumpuk untuk hemat berlipat ganda. Makin banyak belanja, makin untung!
-                        </p>
-                        <a href="#catalog" class="inline-flex items-center justify-center px-5 py-2.5 text-xs sm:text-sm font-bold rounded-2xl text-red-700 bg-white hover:bg-red-50 transition transform hover:scale-105 shadow-md">
-                            Klaim Voucher ➜
-                        </a>
+                    <!-- Fallback Slide 3 (Voucher Promotion) -->
+                    <div x-show="activeSlide === 2" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="absolute inset-0 bg-gradient-to-r from-rose-600 via-red-550 to-orange-500 flex items-center p-8 sm:p-12" style="display: none;">
+                        <div class="relative z-10 max-w-md">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-black bg-white/20 text-white mb-4 backdrop-blur-md">
+                                🔥 EXTRA CASHBACK
+                            </span>
+                            <h2 class="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight mb-3">
+                                Ekstra Cashback 10% Hingga Rp 50.000
+                            </h2>
+                            <p class="text-xs sm:text-sm text-red-50 mb-6">
+                                Gunakan voucher belanja bertumpuk untuk hemat berlipat ganda. Makin banyak belanja, makin untung!
+                            </p>
+                            <a href="#catalog" class="inline-flex items-center justify-center px-5 py-2.5 text-xs sm:text-sm font-bold rounded-2xl text-red-700 bg-white hover:bg-red-50 transition transform hover:scale-105 shadow-md">
+                                Klaim Voucher ➜
+                            </a>
+                        </div>
+                        <div class="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-orange-400/20 blur-3xl"></div>
+                        <span class="absolute right-12 bottom-12 text-8xl sm:text-9xl opacity-20 pointer-events-none select-none">🧧</span>
                     </div>
-                    <div class="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-orange-400/20 blur-3xl"></div>
-                    <span class="absolute right-12 bottom-12 text-8xl sm:text-9xl opacity-20 pointer-events-none select-none">🧧</span>
-                </div>
+                @endif
 
                 <!-- Carousel Slide Indicators (Dots) -->
                 <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-2 z-20">
-                    <template x-for="i in 3">
+                    <template x-for="i in {{ $slidesCount }}">
                         <button @click="activeSlide = i - 1" :class="activeSlide === i - 1 ? 'w-6 bg-white' : 'w-2 bg-white/50'" class="h-2 rounded-full transition-all duration-300"></button>
                     </template>
                 </div>
@@ -391,7 +442,7 @@ new #[Layout('layouts.app')] class extends Component
                             $soldPercentage = 60 + ($prod->id * 7) % 35;
                             $stockLeft = 12 - ($prod->id % 9);
                         @endphp
-                        <div class="group bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition duration-300 flex flex-col h-full transform hover:-translate-y-1 relative">
+                        <div wire:key="flash-sale-{{ $prod->id }}" class="group bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition duration-300 flex flex-col h-full transform hover:-translate-y-1 relative">
                             <!-- Image Card -->
                             <div wire:click="openDetailModal({{ $prod->id }})" class="relative pt-[100%] bg-gradient-to-br from-red-50 to-orange-50 dark:from-gray-700 dark:to-gray-800 overflow-hidden cursor-pointer">
                                 @if($prod->image_path)
@@ -608,7 +659,7 @@ new #[Layout('layouts.app')] class extends Component
                                 $mockReviewsCount = 15 + ($prod->id * 11) % 95;
                                 $mockSalesCount = 30 + ($prod->id * 23) % 450;
                             @endphp
-                            <div x-data="{ isLiked: false }" class="group bg-white dark:bg-gray-800 rounded-[28px] shadow-sm border border-gray-100 dark:border-gray-700/80 overflow-hidden hover:shadow-2xl transition duration-300 flex flex-col h-full transform hover:-translate-y-2 relative">
+                            <div wire:key="product-{{ $prod->id }}" x-data="{ isLiked: false }" class="group bg-white dark:bg-gray-800 rounded-[28px] shadow-sm border border-gray-100 dark:border-gray-700/80 overflow-hidden hover:shadow-2xl transition duration-300 flex flex-col h-full transform hover:-translate-y-2 relative">
                                 
                                 <!-- Heart/Wishlist Button -->
                                 <button @click.stop="isLiked = !isLiked" class="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/90 dark:bg-gray-700/90 text-gray-500 hover:text-rose-600 shadow flex items-center justify-center transition hover:scale-110">
