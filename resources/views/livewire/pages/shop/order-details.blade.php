@@ -113,7 +113,7 @@ new #[Layout('layouts.app')] class extends Component
         <!-- Order Header -->
         <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <span class="text-xs font-semibold text-indigo-650 dark:text-indigo-400 uppercase tracking-widest block mb-1">Invoice Details</span>
+                <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest block mb-1">Invoice Details</span>
                 <h1 class="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">
                     {{ $order->order_number }}
                 </h1>
@@ -191,7 +191,7 @@ new #[Layout('layouts.app')] class extends Component
                     <div>
                         <span class="text-xs text-gray-400 block mb-1">Tracking Number</span>
                         @if($order->tracking_number)
-                            <p class="font-extrabold text-indigo-650 dark:text-indigo-400 uppercase">{{ $order->tracking_number }}</p>
+                            <p class="font-extrabold text-indigo-600 dark:text-indigo-400 uppercase">{{ $order->tracking_number }}</p>
                         @else
                             <p class="text-gray-400 italic">Not shipped yet</p>
                         @endif

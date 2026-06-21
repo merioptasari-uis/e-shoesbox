@@ -294,15 +294,15 @@ new #[Layout('layouts.app')] class extends Component
                                         <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
                                             {{ $item->product->name }}
                                         </h3>
-                                        <p class="text-xs text-indigo-655 dark:text-indigo-400 font-semibold uppercase tracking-wider">
+                                        <p class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wider">
                                             {{ $item->product->category->name }}
                                         </p>
                                         <div class="flex items-center gap-2 mt-2">
-                                            <button wire:click="decrement({{ $item->id }})" class="p-1 rounded-lg bg-gray-55 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-500 hover:text-gray-700 transition">
+                                            <button wire:click="decrement({{ $item->id }})" class="p-1 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-500 hover:text-gray-700 transition">
                                                 <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
                                             </button>
                                             <span class="text-xs font-bold text-gray-800 dark:text-gray-200 px-1">{{ $item->quantity }}</span>
-                                            <button wire:click="increment({{ $item->id }})" class="p-1 rounded-lg bg-gray-55 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-500 hover:text-gray-700 transition">
+                                            <button wire:click="increment({{ $item->id }})" class="p-1 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-500 hover:text-gray-700 transition">
                                                 <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                             </button>
                                         </div>
@@ -330,30 +330,30 @@ new #[Layout('layouts.app')] class extends Component
                             <!-- Recipient Name -->
                             <div>
                                 <label class="block text-xs font-semibold text-gray-600 dark:text-gray-450 uppercase tracking-wider mb-2">Recipient Name</label>
-                                <input wire:model="recipientName" type="text" class="w-full border-gray-300 dark:border-gray-650 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <input wire:model="recipientName" type="text" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 @error('recipientName') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                             </div>
 
                             <!-- Phone Number -->
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-450 uppercase tracking-wider mb-2">Phone Number</label>
-                                <input wire:model="phoneNumber" type="text" class="w-full border-gray-300 dark:border-gray-650 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Phone Number</label>
+                                <input wire:model="phoneNumber" type="text" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 @error('phoneNumber') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                             </div>
                         </div>
 
                         <!-- Address Line -->
                         <div>
-                            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-450 uppercase tracking-wider mb-2">Full Address</label>
-                            <textarea wire:model="addressLine" rows="3" placeholder="Street Name, Building/Unit, Landmark" class="w-full border-gray-300 dark:border-gray-655 rounded-xl bg-gray-55 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Full Address</label>
+                            <textarea wire:model="addressLine" rows="3" placeholder="Street Name, Building/Unit, Landmark" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
                             @error('addressLine') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <!-- Province Selector -->
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-450 uppercase tracking-wider mb-2">Province</label>
-                                <select wire:model.live="provinceId" class="w-full border-gray-300 dark:border-gray-650 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-950 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Province</label>
+                                <select wire:model.live="provinceId" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-950 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                     <option value="">Select Province</option>
                                     @foreach($provinces as $prov)
                                         <option value="{{ $prov->id }}">{{ $prov->name }}</option>
@@ -364,8 +364,8 @@ new #[Layout('layouts.app')] class extends Component
 
                             <!-- City Selector -->
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-455 uppercase tracking-wider mb-2">City</label>
-                                <select wire:model.live="cityId" {{ !$provinceId ? 'disabled' : '' }} class="w-full border-gray-300 dark:border-gray-650 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-950 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed">
+                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">City</label>
+                                <select wire:model.live="cityId" {{ !$provinceId ? 'disabled' : '' }} class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-950 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed">
                                     <option value="">Select City</option>
                                     @foreach($cities as $city)
                                         <option value="{{ $city->id }}">{{ $city->name }} ({{ $city->type }})</option>
@@ -377,7 +377,7 @@ new #[Layout('layouts.app')] class extends Component
 
                         <!-- Courier Selection Card Grid -->
                         <div x-data="{ selected: @entangle('courier') }">
-                            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-450 uppercase tracking-wider mb-3">Select Courier</label>
+                            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Select Courier</label>
                             <div class="grid grid-cols-3 gap-4">
                                 <!-- JNE -->
                                 <div 
@@ -413,16 +413,16 @@ new #[Layout('layouts.app')] class extends Component
                         <!-- Shipping Service Choices -->
                         @if(!empty($shippingServices))
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-450 uppercase tracking-wider mb-3">Available Services</label>
+                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Available Services</label>
                                 <div class="space-y-2">
                                     @foreach($shippingServices as $srv)
                                         <div 
                                             wire:click="selectService('{{ $srv['service'] }}', {{ $srv['cost'] }})"
-                                            class="flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition {{ $selectedService === $srv['service'] ? 'border-indigo-650 bg-indigo-50/50 dark:bg-indigo-950/20 ring-2 ring-indigo-600/20' : 'border-gray-100 dark:border-gray-750 hover:bg-gray-50 dark:hover:bg-gray-750/30' }}"
+                                            class="flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition {{ $selectedService === $srv['service'] ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/20 ring-2 ring-indigo-600/20' : 'border-gray-100 dark:border-gray-750 hover:bg-gray-50 dark:hover:bg-gray-750/30' }}"
                                         >
                                             <div>
                                                 <span class="text-sm font-extrabold text-gray-900 dark:text-gray-100 uppercase">{{ $srv['service'] }}</span>
-                                                <p class="text-xs text-gray-550 dark:text-gray-400 mt-0.5">{{ $srv['description'] }} - {{ $srv['etd'] }} days</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $srv['description'] }} - {{ $srv['etd'] }} days</p>
                                             </div>
                                             <span class="text-sm font-bold text-gray-900 dark:text-gray-100">
                                                 Rp {{ number_format($srv['cost'], 0, ',', '.') }}

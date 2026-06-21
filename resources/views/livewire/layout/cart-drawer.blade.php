@@ -132,7 +132,7 @@ new class extends Component
                                 @foreach($this->items as $item)
                                     <div class="flex items-center gap-4 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-700">
                                         <!-- Product Thumbnail -->
-                                        <div class="w-20 h-20 shrink-0 bg-gradient-to-br from-indigo-50 to-pink-50 dark:from-gray-750 dark:to-gray-800 rounded-xl overflow-hidden relative border border-gray-100 dark:border-gray-700">
+                                        <div class="w-20 h-20 shrink-0 bg-gradient-to-br from-indigo-50 to-pink-50 dark:from-gray-700 dark:to-gray-800 rounded-xl overflow-hidden relative border border-gray-100 dark:border-gray-700">
                                             @if($item->product->image_path)
                                                 <img src="{{ asset('storage/' . $item->product->image_path) }}" alt="{{ $item->product->name }}" class="w-full h-full object-cover">
                                             @else
@@ -189,7 +189,7 @@ new class extends Component
 
                     <!-- Footer / Summary -->
                     @if(!$this->items->isEmpty())
-                        <div class="border-t border-gray-100 dark:border-gray-700 px-6 py-6 bg-gray-50 dark:bg-gray-750/30">
+                        <div class="border-t border-gray-100 dark:border-gray-700 px-6 py-6 bg-gray-50 dark:bg-gray-700/30">
                             <div class="flex justify-between text-base font-bold text-gray-900 dark:text-gray-100 mb-4">
                                 <span>Subtotal</span>
                                 <span>Rp {{ number_format($this->total, 0, ',', '.') }}</span>

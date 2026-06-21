@@ -81,7 +81,7 @@ new #[Layout('layouts.app')] class extends Component
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
             <div>
                 <h1 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">Order Management</h1>
-                <p class="text-sm text-gray-550 dark:text-gray-400 mt-1">Review orders, manage fulfillment tracking, and update status cycles.</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Review orders, manage fulfillment tracking, and update status cycles.</p>
             </div>
         </div>
 
@@ -91,7 +91,7 @@ new #[Layout('layouts.app')] class extends Component
                 <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-100 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-750/30">
+                            <thead class="bg-gray-50 dark:bg-gray-700/30">
                                 <tr>
                                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Invoice</th>
                                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
@@ -111,7 +111,7 @@ new #[Layout('layouts.app')] class extends Component
                                     </tr>
                                 @else
                                     @foreach($this->orders as $o)
-                                        <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-750/10 transition cursor-pointer" wire:click="selectOrder({{ $o->id }})">
+                                        <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-700/10 transition cursor-pointer" wire:click="selectOrder({{ $o->id }})">
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100">
                                                 {{ $o->order_number }}
                                             </td>
@@ -167,7 +167,7 @@ new #[Layout('layouts.app')] class extends Component
                 @if($detailOrder)
                     <div class="lg:col-span-1 mt-8 lg:mt-0">
                         <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 sticky top-6 space-y-6">
-                            <div class="flex items-center justify-between border-b border-gray-50 dark:border-gray-750 pb-4">
+                            <div class="flex items-center justify-between border-b border-gray-50 dark:border-gray-700 pb-4">
                                 <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100">Fulfillment details</h2>
                                 <button wire:click="closeDetails" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -179,12 +179,12 @@ new #[Layout('layouts.app')] class extends Component
                                 <span class="text-xs text-gray-400 block">Order Number</span>
                                 <span class="text-base font-extrabold text-gray-900 dark:text-gray-100">{{ $detailOrder->order_number }}</span>
                                 <p class="text-xs text-gray-500">Customer: {{ $detailOrder->shipping_recipient_name }} ({{ $detailOrder->shipping_phone_number }})</p>
-                                <p class="text-xs text-gray-550">{{ $detailOrder->shipping_address_line }}, {{ $detailOrder->shipping_city }}, {{ $detailOrder->shipping_province }}</p>
+                                <p class="text-xs text-gray-500">{{ $detailOrder->shipping_address_line }}, {{ $detailOrder->shipping_city }}, {{ $detailOrder->shipping_province }}</p>
                             </div>
 
                             <!-- Items -->
-                            <div class="bg-gray-50 dark:bg-gray-750/30 p-4 rounded-2xl border border-gray-100 dark:border-gray-750/50 space-y-3">
-                                <h3 class="text-xs font-bold text-gray-600 dark:text-gray-450 uppercase tracking-wider">Items</h3>
+                            <div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-2xl border border-gray-100 dark:border-gray-700/50 space-y-3">
+                                <h3 class="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Items</h3>
                                 @foreach($detailOrder->items as $i)
                                     <div class="flex justify-between text-xs text-gray-900 dark:text-gray-100">
                                         <span class="font-medium">{{ $i->name }} (x{{ $i->quantity }})</span>
@@ -201,8 +201,8 @@ new #[Layout('layouts.app')] class extends Component
                             <div class="space-y-4">
                                 <!-- Order Status -->
                                 <div>
-                                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-450 uppercase tracking-wider mb-2">Fulfillment Status</label>
-                                    <select wire:model="orderStatus" class="w-full border-gray-300 dark:border-gray-650 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-950 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Fulfillment Status</label>
+                                    <select wire:model="orderStatus" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-950 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                         <option value="pending">Pending Payment</option>
                                         <option value="processing">Processing (Preparing)</option>
                                         <option value="shipping">Shipping (Dispatched)</option>
@@ -213,12 +213,12 @@ new #[Layout('layouts.app')] class extends Component
 
                                 <!-- Tracking Number -->
                                 <div>
-                                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-450 uppercase tracking-wider mb-2">Tracking Number / Receipt</label>
+                                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Tracking Number / Receipt</label>
                                     <input 
                                         wire:model="trackingNumber" 
                                         type="text" 
                                         placeholder="e.g. JNE123456789"
-                                        class="w-full border-gray-300 dark:border-gray-650 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                        class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                     >
                                 </div>
                             </div>
