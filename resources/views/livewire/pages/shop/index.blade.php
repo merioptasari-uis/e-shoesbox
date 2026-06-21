@@ -212,10 +212,11 @@ new #[Layout('layouts.app')] class extends Component
                         <option value="price_desc">Harga: Tertinggi ke Terendah</option>
                     </select>
                 </div>
-            </div>v>
+            </div>
 
             <!-- Product Grid Area -->
-            <div class="lg:col-span-3 space-y-6"                <!-- Mobile Controls (Search & Sort) -->
+            <div class="lg:col-span-3 space-y-6">
+                <!-- Mobile Controls (Search & Sort) -->
                 <div class="lg:hidden bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 space-y-3">
                     <input wire:model.live.debounce.300ms="search" type="text" placeholder="Cari sepatu..." class="w-full pl-4 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 sm:text-sm">
                     <div class="flex gap-2">
@@ -245,7 +246,7 @@ new #[Layout('layouts.app')] class extends Component
                         @foreach($products as $prod)
                             <div class="group bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition duration-300 flex flex-col h-full transform hover:-translate-y-1">
                                 <!-- Image Card -->
-                                <div wire:click="openDetailModal({{ $prod->id }})" class="relative pt-[100%] bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-800 dark:via-gray-700 dark:to-gray-850 overflow-hidden cursor-pointer">
+                                <div wire:click="openDetailModal({{ $prod->id }})" class="relative pt-[100%] bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 overflow-hidden cursor-pointer">
                                     @if($prod->image_path)
                                         <img src="{{ asset('storage/' . $prod->image_path) }}" alt="{{ $prod->name }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-300">
                                     @else
@@ -254,7 +255,7 @@ new #[Layout('layouts.app')] class extends Component
                                             <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md transform group-hover:rotate-12 transition duration-300">
                                                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                                             </div>
-                                            <span class="mt-3 text-xs font-semibold text-indigo-650 dark:text-indigo-400 uppercase tracking-widest">{{ $prod->category->name }}</span>
+                                            <span class="mt-3 text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">{{ $prod->category->name }}</span>
                                         </div>
                                     @endif
 
@@ -288,7 +289,7 @@ new #[Layout('layouts.app')] class extends Component
                                         <span class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wider block mb-1">
                                             {{ $prod->category->name }}
                                         </span>
-                                        <h2 wire:click="openDetailModal({{ $prod->id }})" class="text-lg font-bold text-gray-900 dark:text-gray-100 group-hover:text-indigo-650 transition duration-150 mb-2 cursor-pointer">
+                                        <h2 wire:click="openDetailModal({{ $prod->id }})" class="text-lg font-bold text-gray-900 dark:text-gray-100 group-hover:text-indigo-600 transition duration-150 mb-2 cursor-pointer">
                                             {{ $prod->name }}
                                         </h2>
                                         <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4">
@@ -374,7 +375,7 @@ new #[Layout('layouts.app')] class extends Component
                 </button>
 
                 <!-- Left Column: Gallery -->
-                <div class="w-full md:w-1/2 p-6 bg-gradient-to-br from-indigo-50/50 via-purple-50/50 to-pink-50/50 dark:from-gray-850 dark:via-gray-800 dark:to-gray-750 flex flex-col justify-between">
+                <div class="w-full md:w-1/2 p-6 bg-gradient-to-br from-indigo-50/50 via-purple-50/50 to-pink-50/50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 flex flex-col justify-between">
                     <!-- Main Preview Image -->
                     <div class="relative pt-[100%] rounded-2xl overflow-hidden bg-white dark:bg-gray-700 shadow-inner">
                         @if(count($gallery) > 0)
@@ -400,7 +401,7 @@ new #[Layout('layouts.app')] class extends Component
                     @if(count($gallery) > 1)
                         <div class="flex gap-2 mt-4 overflow-x-auto pb-2 scrollbar-thin">
                             @foreach($gallery as $index => $imgPath)
-                                <button wire:click="selectImage({{ $index }})" class="relative w-16 h-16 rounded-xl overflow-hidden bg-white dark:bg-gray-700 shadow-sm border-2 shrink-0 transition {{ $this->selectedImageIndex === $index ? 'border-indigo-650 scale-105' : 'border-transparent opacity-70 hover:opacity-100' }}">
+                                <button wire:click="selectImage({{ $index }})" class="relative w-16 h-16 rounded-xl overflow-hidden bg-white dark:bg-gray-700 shadow-sm border-2 shrink-0 transition {{ $this->selectedImageIndex === $index ? 'border-indigo-600 scale-105' : 'border-transparent opacity-70 hover:opacity-100' }}">
                                     <img src="{{ asset('storage/' . $imgPath) }}" alt="{{ $product->name }} Thumbnail {{ $index }}" class="w-full h-full object-cover">
                                 </button>
                             @endforeach
@@ -442,7 +443,7 @@ new #[Layout('layouts.app')] class extends Component
                                     <span class="text-2xl font-black text-rose-600 dark:text-rose-400">
                                         Rp {{ number_format($product->selling_price, 0, ',', '.') }}
                                     </span>
-                                    <span class="text-sm text-gray-400 dark:text-gray-550 line-through">
+                                    <span class="text-sm text-gray-400 dark:text-gray-500 line-through">
                                         Rp {{ number_format($product->price, 0, ',', '.') }}
                                     </span>
                                     <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-lg ml-2">
@@ -465,7 +466,7 @@ new #[Layout('layouts.app')] class extends Component
                         </div>
 
                         <!-- Specs -->
-                        <div class="grid grid-cols-2 gap-4 mb-6 bg-gray-50 dark:bg-gray-750 p-4 rounded-2xl text-xs font-medium text-gray-600 dark:text-gray-350">
+                        <div class="grid grid-cols-2 gap-4 mb-6 bg-gray-50 dark:bg-gray-700 p-4 rounded-2xl text-xs font-medium text-gray-600 dark:text-gray-350">
                             <div>
                                 <span class="block text-gray-400 uppercase tracking-wider font-bold mb-0.5">Berat Pengiriman</span>
                                 <span class="text-sm font-bold text-gray-800 dark:text-white">{{ $product->weight }} gram</span>

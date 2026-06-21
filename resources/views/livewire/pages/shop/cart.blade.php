@@ -401,9 +401,9 @@ new #[Layout('layouts.app')] class extends Component
                         <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6">1. Tinjau Item Belanja</h2>
                         <div class="space-y-4">
                             @foreach($this->items as $item)
-                                <div class="flex items-center gap-4 py-4 {{ !$loop->last ? 'border-b border-gray-100 dark:border-gray-750' : '' }}">
+                                <div class="flex items-center gap-4 py-4 {{ !$loop->last ? 'border-b border-gray-100 dark:border-gray-700' : '' }}">
                                     <!-- Thumbnail -->
-                                    <div class="w-20 h-20 shrink-0 bg-gradient-to-br from-indigo-50 to-pink-50 dark:from-gray-700 dark:to-gray-750 rounded-2xl overflow-hidden relative border border-gray-100 dark:border-gray-750">
+                                    <div class="w-20 h-20 shrink-0 bg-gradient-to-br from-indigo-50 to-pink-50 dark:from-gray-700 dark:to-gray-800 rounded-2xl overflow-hidden relative border border-gray-100 dark:border-gray-700">
                                         @if($item->product->image_path)
                                             <img src="{{ asset('storage/' . $item->product->image_path) }}" alt="{{ $item->product->name }}" class="w-full h-full object-cover">
                                         @else
@@ -439,7 +439,7 @@ new #[Layout('layouts.app')] class extends Component
                                                 <span class="text-xs text-rose-500 line-through block leading-none mb-1">
                                                     Rp {{ number_format($item->product->price * $item->quantity, 0, ',', '.') }}
                                                 </span>
-                                                <span class="text-sm font-extrabold text-indigo-650 dark:text-indigo-400 block leading-none">
+                                                <span class="text-sm font-extrabold text-indigo-600 dark:text-indigo-400 block leading-none">
                                                     Rp {{ number_format($item->product->selling_price * $item->quantity, 0, ',', '.') }}
                                                 </span>
                                             @else
@@ -459,19 +459,19 @@ new #[Layout('layouts.app')] class extends Component
 
                     <!-- Shipping Address Section -->
                     <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 space-y-6">
-                        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-50 dark:border-gray-750 pb-4">2. Detail Pengiriman</h2>
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-50 dark:border-gray-700 pb-4">2. Detail Pengiriman</h2>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <!-- Recipient Name -->
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-450 uppercase tracking-wider mb-2">Nama Penerima</label>
+                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Nama Penerima</label>
                                 <input wire:model="recipientName" type="text" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 @error('recipientName') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                             </div>
 
                             <!-- Phone Number -->
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-450 uppercase tracking-wider mb-2">Nomor Telepon</label>
+                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Nomor Telepon</label>
                                 <input wire:model="phoneNumber" type="text" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 @error('phoneNumber') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                             </div>
@@ -488,7 +488,7 @@ new #[Layout('layouts.app')] class extends Component
                             <!-- Province Selector -->
                             <div>
                                 <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Provinsi</label>
-                                <select wire:model.live="provinceId" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-955 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <select wire:model.live="provinceId" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                     <option value="">Pilih Provinsi</option>
                                     @foreach($provinces as $prov)
                                         <option value="{{ $prov->id }}">{{ $prov->name }}</option>
@@ -500,7 +500,7 @@ new #[Layout('layouts.app')] class extends Component
                             <!-- City Selector -->
                             <div>
                                 <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Kota / Kabupaten</label>
-                                <select wire:model.live="cityId" {{ !$provinceId ? 'disabled' : '' }} class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-955 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed">
+                                <select wire:model.live="cityId" {{ !$provinceId ? 'disabled' : '' }} class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed">
                                     <option value="">Pilih Kota / Kabupaten</option>
                                     @foreach($cities as $city)
                                         <option value="{{ $city->id }}">{{ $city->name }} ({{ $city->type }})</option>
@@ -553,7 +553,7 @@ new #[Layout('layouts.app')] class extends Component
                                     @foreach($shippingServices as $srv)
                                         <div 
                                             wire:click="selectService('{{ $srv['service'] }}', {{ $srv['cost'] }})"
-                                            class="flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition {{ $selectedService === $srv['service'] ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/20 ring-2 ring-indigo-600/20' : 'border-gray-100 dark:border-gray-750 hover:bg-gray-50 dark:hover:bg-gray-750/30' }}"
+                                            class="flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition {{ $selectedService === $srv['service'] ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/20 ring-2 ring-indigo-600/20' : 'border-gray-100 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700/30' }}"
                                         >
                                             <div>
                                                 <span class="text-sm font-extrabold text-gray-900 dark:text-gray-100 uppercase">{{ $srv['service'] }}</span>
@@ -578,7 +578,7 @@ new #[Layout('layouts.app')] class extends Component
                 <!-- Sticky Summary Receipt -->
                 <div class="lg:col-span-1 mt-8 lg:mt-0">
                     <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 sticky top-6 space-y-6">
-                        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-50 dark:border-gray-750 pb-4">Ringkasan Pesanan</h2>
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-50 dark:border-gray-700 pb-4">Ringkasan Pesanan</h2>
 
                         <!-- Applied Vouchers Badge List -->
                         @if($appliedProductVoucher || $appliedShippingVoucher)
@@ -591,7 +591,7 @@ new #[Layout('layouts.app')] class extends Component
                                                 <svg class="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                                                 <span>{{ $appliedProductVoucher->code }}</span>
                                             </div>
-                                            <button wire:click="removeVoucher('product')" class="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-250 font-bold transition ml-2">
+                                            <button wire:click="removeVoucher('product')" class="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 font-bold transition ml-2">
                                                 ✕
                                             </button>
                                         </div>
@@ -602,7 +602,7 @@ new #[Layout('layouts.app')] class extends Component
                                                 <svg class="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                                 <span>{{ $appliedShippingVoucher->code }} (Bebas Ongkir)</span>
                                             </div>
-                                            <button wire:click="removeVoucher('shipping')" class="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-250 font-bold transition ml-2">
+                                            <button wire:click="removeVoucher('shipping')" class="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 font-bold transition ml-2">
                                                 ✕
                                             </button>
                                         </div>
@@ -612,7 +612,7 @@ new #[Layout('layouts.app')] class extends Component
                         @endif
 
                         <!-- Voucher Promo Input Form -->
-                        <div class="space-y-2 border-b border-gray-50 dark:border-gray-750 pb-4">
+                        <div class="space-y-2 border-b border-gray-50 dark:border-gray-700 pb-4">
                             <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Kode Voucher / Promo</label>
                             <div class="flex gap-2">
                                 <input wire:model="voucherCode" type="text" placeholder="Masukkan kode promo..." class="flex-1 border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 text-sm py-2 px-3">
@@ -648,7 +648,7 @@ new #[Layout('layouts.app')] class extends Component
                                     <span>- Rp {{ number_format($this->shippingDiscount, 0, ',', '.') }}</span>
                                 </div>
                             @endif
-                            <div class="border-t border-gray-100 dark:border-gray-750 pt-4 flex justify-between text-base font-extrabold text-gray-900 dark:text-gray-100">
+                            <div class="border-t border-gray-100 dark:border-gray-700 pt-4 flex justify-between text-base font-extrabold text-gray-900 dark:text-gray-100">
                                 <span>Total Pembayaran</span>
                                 <span>Rp {{ number_format($this->total, 0, ',', '.') }}</span>
                             </div>

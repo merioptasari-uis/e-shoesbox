@@ -3,6 +3,8 @@
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Volt\Volt;
 
 test('guest cannot access admin products page', function () {
@@ -146,4 +148,45 @@ test('admin can delete a product', function () {
     $this->assertDatabaseMissing('products', [
         'id' => $product->id,
     ]);
+});
+
+test('admin can upload multiple images and delete an additional image', function () {
+    Storage::fake('public');
+
+    $admin = User::factory()->create(['role' => 'admin', 'email_verified_at' => now()]);
+    $category = Category::create([
+        'name' => 'Running Test',
+        'slug' => 'running-test',
+        'description' => 'Test desc',
+    ]);
+
+    $this->actingAs($admin);
+
+    $file1 = UploadedFile::fake()->image('photo1.jpg');
+    $file2 = UploadedFile::fake()->image('photo2.jpg');
+
+    $component = Volt::test('pages.admin.products')
+        ->set('category_id', $category->id)
+        ->set('name', 'Multi Image Shoe')
+        ->set('description', 'Cool description')
+        ->set('price', 150000)
+        ->set('stock', 5)
+        ->set('weight', 250)
+        ->set('additional_images', [$file1, $file2])
+        ->call('saveProduct')
+        ->assertHasNoErrors();
+
+    $product = Product::where('name', 'Multi Image Shoe')->first();
+    expect($product)->not->toBeNull();
+    expect($product->images)->toHaveCount(2);
+
+    $firstImage = $product->images->first();
+
+    // Now test deleting one image
+    Volt::test('pages.admin.products')
+        ->set('editingProductId', $product->id)
+        ->call('deleteAdditionalImage', $firstImage->id)
+        ->assertHasNoErrors();
+
+    expect($product->fresh()->images)->toHaveCount(1);
 });

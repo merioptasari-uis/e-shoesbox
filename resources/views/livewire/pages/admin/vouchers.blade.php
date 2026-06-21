@@ -154,7 +154,7 @@ $getVouchersProperty = function () {
         <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-100 dark:divide-gray-700">
-                    <thead class="bg-gray-50/50 dark:bg-gray-750/30">
+                    <thead class="bg-gray-50/50 dark:bg-gray-700/30">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Kode Voucher</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tipe</th>
@@ -168,7 +168,7 @@ $getVouchersProperty = function () {
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                         @forelse($this->vouchers as $voucher)
-                            <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-750/10">
+                            <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-700/10">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="font-extrabold text-sm text-gray-900 dark:text-gray-100 font-mono tracking-wider">{{ $voucher->code }}</span>
                                 </td>
@@ -176,7 +176,7 @@ $getVouchersProperty = function () {
                                     <span class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full
                                         {{ $voucher->type === 'shipping' ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-800 dark:text-blue-300' : '' }}
                                         {{ $voucher->type === 'percentage' ? 'bg-purple-50 dark:bg-purple-950/30 text-purple-800 dark:text-purple-300' : '' }}
-                                        {{ $voucher->type === 'fixed' ? 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-805 dark:text-indigo-305' : '' }}
+                                        {{ $voucher->type === 'fixed' ? 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-800 dark:text-indigo-300' : '' }}
                                     ">
                                         {{ match ($voucher->type) { 'percentage' => 'Persentase', 'fixed' => 'Potongan Tetap', 'shipping' => 'Gratis Ongkir', default => $voucher->type } }}
                                     </span>
@@ -194,7 +194,7 @@ $getVouchersProperty = function () {
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                                     Rp {{ number_format($voucher->min_spend, 0, ',', '.') }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-650 dark:text-gray-400">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                                     <span class="font-bold text-gray-900 dark:text-gray-100">{{ $voucher->used_count }}</span> / 
                                     <span>{{ $voucher->limit_total !== null ? $voucher->limit_total : '∞' }}</span>
                                     <p class="text-xxs text-gray-400">Maks {{ $voucher->limit_per_user }}x per pengguna</p>
@@ -239,7 +239,7 @@ $getVouchersProperty = function () {
     @if($isModalOpen)
         <div class="fixed inset-0 bg-gray-500/75 dark:bg-gray-900/80 transition-opacity z-50 flex items-center justify-center p-4">
             <div class="bg-white dark:bg-gray-800 rounded-3xl max-w-lg w-full p-6 shadow-xl border border-gray-100 dark:border-gray-700 relative flex flex-col max-h-[90vh]">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-50 dark:border-gray-750 pb-4">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-50 dark:border-gray-700 pb-4">
                     {{ $editingVoucherId ? 'Edit Voucher' : 'Buat Voucher' }}
                 </h3>
 
@@ -320,11 +320,11 @@ $getVouchersProperty = function () {
                     </div>
 
                     <!-- Buttons -->
-                    <div class="flex items-center justify-end gap-3 pt-6 border-t border-gray-50 dark:border-gray-750">
+                    <div class="flex items-center justify-end gap-3 pt-6 border-t border-gray-50 dark:border-gray-700">
                         <button 
                             type="button" 
                             wire:click="$set('isModalOpen', false)" 
-                            class="px-4 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-55 dark:hover:bg-gray-700 transition cursor-pointer"
+                            class="px-4 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition cursor-pointer"
                         >
                             Batal
                         </button>
