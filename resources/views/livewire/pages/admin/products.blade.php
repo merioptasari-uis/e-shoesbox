@@ -29,6 +29,7 @@ state([
     'current_image_path' => null,
     'additional_images' => [],
     'current_additional_images' => [],
+    'promo_tag' => '',
 ]);
 
 rules([
@@ -41,11 +42,12 @@ rules([
     'weight' => ['required', 'integer', 'min:0'],
     'additional_images' => ['nullable', 'array'],
     'additional_images.*' => ['nullable', 'image', 'max:2048'],
+    'promo_tag' => ['nullable', 'string', 'max:255'],
 ]);
 
 $openCreateModal = function () {
     $this->resetErrorBag();
-    $this->reset(['editingProductId', 'category_id', 'name', 'description', 'price', 'discount_price', 'stock', 'weight', 'current_image_path', 'additional_images', 'current_additional_images']);
+    $this->reset(['editingProductId', 'category_id', 'name', 'description', 'price', 'discount_price', 'stock', 'weight', 'current_image_path', 'additional_images', 'current_additional_images', 'promo_tag']);
     // Set default category if exists
     $firstCategory = Category::first();
     if ($firstCategory) {
@@ -69,6 +71,7 @@ $openEditModal = function ($id) {
     $this->current_image_path = $product->image_path;
     $this->additional_images = [];
     $this->current_additional_images = $product->images;
+    $this->promo_tag = $product->promo_tag ?? '';
     
     $this->isModalOpen = true;
 };
@@ -82,6 +85,7 @@ $saveProduct = function () {
     $validated = $this->validate();
     unset($validated['additional_images']);
     $validated['discount_price'] = $this->discount_price !== '' && $this->discount_price !== null ? $this->discount_price : null;
+    $validated['promo_tag'] = $this->promo_tag !== '' ? $this->promo_tag : null;
     $validated['slug'] = Str::slug($this->name);
     
     // Copy the additional images array so we can shift files
@@ -405,6 +409,22 @@ $getCategories = function () {
                                     <x-input-label for="form_description" :value="__('Deskripsi')" />
                                     <textarea wire:model="description" id="form_description" rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-350 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
                                     <x-input-error :messages="$errors->get('description')" class="mt-1" />
+                                </div>
+
+                                <!-- Promo Tag Selection -->
+                                <div>
+                                    <x-input-label for="form_promo_tag" :value="__('Label Promo / Hari Raya')" />
+                                    <select wire:model="promo_tag" id="form_promo_tag" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        <option value="">- Tanpa Promo -</option>
+                                        <option value="Idul Fitri">Idul Fitri</option>
+                                        <option value="Natal">Natal</option>
+                                        <option value="Imlek">Imlek</option>
+                                        <option value="Ramadhan">Ramadhan</option>
+                                        <option value="Tahun Baru">Tahun Baru</option>
+                                        <option value="Promo Spesial">Promo Spesial</option>
+                                        <option value="Mega Sale">Mega Sale</option>
+                                    </select>
+                                    <x-input-error :messages="$errors->get('promo_tag')" class="mt-1" />
                                 </div>
 
                                 <!-- Integrated Premium Product Images Section -->

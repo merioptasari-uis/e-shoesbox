@@ -70,6 +70,7 @@ class DatabaseSeeder extends Seeder
             'stock' => 15,
             'weight' => 320, // grams
             'is_active' => true,
+            'promo_tag' => 'Ramadhan',
         ]);
 
         Product::create([
@@ -81,6 +82,7 @@ class DatabaseSeeder extends Seeder
             'stock' => 20,
             'weight' => 450, // grams
             'is_active' => true,
+            'promo_tag' => 'Natal',
         ]);
 
         Product::create([
@@ -279,6 +281,7 @@ class DatabaseSeeder extends Seeder
                 'stock' => 12,
                 'weight' => 460,
                 'is_active' => true,
+                'promo_tag' => 'Idul Fitri',
             ],
             [
                 'category_id' => $casual->id,
@@ -289,6 +292,7 @@ class DatabaseSeeder extends Seeder
                 'stock' => 8,
                 'weight' => 600,
                 'is_active' => true,
+                'promo_tag' => 'Tahun Baru',
             ],
             [
                 'category_id' => $casual->id,
@@ -299,6 +303,7 @@ class DatabaseSeeder extends Seeder
                 'stock' => 14,
                 'weight' => 480,
                 'is_active' => true,
+                'promo_tag' => 'Imlek',
             ],
             [
                 'category_id' => $casual->id,
