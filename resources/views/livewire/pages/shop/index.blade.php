@@ -6,9 +6,12 @@ use App\Models\Category;
 use App\Models\CartItem;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\WithPagination;
 
 new #[Layout('layouts.app')] class extends Component
 {
+    use WithPagination;
+
     public string $search = '';
     public ?string $category = null;
     public string $sort = 'latest';
@@ -22,6 +25,21 @@ new #[Layout('layouts.app')] class extends Component
         'category' => ['except' => null],
         'sort' => ['except' => 'latest'],
     ];
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCategory(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSort(): void
+    {
+        $this->resetPage();
+    }
 
     public function openDetailModal(int $productId): void
     {
@@ -89,12 +107,19 @@ new #[Layout('layouts.app')] class extends Component
             $query->orderByRaw('COALESCE(discount_price, price) asc');
         } elseif ($this->sort === 'price_desc') {
             $query->orderByRaw('COALESCE(discount_price, price) desc');
+        } elseif ($this->sort === 'promo') {
+            $query->orderByRaw('CASE WHEN promo_tag IS NOT NULL THEN 0 ELSE 1 END')
+                  ->orderBy('created_at', 'desc');
+        } elseif ($this->sort === 'discount') {
+            $query->orderByRaw('CASE WHEN discount_price IS NOT NULL AND discount_price > 0 THEN 0 ELSE 1 END')
+                  ->orderByRaw('(price - COALESCE(discount_price, price)) / price desc')
+                  ->orderBy('created_at', 'desc');
         } else {
             $query->orderBy('created_at', 'desc');
         }
 
         return [
-            'products' => $query->get(),
+            'products' => $query->paginate(12),
             'categories' => Category::all(),
         ];
     }
@@ -206,8 +231,10 @@ new #[Layout('layouts.app')] class extends Component
                 <!-- Sorting -->
                 <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Urutkan</h3>
-                    <select wire:model.live="sort" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-955 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <select wire:model.live="sort" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-950 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         <option value="latest">Terbaru</option>
+                        <option value="promo">Spesial Promo</option>
+                        <option value="discount">Diskon Terbesar</option>
                         <option value="price_asc">Harga: Terendah ke Tertinggi</option>
                         <option value="price_desc">Harga: Tertinggi ke Terendah</option>
                     </select>
@@ -228,6 +255,8 @@ new #[Layout('layouts.app')] class extends Component
                         </select>
                         <select wire:model.live="sort" class="w-1/2 border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-950 dark:text-gray-100 sm:text-sm">
                             <option value="latest">Terbaru</option>
+                            <option value="promo">Spesial Promo</option>
+                            <option value="discount">Diskon Terbesar</option>
                             <option value="price_asc">Harga Terendah</option>
                             <option value="price_desc">Harga Tertinggi</option>
                         </select>
@@ -281,6 +310,33 @@ new #[Layout('layouts.app')] class extends Component
                                             </span>
                                         </div>
                                     @endif
+
+                                    <!-- Promo Tag Badge -->
+                                    @if($prod->promo_tag)
+                                        <div class="absolute bottom-4 left-4 z-10">
+                                            @if($prod->promo_tag === 'Idul Fitri' || $prod->promo_tag === 'Ramadhan')
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-600/90 dark:bg-emerald-950/90 text-white dark:text-emerald-300 shadow backdrop-blur-sm border border-emerald-500/20">
+                                                    🕌 {{ $prod->promo_tag }}
+                                                </span>
+                                            @elseif($prod->promo_tag === 'Natal')
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-rose-600/90 dark:bg-rose-950/90 text-white dark:text-rose-300 shadow backdrop-blur-sm border border-rose-500/20">
+                                                    🎄 {{ $prod->promo_tag }}
+                                                </span>
+                                            @elseif($prod->promo_tag === 'Imlek')
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-600/90 dark:bg-amber-950/90 text-white dark:text-amber-300 shadow backdrop-blur-sm border border-amber-500/20">
+                                                    🏮 {{ $prod->promo_tag }}
+                                                </span>
+                                            @elseif($prod->promo_tag === 'Tahun Baru')
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-indigo-600/90 dark:bg-indigo-950/90 text-white dark:text-indigo-300 shadow backdrop-blur-sm border border-indigo-500/20">
+                                                    🎆 {{ $prod->promo_tag }}
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-purple-600/90 dark:bg-purple-950/90 text-white dark:text-purple-300 shadow backdrop-blur-sm border border-purple-500/20">
+                                                    ✨ {{ $prod->promo_tag }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
 
                                 <!-- Content Card -->
@@ -330,6 +386,11 @@ new #[Layout('layouts.app')] class extends Component
                                 </div>
                             </div>
                         @endforeach
+                    </div>
+
+                    <!-- Pagination Links -->
+                    <div class="mt-8 flex justify-center">
+                        {{ $products->links() }}
                     </div>
                 @endif
             </div>
@@ -422,8 +483,8 @@ new #[Layout('layouts.app')] class extends Component
                             {{ $product->name }}
                         </h2>
 
-                        <!-- Stock Badge -->
-                        <div class="mb-4">
+                        <!-- Stock & Promo Badge Row -->
+                        <div class="flex flex-wrap items-center gap-2 mb-4">
                             @if($product->stock > 0)
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800">
                                     Stok Tersedia ({{ $product->stock }})
@@ -432,6 +493,30 @@ new #[Layout('layouts.app')] class extends Component
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border border-rose-100 dark:border-rose-800">
                                     Stok Habis
                                 </span>
+                            @endif
+
+                            @if($product->promo_tag)
+                                @if($product->promo_tag === 'Idul Fitri' || $product->promo_tag === 'Ramadhan')
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-600 text-white shadow-sm border border-emerald-500/20">
+                                        🕌 {{ $product->promo_tag }}
+                                    </span>
+                                @elseif($product->promo_tag === 'Natal')
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-600 text-white shadow-sm border border-rose-500/20">
+                                        🎄 {{ $product->promo_tag }}
+                                    </span>
+                                @elseif($product->promo_tag === 'Imlek')
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-600 text-white shadow-sm border border-amber-500/20">
+                                        🏮 {{ $product->promo_tag }}
+                                    </span>
+                                @elseif($product->promo_tag === 'Tahun Baru')
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-600 text-white shadow-sm border border-indigo-500/20">
+                                        🎆 {{ $product->promo_tag }}
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-600 text-white shadow-sm border border-purple-500/20">
+                                        ✨ {{ $product->promo_tag }}
+                                    </span>
+                                @endif
                             @endif
                         </div>
 
