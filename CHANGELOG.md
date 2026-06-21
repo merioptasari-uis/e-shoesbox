@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added live temporary image upload previews for main and additional images inside the admin product creation/edit form.
 - Implemented multiple product supplementary image uploads in the Admin Products panel with live previews and delete actions.
 - Configured SVG and ICO favicon links in app and guest layout templates.
 - Implemented premium product details modal/panel with a multi-image thumbnail gallery selector on the customer shop catalog page.

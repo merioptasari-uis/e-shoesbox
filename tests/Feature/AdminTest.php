@@ -164,6 +164,7 @@ test('admin can upload multiple images and delete an additional image', function
 
     $file1 = UploadedFile::fake()->image('photo1.jpg');
     $file2 = UploadedFile::fake()->image('photo2.jpg');
+    $file3 = UploadedFile::fake()->image('photo3.jpg');
 
     $component = Volt::test('pages.admin.products')
         ->set('category_id', $category->id)
@@ -172,13 +173,13 @@ test('admin can upload multiple images and delete an additional image', function
         ->set('price', 150000)
         ->set('stock', 5)
         ->set('weight', 250)
-        ->set('additional_images', [$file1, $file2])
+        ->set('additional_images', [$file1, $file2, $file3])
         ->call('saveProduct')
         ->assertHasNoErrors();
 
     $product = Product::where('name', 'Multi Image Shoe')->first();
     expect($product)->not->toBeNull();
-    expect($product->images)->toHaveCount(2);
+    expect($product->images)->toHaveCount(3);
 
     $firstImage = $product->images->first();
 
@@ -188,5 +189,5 @@ test('admin can upload multiple images and delete an additional image', function
         ->call('deleteAdditionalImage', $firstImage->id)
         ->assertHasNoErrors();
 
-    expect($product->fresh()->images)->toHaveCount(1);
+    expect($product->fresh()->images)->toHaveCount(2);
 });
