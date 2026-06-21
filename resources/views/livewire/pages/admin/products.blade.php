@@ -1,20 +1,17 @@
 <?php
 
-use Livewire\Volt\layout;
-use Livewire\Volt\state;
-use Livewire\Volt\rules;
-use Livewire\WithFileUploads;
 use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
-layout('layouts.app');
+use function Livewire\Volt\layout;
+use function Livewire\Volt\state;
+use function Livewire\Volt\rules;
+use function Livewire\Volt\usesFileUploads;
 
-// Equipped with file upload trait
-new class {
-    use WithFileUploads;
-};
+usesFileUploads();
+layout('layouts.app');
 
 state([
     'search' => '',
