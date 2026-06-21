@@ -27,6 +27,10 @@ new #[Layout('layouts.app')] class extends Component
     public array $shippingServices = [];
     public float $shippingCost = 0;
 
+    public string $voucherCode = '';
+    public ?\App\Models\Voucher $appliedProductVoucher = null;
+    public ?\App\Models\Voucher $appliedShippingVoucher = null;
+
     protected $listeners = ['cart-updated' => '$refresh'];
 
     public function mount(): void
@@ -56,9 +60,29 @@ new #[Layout('layouts.app')] class extends Component
         });
     }
 
+    public function getProductDiscountProperty(): float
+    {
+        if (!$this->appliedProductVoucher) {
+            return 0;
+        }
+        $voucherService = new \App\Services\VoucherService();
+        return $voucherService->calculateProductDiscount($this->appliedProductVoucher, $this->subtotal);
+    }
+
+    public function getShippingDiscountProperty(): float
+    {
+        if (!$this->appliedShippingVoucher) {
+            return 0;
+        }
+        $voucherService = new \App\Services\VoucherService();
+        return $voucherService->calculateShippingDiscount($this->appliedShippingVoucher, $this->shippingCost);
+    }
+
     public function getTotalProperty(): float
     {
-        return $this->subtotal + $this->shippingCost;
+        $subtotalAfterDiscount = max(0, $this->subtotal - $this->productDiscount);
+        $finalShippingCost = max(0, $this->shippingCost - $this->shippingDiscount);
+        return $subtotalAfterDiscount + $finalShippingCost;
     }
 
     public function updatedProvinceId(): void
@@ -68,6 +92,7 @@ new #[Layout('layouts.app')] class extends Component
         $this->selectedService = null;
         $this->shippingServices = [];
         $this->shippingCost = 0;
+        $this->revalidateAppliedVouchers();
     }
 
     public function updatedCityId(): void
@@ -76,6 +101,7 @@ new #[Layout('layouts.app')] class extends Component
         $this->selectedService = null;
         $this->shippingServices = [];
         $this->shippingCost = 0;
+        $this->revalidateAppliedVouchers();
     }
 
     public function updatedCourier(): void
@@ -83,6 +109,7 @@ new #[Layout('layouts.app')] class extends Component
         $this->selectedService = null;
         $this->shippingCost = 0;
         $this->fetchShippingRates();
+        $this->revalidateAppliedVouchers();
     }
 
     public function fetchShippingRates(): void
@@ -103,6 +130,7 @@ new #[Layout('layouts.app')] class extends Component
     {
         $this->selectedService = $serviceCode;
         $this->shippingCost = $cost;
+        $this->revalidateAppliedVouchers();
     }
 
     public function increment(int $itemId): void
@@ -115,6 +143,7 @@ new #[Layout('layouts.app')] class extends Component
         $item->increment('quantity');
         $this->dispatch('cart-updated');
         $this->fetchShippingRates();
+        $this->revalidateAppliedVouchers();
     }
 
     public function decrement(int $itemId): void
@@ -127,6 +156,7 @@ new #[Layout('layouts.app')] class extends Component
         }
         $this->dispatch('cart-updated');
         $this->fetchShippingRates();
+        $this->revalidateAppliedVouchers();
     }
 
     public function remove(int $itemId): void
@@ -135,6 +165,7 @@ new #[Layout('layouts.app')] class extends Component
         $item->delete();
         $this->dispatch('cart-updated');
         $this->fetchShippingRates();
+        $this->revalidateAppliedVouchers();
     }
 
     public function placeOrder(MidtransService $midtransService): void
@@ -174,6 +205,8 @@ new #[Layout('layouts.app')] class extends Component
                     'order_number' => 'TEMP-' . uniqid(),
                     'subtotal_amount' => $this->subtotal,
                     'shipping_cost' => $this->shippingCost,
+                    'discount_amount' => $this->productDiscount,
+                    'shipping_discount_amount' => $this->shippingDiscount,
                     'total_amount' => $this->total,
                     'shipping_courier' => $this->courier,
                     'shipping_service' => $this->selectedService,
@@ -190,6 +223,31 @@ new #[Layout('layouts.app')] class extends Component
                 $order->update([
                     'order_number' => 'INV/' . date('Ymd') . '/' . $order->id,
                 ]);
+
+                $voucherService = new \App\Services\VoucherService();
+                
+                // Revalidate and apply vouchers inside transaction
+                if ($this->appliedProductVoucher) {
+                    $voucher = \App\Models\Voucher::lockForUpdate()->find($this->appliedProductVoucher->id);
+                    $validation = $voucherService->validate($voucher->code, $this->subtotal, Auth::id());
+                    if (!$validation['isValid']) {
+                        throw new \Exception("Voucher '{$voucher->code}' is no longer valid: " . $validation['message']);
+                    }
+                    $appliedDiscount = $voucherService->calculateProductDiscount($voucher, $this->subtotal);
+                    $order->vouchers()->attach($voucher->id, ['applied_discount' => $appliedDiscount]);
+                    $voucher->increment('used_count');
+                }
+
+                if ($this->appliedShippingVoucher) {
+                    $voucher = \App\Models\Voucher::lockForUpdate()->find($this->appliedShippingVoucher->id);
+                    $validation = $voucherService->validate($voucher->code, $this->subtotal, Auth::id());
+                    if (!$validation['isValid']) {
+                        throw new \Exception("Voucher '{$voucher->code}' is no longer valid: " . $validation['message']);
+                    }
+                    $appliedDiscount = $voucherService->calculateShippingDiscount($voucher, $this->shippingCost);
+                    $order->vouchers()->attach($voucher->id, ['applied_discount' => $appliedDiscount]);
+                    $voucher->increment('used_count');
+                }
 
                 // Create order items & decrement stock
                 foreach ($cartItems as $item) {
@@ -229,6 +287,9 @@ new #[Layout('layouts.app')] class extends Component
             });
 
             $payment = $order->payment;
+            $this->appliedProductVoucher = null;
+            $this->appliedShippingVoucher = null;
+            $this->voucherCode = '';
             $this->dispatch('cart-updated');
             
             // Dispatch event to show payment modal
@@ -239,7 +300,70 @@ new #[Layout('layouts.app')] class extends Component
 
         } catch (\Exception $e) {
             Log::error('Order placement failed: ' . $e->getMessage());
-            $this->dispatch('notify', type: 'error', message: 'Failed to place order. Please try again.');
+            $this->dispatch('notify', type: 'error', message: 'Failed to place order: ' . $e->getMessage());
+        }
+    }
+
+    public function applyVoucher(): void
+    {
+        $this->validate([
+            'voucherCode' => 'required|string',
+        ]);
+
+        $voucherCode = strtoupper(trim($this->voucherCode));
+        $voucherService = new \App\Services\VoucherService();
+        $validation = $voucherService->validate($voucherCode, $this->subtotal, Auth::id());
+
+        if (!$validation['isValid']) {
+            $this->dispatch('notify', type: 'error', message: $validation['message']);
+            return;
+        }
+
+        $voucher = $validation['voucher'];
+
+        if ($voucher->type === 'shipping') {
+            $this->appliedShippingVoucher = $voucher;
+            $this->dispatch('notify', type: 'success', message: 'Shipping voucher applied!');
+        } else {
+            $this->appliedProductVoucher = $voucher;
+            $this->dispatch('notify', type: 'success', message: 'Product discount voucher applied!');
+        }
+
+        $this->voucherCode = '';
+        $this->revalidateAppliedVouchers();
+    }
+
+    public function removeVoucher(string $type): void
+    {
+        if ($type === 'shipping') {
+            $this->appliedShippingVoucher = null;
+            $this->dispatch('notify', type: 'info', message: 'Shipping voucher removed.');
+        } elseif ($type === 'product') {
+            $this->appliedProductVoucher = null;
+            $this->dispatch('notify', type: 'info', message: 'Discount voucher removed.');
+        }
+        $this->revalidateAppliedVouchers();
+    }
+
+    public function revalidateAppliedVouchers(): void
+    {
+        $voucherService = new \App\Services\VoucherService();
+        $subtotal = $this->subtotal;
+
+        if ($this->appliedProductVoucher) {
+            $validation = $voucherService->validate($this->appliedProductVoucher->code, $subtotal, Auth::id());
+            if (!$validation['isValid']) {
+                $this->appliedProductVoucher = null;
+                $this->dispatch('notify', type: 'warning', message: "Voucher {$validation['voucher']?->code} removed: {$validation['message']}");
+            }
+        }
+
+        if ($this->appliedShippingVoucher) {
+            $validation = $voucherService->validate($this->appliedShippingVoucher->code, $subtotal, Auth::id());
+            if (!$validation['isValid']) {
+                $this->appliedShippingVoucher = null;
+                $this->dispatch('notify', type: 'warning', message: "Voucher {$validation['voucher']?->code} removed: {$validation['message']}");
+            }
         }
     }
 
@@ -445,11 +569,58 @@ new #[Layout('layouts.app')] class extends Component
                     <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 sticky top-6 space-y-6">
                         <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-50 dark:border-gray-750 pb-4">Order Summary</h2>
 
+                        <!-- Applied Vouchers Badge List -->
+                        @if($appliedProductVoucher || $appliedShippingVoucher)
+                            <div class="space-y-2">
+                                <span class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Applied Vouchers</span>
+                                <div class="flex flex-col gap-2">
+                                    @if($appliedProductVoucher)
+                                        <div class="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 px-3 py-2 rounded-xl text-xs font-semibold border border-emerald-100 dark:border-emerald-900/30">
+                                            <div class="flex items-center gap-1.5 bg-transparent">
+                                                <svg class="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                                                <span>{{ $appliedProductVoucher->code }}</span>
+                                            </div>
+                                            <button wire:click="removeVoucher('product')" class="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-250 font-bold transition ml-2">
+                                                ✕
+                                            </button>
+                                        </div>
+                                    @endif
+                                    @if($appliedShippingVoucher)
+                                        <div class="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 px-3 py-2 rounded-xl text-xs font-semibold border border-emerald-100 dark:border-emerald-900/30">
+                                            <div class="flex items-center gap-1.5 bg-transparent">
+                                                <svg class="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                <span>{{ $appliedShippingVoucher->code }} (Free Ship)</span>
+                                            </div>
+                                            <button wire:click="removeVoucher('shipping')" class="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-250 font-bold transition ml-2">
+                                                ✕
+                                            </button>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Voucher Promo Input Form -->
+                        <div class="space-y-2 border-b border-gray-50 dark:border-gray-750 pb-4">
+                            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Promo Code</label>
+                            <div class="flex gap-2">
+                                <input wire:model="voucherCode" type="text" placeholder="Promo / Voucher Code" class="flex-1 border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 text-sm py-2 px-3">
+                                <button wire:click="applyVoucher" class="px-4 py-2 text-xs font-semibold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 transition">Apply</button>
+                            </div>
+                            @error('voucherCode') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+
                         <div class="space-y-3">
                             <div class="flex justify-between text-sm text-gray-500">
                                 <span>Subtotal</span>
                                 <span class="font-semibold text-gray-900 dark:text-gray-100">Rp {{ number_format($this->subtotal, 0, ',', '.') }}</span>
                             </div>
+                            @if($this->productDiscount > 0)
+                                <div class="flex justify-between text-sm text-emerald-600 dark:text-emerald-400 font-semibold">
+                                    <span>Voucher Discount</span>
+                                    <span>- Rp {{ number_format($this->productDiscount, 0, ',', '.') }}</span>
+                                </div>
+                            @endif
                             <div class="flex justify-between text-sm text-gray-500">
                                 <span>Total Weight</span>
                                 <span class="font-semibold text-gray-900 dark:text-gray-100">{{ number_format($this->totalWeight) }} grams</span>
@@ -460,6 +631,12 @@ new #[Layout('layouts.app')] class extends Component
                                     {{ $shippingCost > 0 ? 'Rp ' . number_format($shippingCost, 0, ',', '.') : 'Choose Service' }}
                                 </span>
                             </div>
+                            @if($this->shippingDiscount > 0)
+                                <div class="flex justify-between text-sm text-emerald-600 dark:text-emerald-400 font-semibold">
+                                    <span>Shipping Discount</span>
+                                    <span>- Rp {{ number_format($this->shippingDiscount, 0, ',', '.') }}</span>
+                                </div>
+                            @endif
                             <div class="border-t border-gray-100 dark:border-gray-750 pt-4 flex justify-between text-base font-extrabold text-gray-900 dark:text-gray-100">
                                 <span>Total Amount</span>
                                 <span>Rp {{ number_format($this->total, 0, ',', '.') }}</span>

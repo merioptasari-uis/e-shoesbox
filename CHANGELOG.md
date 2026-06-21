@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Implemented stacked voucher system supporting free shipping and percentage/fixed discounts with expiry and usage checks.
 - Created `provinces` and `cities` database tables and seeder utilizing RajaOngkir API.
 - Implemented responsive Customer Shop shoe catalog page at `/` with search, category filtering, and price sorting.
 - Developed persistent database-backed cart utilizing `cart_items` table with real-time stock limits.

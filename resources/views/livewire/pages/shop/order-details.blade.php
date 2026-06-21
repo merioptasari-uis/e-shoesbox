@@ -208,10 +208,22 @@ new #[Layout('layouts.app')] class extends Component
                         <span>Items Subtotal</span>
                         <span class="font-semibold text-gray-900 dark:text-gray-105">Rp {{ number_format($order->subtotal_amount, 0, ',', '.') }}</span>
                     </div>
+                    @if($order->discount_amount > 0)
+                        <div class="flex justify-between text-sm text-emerald-600 dark:text-emerald-400 font-semibold">
+                            <span>Voucher Discount</span>
+                            <span>- Rp {{ number_format($order->discount_amount, 0, ',', '.') }}</span>
+                        </div>
+                    @endif
                     <div class="flex justify-between text-sm text-gray-500">
                         <span>Shipping Cost</span>
                         <span class="font-semibold text-gray-900 dark:text-gray-105">Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</span>
                     </div>
+                    @if($order->shipping_discount_amount > 0)
+                        <div class="flex justify-between text-sm text-emerald-600 dark:text-emerald-400 font-semibold">
+                            <span>Shipping Discount</span>
+                            <span>- Rp {{ number_format($order->shipping_discount_amount, 0, ',', '.') }}</span>
+                        </div>
+                    @endif
                     <div class="flex justify-between text-base font-extrabold text-gray-900 dark:text-gray-100 pt-2">
                         <span>Total Paid</span>
                         <span>Rp {{ number_format($order->total_amount, 0, ',', '.') }}</span>

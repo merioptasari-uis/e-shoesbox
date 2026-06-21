@@ -61,6 +61,10 @@ new #[Layout('layouts.app')] class extends Component
                     $item->product->increment('stock', $item->quantity);
                 }
             }
+            // Restore voucher usage
+            foreach ($order->vouchers as $voucher) {
+                $voucher->decrement('used_count');
+            }
         }
 
         $this->dispatch('notify', type: 'success', message: 'Order updated successfully!');
