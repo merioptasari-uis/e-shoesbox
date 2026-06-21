@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => IsAdmin::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            'api/midtrans/notification',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

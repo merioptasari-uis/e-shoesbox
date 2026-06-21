@@ -33,4 +33,5 @@ yarn-error.log
 .agents/active_api_profile_name
 
 .agents/cooldowns.json
-.agents/
+__pycache__/
+*.pyc

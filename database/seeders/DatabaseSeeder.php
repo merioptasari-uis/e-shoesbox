@@ -16,6 +16,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // 0. Seed RajaOngkir Geography
+        $this->call(RajaOngkirSeeder::class);
+
         // 1. Create Admin
         User::create([
             'name' => 'Store Admin',
