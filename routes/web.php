@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
-Route::view('/', 'welcome');
+Volt::route('/', 'pages.shop.index')->name('shop.index');
 
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
