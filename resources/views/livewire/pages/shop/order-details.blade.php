@@ -125,7 +125,7 @@ new #[Layout('layouts.app')] class extends Component
                 <span class="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider
                     {{ $order->status === 'completed' ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-900/30' : '' }}
                     {{ $order->status === 'pending' ? 'bg-amber-50 text-amber-800 dark:bg-amber-950/20 dark:text-amber-300 border border-amber-100 dark:border-amber-900/30' : '' }}
-                    {{ $order->status === 'processing' ? 'bg-blue-50 text-blue-805 dark:bg-blue-950 dark:text-blue-300 border border-blue-100 dark:border-blue-900/30' : '' }}
+                    {{ $order->status === 'processing' ? 'bg-blue-50 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border border-blue-100 dark:border-blue-900/30' : '' }}
                     {{ $order->status === 'shipping' ? 'bg-indigo-50 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900/30' : '' }}
                     {{ $order->status === 'cancelled' ? 'bg-rose-50 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border border-rose-100 dark:border-rose-900/30' : '' }}
                 ">
@@ -154,7 +154,7 @@ new #[Layout('layouts.app')] class extends Component
                 <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 mb-4">Produk yang Dipesan</h2>
                 <div class="space-y-4">
                     @foreach($order->items as $item)
-                        <div class="flex items-center gap-4 py-2 {{ !$loop->last ? 'border-b border-gray-50 dark:border-gray-750' : '' }}">
+                        <div class="flex items-center gap-4 py-2 {{ !$loop->last ? 'border-b border-gray-50 dark:border-gray-700' : '' }}">
                             <div class="flex-1">
                                 <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ $item->name }}</h4>
                                 <p class="text-xs text-gray-500 mt-0.5">Jumlah: {{ $item->quantity }} x Rp {{ number_format($item->price, 0, ',', '.') }}</p>
@@ -185,7 +185,7 @@ new #[Layout('layouts.app')] class extends Component
 
                     <div>
                         <span class="text-xs text-gray-400 block mb-1">Metode Kurir</span>
-                        <p class="font-extrabold text-gray-900 dark:text-gray-105 uppercase">{{ $order->shipping_courier }} - {{ $order->shipping_service }}</p>
+                        <p class="font-extrabold text-gray-900 dark:text-gray-100 uppercase">{{ $order->shipping_courier }} - {{ $order->shipping_service }}</p>
                     </div>
 
                     <div>
@@ -203,10 +203,10 @@ new #[Layout('layouts.app')] class extends Component
             <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
                 <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 mb-4">Ringkasan Pembayaran</h2>
                 
-                <div class="space-y-3 mb-6 border-b border-gray-100 dark:border-gray-750 pb-4">
+                <div class="space-y-3 mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">
                     <div class="flex justify-between text-sm text-gray-500">
                         <span>Subtotal Produk</span>
-                        <span class="font-semibold text-gray-900 dark:text-gray-105">Rp {{ number_format($order->subtotal_amount, 0, ',', '.') }}</span>
+                        <span class="font-semibold text-gray-900 dark:text-gray-100">Rp {{ number_format($order->subtotal_amount, 0, ',', '.') }}</span>
                     </div>
                     @if($order->discount_amount > 0)
                         <div class="flex justify-between text-sm text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -230,7 +230,7 @@ new #[Layout('layouts.app')] class extends Component
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm bg-gray-50 dark:bg-gray-750/30 p-4 rounded-2xl border border-gray-100 dark:border-gray-750">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm bg-gray-50 dark:bg-gray-700/30 p-4 rounded-2xl border border-gray-100 dark:border-gray-700">
                     <div>
                         <span class="text-xs text-gray-400 block mb-1">Metode Pembayaran</span>
                         <p class="font-bold text-gray-900 dark:text-gray-100 uppercase">
@@ -242,7 +242,7 @@ new #[Layout('layouts.app')] class extends Component
                         <span class="text-xs text-gray-400 block mb-1">Status Pembayaran</span>
                         <span class="font-extrabold uppercase
                             {{ $order->payment?->status === 'settlement' ? 'text-emerald-600 dark:text-emerald-400' : '' }}
-                            {{ $order->payment?->status === 'pending' ? 'text-amber-505 dark:text-amber-400' : '' }}
+                            {{ $order->payment?->status === 'pending' ? 'text-amber-500 dark:text-amber-400' : '' }}
                             {{ in_array($order->payment?->status, ['expire', 'cancel']) ? 'text-rose-600 dark:text-rose-400' : '' }}
                         ">
                             {{ match ($order->payment?->status ?? 'pending') { 'pending' => 'MENUNGGU PEMBAYARAN', 'settlement' => 'LUNAS', 'expire' => 'KADALUARSA', 'cancel' => 'BATAL', default => strtoupper($order->payment?->status ?? 'PENDING') } }}

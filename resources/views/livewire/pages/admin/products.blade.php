@@ -28,6 +28,8 @@ state([
     'weight' => '',
     'image' => null,
     'current_image_path' => null,
+    'additional_images' => [],
+    'current_additional_images' => [],
 ]);
 
 rules([
@@ -39,11 +41,13 @@ rules([
     'stock' => ['required', 'integer', 'min:0'],
     'weight' => ['required', 'integer', 'min:0'],
     'image' => ['nullable', 'image', 'max:2048'], // Max 2MB
+    'additional_images' => ['nullable', 'array'],
+    'additional_images.*' => ['nullable', 'image', 'max:2048'],
 ]);
 
 $openCreateModal = function () {
     $this->resetErrorBag();
-    $this->reset(['editingProductId', 'category_id', 'name', 'description', 'price', 'discount_price', 'stock', 'weight', 'image', 'current_image_path']);
+    $this->reset(['editingProductId', 'category_id', 'name', 'description', 'price', 'discount_price', 'stock', 'weight', 'image', 'current_image_path', 'additional_images', 'current_additional_images']);
     // Set default category if exists
     $firstCategory = Category::first();
     if ($firstCategory) {
@@ -54,7 +58,7 @@ $openCreateModal = function () {
 
 $openEditModal = function ($id) {
     $this->resetErrorBag();
-    $product = Product::findOrFail($id);
+    $product = Product::with('images')->findOrFail($id);
     
     $this->editingProductId = $product->id;
     $this->category_id = $product->category_id;
@@ -66,6 +70,8 @@ $openEditModal = function ($id) {
     $this->weight = $product->weight;
     $this->current_image_path = $product->image_path;
     $this->image = null;
+    $this->additional_images = [];
+    $this->current_additional_images = $product->images;
     
     $this->isModalOpen = true;
 };
@@ -77,6 +83,7 @@ $saveProduct = function () {
     }
 
     $validated = $this->validate();
+    unset($validated['additional_images']);
     $validated['discount_price'] = $this->discount_price !== '' && $this->discount_price !== null ? $this->discount_price : null;
     
     // Handle image upload if provided
@@ -98,20 +105,46 @@ $saveProduct = function () {
         $product->update($validated);
         session()->flash('message', 'Produk berhasil diperbarui!');
     } else {
-        Product::create($validated);
+        $product = Product::create($validated);
         session()->flash('message', 'Produk berhasil dibuat!');
+    }
+    
+    // Save additional images if uploaded
+    if ($this->additional_images) {
+        foreach ($this->additional_images as $img) {
+            $path = $img->store('products', 'public');
+            \App\Models\ProductImage::create([
+                'product_id' => $product->id,
+                'image_path' => $path,
+            ]);
+        }
     }
     
     $this->isModalOpen = false;
 };
 
 $deleteProduct = function ($id) {
-    $product = Product::findOrFail($id);
+    $product = Product::with('images')->findOrFail($id);
     if ($product->image_path) {
         Storage::disk('public')->delete($product->image_path);
     }
+    foreach ($product->images as $img) {
+        Storage::disk('public')->delete($img->image_path);
+    }
     $product->delete();
     session()->flash('message', 'Produk berhasil dihapus!');
+};
+
+$deleteAdditionalImage = function ($imageId) {
+    $img = \App\Models\ProductImage::findOrFail($imageId);
+    Storage::disk('public')->delete($img->image_path);
+    $img->delete();
+    
+    if ($this->editingProductId) {
+        $this->current_additional_images = \App\Models\ProductImage::where('product_id', $this->editingProductId)->get();
+    }
+    
+    session()->flash('message', 'Foto tambahan berhasil dihapus!');
 };
 
 $toggleActive = function ($id) {
@@ -335,13 +368,39 @@ $getCategories = function () {
                                     <!-- Loading status -->
                                     <div wire:loading wire:target="image" class="text-xs text-indigo-600 dark:text-indigo-400 mt-1">Mengunggah gambar...</div>
                                 </div>
+
+                                <!-- Additional Images Upload -->
+                                <div class="border-t border-gray-100 dark:border-gray-700 pt-4 mt-4">
+                                    <x-input-label :value="__('Foto Tambahan Produk')" />
+                                    
+                                    <!-- Display existing additional images -->
+                                    @if (!empty($current_additional_images) && count($current_additional_images) > 0)
+                                        <div class="flex flex-wrap gap-2 mt-2 mb-3">
+                                            @foreach ($current_additional_images as $img)
+                                                <div class="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 group">
+                                                    <img src="{{ Storage::url($img->image_path) }}" class="w-full h-full object-cover" />
+                                                    <button type="button" wire:click="deleteAdditionalImage({{ $img->id }})" class="absolute top-1 right-1 bg-rose-600 hover:bg-rose-700 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-md transition cursor-pointer">
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                    
+                                    <input type="file" wire:model="additional_images" id="form_additional_images" multiple class="mt-1 block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 dark:file:bg-indigo-900/30 file:text-indigo-700 dark:file:text-indigo-400 hover:file:bg-indigo-100" />
+                                    <x-input-error :messages="$errors->get('additional_images.*')" class="mt-1" />
+                                    <x-input-error :messages="$errors->get('additional_images')" class="mt-1" />
+
+                                    <!-- Loading status -->
+                                    <div wire:loading wire:target="additional_images" class="text-xs text-indigo-600 dark:text-indigo-400 mt-1">Mengunggah gambar tambahan...</div>
+                                </div>
                             </div>
                         </div>
                         <div class="bg-gray-50 dark:bg-gray-900/30 px-6 py-4 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
                             <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm cursor-pointer">
                                 Simpan Produk
                             </button>
-                            <button type="button" wire:click="$set('isModalOpen', false)" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-700 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-55 dark:hover:bg-gray-705 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm cursor-pointer">
+                            <button type="button" wire:click="$set('isModalOpen', false)" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-700 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm cursor-pointer">
                                 Batal
                             </button>
                         </div>

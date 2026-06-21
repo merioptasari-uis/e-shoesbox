@@ -122,7 +122,7 @@ new class extends Component
                         @if($this->items->isEmpty())
                             <div class="h-full flex flex-col items-center justify-center text-center">
                                 <div class="w-20 h-20 rounded-full bg-gray-50 dark:bg-gray-700 flex items-center justify-center mb-4 border border-dashed border-gray-200 dark:border-gray-600">
-                                    <svg class="h-10 w-10 text-gray-450 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                                    <svg class="h-10 w-10 text-gray-400 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                                 </div>
                                 <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Keranjang Anda kosong</h3>
                                 <p class="text-sm text-gray-500 mt-1">Mulai tambahkan sepatu premium ke keranjang Anda!</p>
@@ -177,7 +177,7 @@ new class extends Component
                                         <!-- Remove Button -->
                                         <button 
                                             wire:click="remove({{ $item->id }})" 
-                                            class="p-2 rounded-xl text-gray-400 hover:text-rose-600 dark:hover:text-rose-450 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition shrink-0"
+                                            class="p-2 rounded-xl text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition shrink-0"
                                         >
                                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                         </button>

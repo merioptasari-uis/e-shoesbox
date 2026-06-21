@@ -28,7 +28,7 @@
                             <span class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">Total Produk</span>
                             <span class="text-3xl font-black text-gray-900 dark:text-white mt-1 block">{{ \App\Models\Product::count() }}</span>
                         </div>
-                        <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center text-indigo-650 dark:text-indigo-400 text-2xl group-hover:scale-110 transition">
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-2xl group-hover:scale-110 transition">
                             👟
                         </div>
                     </div>
@@ -37,7 +37,7 @@
                             <span class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">Voucher Aktif</span>
                             <span class="text-3xl font-black text-gray-900 dark:text-white mt-1 block">{{ \App\Models\Voucher::where('is_active', true)->count() }}</span>
                         </div>
-                        <div class="w-12 h-12 rounded-2xl bg-pink-50 dark:bg-pink-950/50 flex items-center justify-center text-pink-650 dark:text-pink-400 text-2xl group-hover:scale-110 transition">
+                        <div class="w-12 h-12 rounded-2xl bg-pink-50 dark:bg-pink-950/50 flex items-center justify-center text-pink-600 dark:text-pink-400 text-2xl group-hover:scale-110 transition">
                             🎫
                         </div>
                     </div>
@@ -46,7 +46,7 @@
                             <span class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">Total Pesanan</span>
                             <span class="text-3xl font-black text-gray-900 dark:text-white mt-1 block">{{ \App\Models\Order::count() }}</span>
                         </div>
-                        <div class="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-650 dark:text-emerald-400 text-2xl group-hover:scale-110 transition">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-2xl group-hover:scale-110 transition">
                             📦
                         </div>
                     </div>
@@ -63,7 +63,7 @@
                                     🛍️
                                 </div>
                                 <h3 class="text-base font-extrabold text-gray-900 dark:text-white">Kelola Produk & Diskon</h3>
-                                <p class="text-xs text-gray-500 dark:text-gray-450 mt-2 leading-relaxed">
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">
                                     Atur katalog sepatu, perbarui jumlah stok, dan tentukan harga diskon coret/langsung dari seller tanpa voucher.
                                 </p>
                             </div>
@@ -81,7 +81,7 @@
                                     🎫
                                 </div>
                                 <h3 class="text-base font-extrabold text-gray-900 dark:text-white">Kelola Voucher Promo</h3>
-                                <p class="text-xs text-gray-500 dark:text-gray-450 mt-2 leading-relaxed">
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">
                                     Buat dan atur kupon voucher (diskon persentase, potongan harga langsung, gratis ongkir), kuota limit, serta masa kedaluwarsa.
                                 </p>
                             </div>
@@ -99,7 +99,7 @@
                                     📦
                                 </div>
                                 <h3 class="text-base font-extrabold text-gray-900 dark:text-white">Kelola Pesanan Pelanggan</h3>
-                                <p class="text-xs text-gray-500 dark:text-gray-450 mt-2 leading-relaxed">
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">
                                     Pantau dan proses pesanan sepatu masuk, update nomor resi pengiriman, serta validasi status pembayaran.
                                 </p>
                             </div>
@@ -165,7 +165,7 @@
                                         <th class="pb-3 text-right">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-50 dark:divide-gray-750 text-sm">
+                                <tbody class="divide-y divide-gray-50 dark:divide-gray-700 text-sm">
                                     @foreach($orders as $order)
                                         <tr class="text-gray-700 dark:text-gray-300">
                                             <td class="py-3 font-semibold text-gray-900 dark:text-white">
@@ -201,7 +201,7 @@
                                                 </span>
                                             </td>
                                             <td class="py-3 text-right">
-                                                <a href="{{ route('order.details', $order->id) }}" class="text-xs font-extrabold text-indigo-650 hover:text-indigo-800 dark:text-indigo-405 dark:hover:text-indigo-300 transition">
+                                                <a href="{{ route('order.details', $order->id) }}" class="text-xs font-extrabold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition">
                                                     Detail Pesanan ➔
                                                 </a>
                                             </td>

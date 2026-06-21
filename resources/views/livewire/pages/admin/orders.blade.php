@@ -134,7 +134,7 @@ new #[Layout('layouts.app')] class extends Component
                                                     {{ $o->status === 'completed' ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : '' }}
                                                     {{ $o->status === 'pending' ? 'bg-amber-50 text-amber-800 dark:bg-amber-950/20 dark:text-amber-300' : '' }}
                                                     {{ $o->status === 'processing' ? 'bg-blue-50 text-blue-800 dark:bg-blue-950 dark:text-blue-300' : '' }}
-                                                    {{ $o->status === 'shipping' ? 'bg-indigo-50 text-indigo-805 dark:bg-indigo-950 dark:text-indigo-305' : '' }}
+                                                    {{ $o->status === 'shipping' ? 'bg-indigo-50 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300' : '' }}
                                                     {{ $o->status === 'cancelled' ? 'bg-rose-50 text-rose-800 dark:bg-rose-950 dark:text-rose-300' : '' }}
                                                 ">
                                                     {{ match ($o->status) { 'pending' => 'Menunggu', 'processing' => 'Diproses', 'shipping' => 'Dikirim', 'completed' => 'Selesai', 'cancelled' => 'Dibatalkan', default => $o->status } }}
@@ -228,7 +228,7 @@ new #[Layout('layouts.app')] class extends Component
                             </div>
 
                             <div class="flex gap-2">
-                                <button wire:click="closeDetails" class="w-1/2 px-4 py-3 bg-gray-100 hover:bg-gray-250 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold text-sm rounded-xl transition">
+                                <button wire:click="closeDetails" class="w-1/2 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold text-sm rounded-xl transition">
                                     Batal
                                 </button>
                                 <button wire:click="updateOrder" class="w-1/2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl transition shadow">

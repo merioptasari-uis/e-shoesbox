@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Implemented multiple product supplementary image uploads in the Admin Products panel with live previews and delete actions.
+- Configured SVG and ICO favicon links in app and guest layout templates.
 - Implemented premium product details modal/panel with a multi-image thumbnail gallery selector on the customer shop catalog page.
 - Fully localized all application UI views and user-facing notifications to Indonesian, including navigation, shopping cart, order details tracking, admin products, admin orders, admin vouchers, and authentication views.
 - Implemented stacked voucher system supporting free shipping and percentage/fixed discounts with expiry and usage checks.
@@ -28,6 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronized brand logo component rendering to target custom public/logo.png brand asset across layout files.
 
 ### Fixed
+- Fixed catalog layout and grid alignment on the main shop catalog page by correcting malformed HTML tags.
+- Standardized all scattered non-standard Tailwind color class weights (e.g., gray-750, gray-850, indigo-650) to valid standard equivalents.
+- Updated global application title name config to "e-shoesbox" across templates.
 - Fixed admin products page syntax error by correctly importing and invoking `usesFileUploads` and `layout` using functional Volt syntax.
 - Configured explicit layout mapping `layouts.app` on the admin orders class-based Volt component.
 - Resolved "Call to undefined function layout()" error in admin view templates.
