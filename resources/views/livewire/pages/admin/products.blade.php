@@ -176,7 +176,7 @@ $getCategories = function () {
                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center gap-4">
-                                            <div class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-900 overflow-hidden flex items-center justify-center border border-gray-200 dark:border-gray-750">
+                                            <div class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-900 overflow-hidden flex items-center justify-center border border-gray-200 dark:border-gray-700">
                                                 @if ($product->image_path)
                                                     <img src="{{ Storage::url($product->image_path) }}" alt="{{ $product->name }}" class="w-full h-full object-cover" />
                                                 @else

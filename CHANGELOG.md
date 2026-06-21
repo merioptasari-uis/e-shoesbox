@@ -25,3 +25,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Disabled email verification requirements across all routes and user registration.
 - Removed `MustVerifyEmail` implementation from the `User` model.
 - Removed unused verification controllers, view files, and email verification feature tests.
+- Corrected invalid color weight typos (e.g., bg-gray-55, gray-750, gray-650, text-indigo-655, border-indigo-650) in all Blade views.
+- Aligned form inputs and dropdown options background/borders to ensure proper styling across light and dark modes.
