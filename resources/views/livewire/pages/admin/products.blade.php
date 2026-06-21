@@ -355,8 +355,13 @@ $getCategories = function () {
                                 <!-- Image Upload -->
                                 <div>
                                     <x-input-label :value="__('Foto Produk')" />
-                                    @if ($current_image_path)
-                                        <div class="mt-2 mb-2 flex items-center gap-4">
+                                    @if ($image)
+                                        <div class="mt-2 flex items-center gap-3">
+                                            <img src="{{ $image->temporaryUrl() }}" class="w-16 h-16 object-cover rounded-lg border border-indigo-200 dark:border-indigo-800" />
+                                            <span class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold">Preview foto utama baru</span>
+                                        </div>
+                                    @elseif ($current_image_path)
+                                        <div class="mt-2 flex items-center gap-3">
                                             <img src="{{ Storage::url($current_image_path) }}" class="w-16 h-16 object-cover rounded-lg border" />
                                             <span class="text-xs text-gray-500">Gambar saat ini</span>
                                         </div>
@@ -384,6 +389,21 @@ $getCategories = function () {
                                                     </button>
                                                 </div>
                                             @endforeach
+                                        </div>
+                                    @endif
+                                    
+                                    <!-- Display temporary previews of newly chosen additional images -->
+                                    @if ($additional_images)
+                                        <div class="mt-2">
+                                            <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider block mb-1">Foto Tambahan Baru (Belum Disimpan):</span>
+                                            <div class="flex flex-wrap gap-2 mb-2">
+                                                @foreach ($additional_images as $img)
+                                                    <div class="relative w-16 h-16 rounded-lg overflow-hidden border border-indigo-200 dark:border-indigo-800">
+                                                        <img src="{{ $img->temporaryUrl() }}" class="w-full h-full object-cover" />
+                                                        <span class="absolute bottom-0 inset-x-0 bg-indigo-600/80 text-[10px] text-white text-center py-0.5 font-bold">Baru</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
                                         </div>
                                     @endif
                                     
