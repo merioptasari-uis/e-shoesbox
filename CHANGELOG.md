@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Overhauled the customer catalog page UI (`shop/index.blade.php`) to feel like a premium, feature-rich marketplace (Tokopedia/Shopee styling), implementing an auto-playing Alpine.js hero carousel banner, seasonal themed promotions, and visual coupon sidebar cards.
+- Integrated min/max price range filters with instant reactive debounce inside the Livewire/Volt shop catalog search sidebar.
+- Added copyable discount codes with instant clipboard write feedback (e.g., `COBAINBARU`).
+- Implemented an Alpine.js-powered simulated Flash Sale countdown timer and visual sold progress bars showing items left to create urgency.
+- Added mock customer reviews, sales counts, and average star ratings derived deterministically from the product ID to enhance authenticity.
+- Added interactive color variant swatches, size selection buttons, and shipping estimates selectors inside the product details modal.
 - Added catalog page pagination (12 items per page), custom sorting criteria (by promo/discounts), and themed holiday promo badges (Idul Fitri, Natal, Imlek, Tahun Baru) on the customer shoe catalog page.
 - Added 25 additional realistic shoe products (totaling 28 products) across Running, Sneakers, and Casual categories inside database seeders to support volume testing on the shop page.
 - Merged main product image and additional supplementary images inputs into a single unified gallery file input in the admin panel with support for setting images as main, swapping, and auto-promoting on deletion.
