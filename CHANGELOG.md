@@ -17,3 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Built POST webhook receiver `/api/midtrans/notification` with CSRF protection bypassed.
 - Created Order details status tracker view `/order/{order}` with active polling.
 - Developed Admin Orders dashboard panel at `/admin/orders` to manage delivery tracking and fulfillments.
+
+### Fixed
+- Fixed admin products page syntax error by correctly importing and invoking `usesFileUploads` and `layout` using functional Volt syntax.
+- Configured explicit layout mapping `layouts.app` on the admin orders class-based Volt component.
+- Resolved "Call to undefined function layout()" error in admin view templates.

@@ -1,10 +1,11 @@
 <?php
 
 use Livewire\Volt\Component;
+use Livewire\Attributes\Layout;
 use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
 
-new class extends Component
+new #[Layout('layouts.app')] class extends Component
 {
     public ?int $selectedOrderId = null;
     public string $trackingNumber = '';
