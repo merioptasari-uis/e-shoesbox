@@ -57,6 +57,10 @@ class MidtransWebhookController extends Controller
                             $item->product->increment('stock', $item->quantity);
                         }
                     }
+                    // Restore voucher usage
+                    foreach ($order->vouchers as $voucher) {
+                        $voucher->decrement('used_count');
+                    }
                     $order->update(['status' => 'cancelled']);
                 }
 
