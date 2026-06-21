@@ -49,7 +49,7 @@ new #[Layout('layouts.app')] class extends Component
     public function getSubtotalProperty(): float
     {
         return $this->items->sum(function ($item) {
-            return $item->product->price * $item->quantity;
+            return $item->product->selling_price * $item->quantity;
         });
     }
 
@@ -257,7 +257,7 @@ new #[Layout('layouts.app')] class extends Component
                         'order_id' => $order->id,
                         'product_id' => $item->product_id,
                         'name' => $item->product->name,
-                        'price' => $item->product->price,
+                        'price' => $item->product->selling_price,
                         'quantity' => $item->quantity,
                     ]);
                 }
@@ -433,10 +433,21 @@ new #[Layout('layouts.app')] class extends Component
                                     </div>
 
                                     <!-- Price / Remove -->
-                                    <div class="text-right">
-                                        <span class="text-sm font-extrabold text-gray-900 dark:text-gray-100 block">
-                                            Rp {{ number_format($item->product->price * $item->quantity, 0, ',', '.') }}
-                                        </span>
+                                    <div class="text-right flex flex-col justify-between items-end">
+                                        <div>
+                                            @if($item->product->has_discount)
+                                                <span class="text-xs text-rose-500 line-through block leading-none mb-1">
+                                                    Rp {{ number_format($item->product->price * $item->quantity, 0, ',', '.') }}
+                                                </span>
+                                                <span class="text-sm font-extrabold text-indigo-650 dark:text-indigo-400 block leading-none">
+                                                    Rp {{ number_format($item->product->selling_price * $item->quantity, 0, ',', '.') }}
+                                                </span>
+                                            @else
+                                                <span class="text-sm font-extrabold text-gray-900 dark:text-gray-100 block leading-none">
+                                                    Rp {{ number_format($item->product->price * $item->quantity, 0, ',', '.') }}
+                                                </span>
+                                            @endif
+                                        </div>
                                         <button wire:click="remove({{ $item->id }})" class="text-xs text-gray-400 hover:text-rose-600 transition mt-2">
                                             Remove
                                         </button>

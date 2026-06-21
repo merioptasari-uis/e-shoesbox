@@ -37,9 +37,9 @@ new #[Layout('layouts.app')] class extends Component
         }
 
         if ($this->sort === 'price_asc') {
-            $query->orderBy('price', 'asc');
+            $query->orderByRaw('COALESCE(discount_price, price) asc');
         } elseif ($this->sort === 'price_desc') {
-            $query->orderBy('price', 'desc');
+            $query->orderByRaw('COALESCE(discount_price, price) desc');
         } else {
             $query->orderBy('created_at', 'desc');
         }
@@ -223,6 +223,16 @@ new #[Layout('layouts.app')] class extends Component
                                             </span>
                                         @endif
                                     </div>
+
+                                    <!-- Discount Badge -->
+                                    @if($prod->has_discount)
+                                        <div class="absolute top-4 right-4 z-10">
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-gradient-to-r from-rose-500 to-amber-500 text-white shadow-md border border-white/20 animate-pulse">
+                                                <span>🔥</span>
+                                                <span>{{ $prod->discount_percentage }}% OFF</span>
+                                            </span>
+                                        </div>
+                                    @endif
                                 </div>
 
                                 <!-- Content Card -->
@@ -242,10 +252,22 @@ new #[Layout('layouts.app')] class extends Component
                                     <!-- Purchase / Actions -->
                                     <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
                                         <div>
-                                            <span class="text-xs text-gray-400 block">Price</span>
-                                            <span class="text-xl font-extrabold text-gray-900 dark:text-gray-100">
-                                                Rp {{ number_format($prod->price, 0, ',', '.') }}
-                                            </span>
+                                            <span class="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-widest block font-bold">Harga</span>
+                                            @if($prod->has_discount)
+                                                <div class="flex flex-col">
+                                                    <span class="text-xs text-rose-500 line-through leading-none font-medium">Rp {{ number_format($prod->price, 0, ',', '.') }}</span>
+                                                    <span class="text-lg sm:text-xl font-black text-rose-600 dark:text-rose-400 mt-1 leading-none">
+                                                        Rp {{ number_format($prod->selling_price, 0, ',', '.') }}
+                                                    </span>
+                                                    <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">
+                                                        Hemat Rp {{ number_format($prod->price - $prod->selling_price, 0, ',', '.') }}
+                                                    </span>
+                                                </div>
+                                            @else
+                                                <span class="text-xl font-black text-gray-950 dark:text-gray-100 mt-1 block">
+                                                    Rp {{ number_format($prod->price, 0, ',', '.') }}
+                                                </span>
+                                            @endif
                                         </div>
                                         
                                         <button 
