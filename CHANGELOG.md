@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Restructured `dashboard.blade.php` with a premium admin control panel (with metrics and quick action cards) and a customer order history tracker.
 - Enhanced the product catalog cards with animated pulse badges, crossed-out original prices, and a green "Hemat" (savings) helper text.
 - Aligned checkout pricing subtotal calculations and order placement item prices to use the product's active selling price.
+- Synchronized brand logo component rendering to target custom public/logo.png brand asset across layout files.
 
 ### Fixed
 - Fixed admin products page syntax error by correctly importing and invoking `usesFileUploads` and `layout` using functional Volt syntax.
