@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'product_id', 'quantity'])]
+#[Fillable(['user_id', 'product_id', 'product_variant_id', 'size', 'color', 'quantity'])]
 class CartItem extends Model
 {
     /**
@@ -27,5 +27,15 @@ class CartItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Get the product variant associated with the cart item.
+     *
+     * @return BelongsTo<ProductVariant, $this>
+     */
+    public function productVariant(): BelongsTo
+    {
+        return $this->belongsTo(ProductVariant::class);
     }
 }

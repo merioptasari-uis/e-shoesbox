@@ -23,6 +23,11 @@ new #[Layout('layouts.app')] class extends Component
     public int $selectedImageIndex = 0;
     public bool $isDetailModalOpen = false;
 
+    public ?string $selectedColor = null;
+    public ?string $selectedSize = null;
+    public int $reviewRating = 5;
+    public string $reviewComment = '';
+
     protected $queryString = [
         'search' => ['except' => ''],
         'category' => ['except' => null],
@@ -70,6 +75,17 @@ new #[Layout('layouts.app')] class extends Component
     {
         $this->selectedProductId = $productId;
         $this->selectedImageIndex = 0;
+
+        $product = Product::with('variants')->find($productId);
+        if ($product && $product->variants->isNotEmpty()) {
+            $this->selectedColor = $product->variants->first()->color;
+            $this->selectedSize = $product->variants->first()->size;
+        } else {
+            $this->selectedColor = null;
+            $this->selectedSize = null;
+        }
+
+        $this->reset(['reviewRating', 'reviewComment']);
         $this->isDetailModalOpen = true;
     }
 
@@ -77,11 +93,31 @@ new #[Layout('layouts.app')] class extends Component
     {
         $this->isDetailModalOpen = false;
         $this->selectedProductId = null;
+        $this->selectedColor = null;
+        $this->selectedSize = null;
+        $this->reset(['reviewRating', 'reviewComment']);
     }
 
     public function selectImage(int $index): void
     {
         $this->selectedImageIndex = $index;
+    }
+
+    public function selectColor(string $color): void
+    {
+        $this->selectedColor = $color;
+        $product = $this->selectedProduct;
+        if ($product) {
+            $availableSize = $product->variants->where('color', $color)->first()?->size;
+            if ($availableSize) {
+                $this->selectedSize = $availableSize;
+            }
+        }
+    }
+
+    public function selectSize(string $size): void
+    {
+        $this->selectedSize = $size;
     }
 
     #[Computed]
@@ -90,7 +126,20 @@ new #[Layout('layouts.app')] class extends Component
         if (!$this->selectedProductId) {
             return null;
         }
-        return Product::with(['category', 'images'])->find($this->selectedProductId);
+        return Product::with(['category', 'images', 'variants', 'reviews.user'])->find($this->selectedProductId);
+    }
+
+    #[Computed]
+    public function selectedVariant(): ?\App\Models\ProductVariant
+    {
+        $product = $this->selectedProduct;
+        if (!$product || !$this->selectedColor || !$this->selectedSize) {
+            return null;
+        }
+        return $product->variants
+            ->where('color', $this->selectedColor)
+            ->where('size', $this->selectedSize)
+            ->first();
     }
 
     #[Computed]
@@ -111,6 +160,30 @@ new #[Layout('layouts.app')] class extends Component
         }
 
         return $gallery;
+    }
+
+    public function submitReview(): void
+    {
+        if (!Auth::check()) {
+            $this->dispatch('notify', type: 'error', message: 'Anda harus login untuk menulis ulasan!');
+            return;
+        }
+
+        $this->validate([
+            'reviewRating' => ['required', 'integer', 'min:1', 'max:5'],
+            'reviewComment' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        \App\Models\Review::create([
+            'user_id' => Auth::id(),
+            'product_id' => $this->selectedProductId,
+            'rating' => $this->reviewRating,
+            'comment' => $this->reviewComment !== '' ? $this->reviewComment : null,
+        ]);
+
+        $this->reset(['reviewRating', 'reviewComment']);
+        unset($this->selectedProduct);
+        $this->dispatch('notify', type: 'success', message: 'Ulasan Anda berhasil dikirim!');
     }
 
     public function with(): array
@@ -165,7 +238,7 @@ new #[Layout('layouts.app')] class extends Component
         $this->category = $slug;
     }
 
-    public function addToCart(int $productId): void
+    public function addToCart(int $productId, ?int $variantId = null): void
     {
         if (!Auth::check()) {
             $this->redirect(route('login'), navigate: true);
@@ -174,30 +247,70 @@ new #[Layout('layouts.app')] class extends Component
 
         $product = Product::findOrFail($productId);
 
-        if ($product->stock <= 0) {
-            $this->dispatch('notify', type: 'error', message: 'Produk ini sedang kehabisan stok!');
+        if ($product->variants()->exists() && !$variantId) {
+            $this->openDetailModal($productId);
+            $this->dispatch('notify', type: 'info', message: 'Silakan pilih warna dan ukuran terlebih dahulu!');
             return;
         }
 
-        $cartItem = CartItem::where('user_id', Auth::id())
-            ->where('product_id', $productId)
-            ->first();
+        if ($variantId) {
+            $variant = $product->variants()->findOrFail($variantId);
+            if ($variant->stock <= 0) {
+                $this->dispatch('notify', type: 'error', message: 'Varian ini sedang kehabisan stok!');
+                return;
+            }
 
-        $currentQty = $cartItem ? $cartItem->quantity : 0;
+            $cartItem = CartItem::where('user_id', Auth::id())
+                ->where('product_id', $productId)
+                ->where('product_variant_id', $variantId)
+                ->first();
 
-        if ($currentQty + 1 > $product->stock) {
-            $this->dispatch('notify', type: 'error', message: 'Stok tidak mencukupi untuk menambah jumlah item!');
-            return;
-        }
+            $currentQty = $cartItem ? $cartItem->quantity : 0;
 
-        if ($cartItem) {
-            $cartItem->increment('quantity');
+            if ($currentQty + 1 > $variant->stock) {
+                $this->dispatch('notify', type: 'error', message: 'Stok tidak mencukupi untuk menambah jumlah item!');
+                return;
+            }
+
+            if ($cartItem) {
+                $cartItem->increment('quantity');
+            } else {
+                CartItem::create([
+                    'user_id' => Auth::id(),
+                    'product_id' => $productId,
+                    'product_variant_id' => $variantId,
+                    'size' => $variant->size,
+                    'color' => $variant->color,
+                    'quantity' => 1,
+                ]);
+            }
         } else {
-            CartItem::create([
-                'user_id' => Auth::id(),
-                'product_id' => $productId,
-                'quantity' => 1,
-            ]);
+            if ($product->stock <= 0) {
+                $this->dispatch('notify', type: 'error', message: 'Produk ini sedang kehabisan stok!');
+                return;
+            }
+
+            $cartItem = CartItem::where('user_id', Auth::id())
+                ->where('product_id', $productId)
+                ->whereNull('product_variant_id')
+                ->first();
+
+            $currentQty = $cartItem ? $cartItem->quantity : 0;
+
+            if ($currentQty + 1 > $product->stock) {
+                $this->dispatch('notify', type: 'error', message: 'Stok tidak mencukupi untuk menambah jumlah item!');
+                return;
+            }
+
+            if ($cartItem) {
+                $cartItem->increment('quantity');
+            } else {
+                CartItem::create([
+                    'user_id' => Auth::id(),
+                    'product_id' => $productId,
+                    'quantity' => 1,
+                ]);
+            }
         }
 
         $this->dispatch('cart-updated');
@@ -437,10 +550,10 @@ new #[Layout('layouts.app')] class extends Component
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                     @foreach($flashSaleProducts as $prod)
                         @php
-                            $ratingVal = number_format(4.6 + ($prod->id % 5) * 0.1, 1);
-                            $mockSalesCount = 50 + ($prod->id * 29) % 350;
-                            $soldPercentage = 60 + ($prod->id * 7) % 35;
-                            $stockLeft = 12 - ($prod->id % 9);
+                            $ratingVal = $prod->average_rating;
+                            $mockSalesCount = $prod->sales_count;
+                            $stockLeft = $prod->stock;
+                            $soldPercentage = $stockLeft > 0 ? (int) round(($mockSalesCount / ($mockSalesCount + $stockLeft)) * 100) : 100;
                         @endphp
                         <div wire:key="flash-sale-{{ $prod->id }}" class="group bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition duration-300 flex flex-col h-full transform hover:-translate-y-1 relative">
                             <!-- Image Card -->
@@ -655,9 +768,9 @@ new #[Layout('layouts.app')] class extends Component
                     <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                         @foreach($products as $prod)
                             @php
-                                $ratingVal = number_format(4.5 + ($prod->id % 5) * 0.1, 1);
-                                $mockReviewsCount = 15 + ($prod->id * 11) % 95;
-                                $mockSalesCount = 30 + ($prod->id * 23) % 450;
+                                $ratingVal = $prod->average_rating;
+                                $mockReviewsCount = $prod->reviews_count;
+                                $mockSalesCount = $prod->sales_count;
                             @endphp
                             <div wire:key="product-{{ $prod->id }}" x-data="{ isLiked: false }" class="group bg-white dark:bg-gray-800 rounded-[28px] shadow-sm border border-gray-100 dark:border-gray-700/80 overflow-hidden hover:shadow-2xl transition duration-300 flex flex-col h-full transform hover:-translate-y-2 relative">
                                 
@@ -827,171 +940,313 @@ new #[Layout('layouts.app')] class extends Component
         @php
             $product = $this->selectedProduct;
             $gallery = $this->productGallery;
-            $ratingVal = number_format(4.6 + ($product->id % 5) * 0.1, 1);
-            $mockReviewsCount = 15 + ($product->id * 11) % 95;
-            $mockSalesCount = 30 + ($product->id * 23) % 450;
         @endphp
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <!-- Backdrop -->
             <div wire:click="closeDetailModal" class="absolute inset-0 bg-gray-950/70 backdrop-blur-sm transition-opacity"></div>
             
             <!-- Modal Box Container -->
-            <div class="relative bg-white dark:bg-gray-800 rounded-[32px] shadow-2xl border border-gray-150 dark:border-gray-700/80 max-w-4xl w-full overflow-hidden z-10 transform transition-all duration-300 scale-100 flex flex-col md:flex-row max-h-[90vh] md:max-h-none overflow-y-auto md:overflow-visible">
+            <div class="relative bg-white dark:bg-gray-800 rounded-[32px] shadow-2xl border border-gray-150 dark:border-gray-700/80 max-w-4xl w-full overflow-y-auto z-10 transform transition-all duration-300 scale-100 flex flex-col max-h-[90vh]">
                 
                 <!-- Close Button -->
                 <button wire:click="closeDetailModal" class="absolute top-4 right-4 z-20 p-2.5 rounded-full bg-white/90 dark:bg-gray-700/90 text-gray-500 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white shadow hover:scale-105 transition-all">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
 
-                <!-- Left Column: Media Gallery -->
-                <div class="w-full md:w-1/2 p-6 bg-gradient-to-br from-indigo-50/30 via-purple-50/30 to-pink-50/30 dark:from-gray-850 dark:to-gray-900 flex flex-col justify-between">
-                    <!-- Main Preview Image -->
-                    <div class="relative pt-[100%] rounded-2xl overflow-hidden bg-white dark:bg-gray-755 shadow-inner border border-gray-100 dark:border-gray-700">
-                        @if(count($gallery) > 0)
-                            <img src="{{ asset('storage/' . $gallery[$this->selectedImageIndex]) }}" alt="{{ $product->name }}" class="absolute inset-0 w-full h-full object-cover">
-                        @else
-                            <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center select-none text-gray-400">
-                                <svg class="w-14 h-14 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                            </div>
-                        @endif
+                <!-- Upper Section: Columns -->
+                <div class="flex flex-col md:flex-row">
+                    <!-- Left Column: Media Gallery -->
+                    <div class="w-full md:w-1/2 p-6 bg-gradient-to-br from-indigo-50/30 via-purple-50/30 to-pink-50/30 dark:from-gray-850 dark:to-gray-900 flex flex-col justify-between">
+                        <!-- Main Preview Image -->
+                        <div class="relative pt-[100%] rounded-2xl overflow-hidden bg-white dark:bg-gray-755 shadow-inner border border-gray-100 dark:border-gray-700">
+                            @if(count($gallery) > 0)
+                                <img src="{{ asset('storage/' . $gallery[$this->selectedImageIndex]) }}" alt="{{ $product->name }}" class="absolute inset-0 w-full h-full object-cover">
+                            @else
+                                <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center select-none text-gray-400">
+                                    <svg class="w-14 h-14 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                                </div>
+                            @endif
 
-                        <!-- Top-left Discount percentage inside detail preview -->
-                        @if($product->has_discount)
-                            <div class="absolute top-4 left-4 z-10">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-gradient-to-r from-rose-600 to-orange-500 text-white shadow-md">
-                                    🔥 {{ $product->discount_percentage }}% OFF
-                                </span>
+                            <!-- Top-left Discount percentage inside detail preview -->
+                            @if($product->has_discount)
+                                <div class="absolute top-4 left-4 z-10">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-gradient-to-r from-rose-600 to-orange-500 text-white shadow-md">
+                                        🔥 {{ $product->discount_percentage }}% OFF
+                                    </span>
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Gallery Carousel Thumbnails -->
+                        @if(count($gallery) > 1)
+                            <div class="flex gap-2.5 mt-4 overflow-x-auto pb-2 scrollbar-thin">
+                                @foreach($gallery as $index => $imgPath)
+                                    <button wire:click="selectImage({{ $index }})" class="relative w-16 h-16 rounded-xl overflow-hidden bg-white dark:bg-gray-700 shadow-sm border-2 shrink-0 transition-all {{ $this->selectedImageIndex === $index ? 'border-indigo-650 scale-105 shadow-md' : 'border-transparent opacity-70 hover:opacity-100' }}">
+                                        <img src="{{ asset('storage/' . $imgPath) }}" alt="Thumbnail {{ $index }}" class="w-full h-full object-cover">
+                                    </button>
+                                @endforeach
                             </div>
                         @endif
                     </div>
 
-                    <!-- Gallery Carousel Thumbnails -->
-                    @if(count($gallery) > 1)
-                        <div class="flex gap-2.5 mt-4 overflow-x-auto pb-2 scrollbar-thin">
-                            @foreach($gallery as $index => $imgPath)
-                                <button wire:click="selectImage({{ $index }})" class="relative w-16 h-16 rounded-xl overflow-hidden bg-white dark:bg-gray-700 shadow-sm border-2 shrink-0 transition-all {{ $this->selectedImageIndex === $index ? 'border-indigo-650 scale-105 shadow-md' : 'border-transparent opacity-70 hover:opacity-100' }}">
-                                    <img src="{{ asset('storage/' . $imgPath) }}" alt="Thumbnail {{ $index }}" class="w-full h-full object-cover">
-                                </button>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-
-                <!-- Right Column: Detail Content and Buy Actions -->
-                <div class="w-full md:w-1/2 p-6 sm:p-8 flex flex-col justify-between bg-white dark:bg-gray-800">
-                    <div>
-                        <!-- Category name and breadcrumb link -->
-                        <span class="text-xs text-indigo-600 dark:text-indigo-400 font-extrabold uppercase tracking-widest block mb-1">
-                            {{ $product->category->name }}
-                        </span>
-                        
-                        <!-- Product Title -->
-                        <h2 class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white leading-tight mb-2">
-                            {{ $product->name }}
-                        </h2>
-
-                        <!-- Ratings, Reviews, and Sold Volumes -->
-                        <div class="flex items-center gap-2 mb-4 text-xs">
-                            <div class="flex items-center text-amber-400">
-                                <span>★</span>
-                                <span class="ml-1 font-bold text-gray-800 dark:text-gray-200">{{ $ratingVal }}</span>
-                            </div>
-                            <span class="text-gray-300 dark:text-gray-600">·</span>
-                            <span class="text-gray-500 dark:text-gray-400 hover:underline cursor-pointer font-medium">{{ $mockReviewsCount }} Ulasan</span>
-                            <span class="text-gray-300 dark:text-gray-600">·</span>
-                            <span class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded font-extrabold">{{ $mockSalesCount }}+ Terjual</span>
-                        </div>
-
-                        <!-- Special Tags Row (Bebas Ongkir, Cashback) -->
-                        <div class="flex flex-wrap items-center gap-2 mb-4">
-                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border border-green-150 dark:border-green-900/25">
-                                🚚 Bebas Ongkir
+                    <!-- Right Column: Detail Content and Buy Actions -->
+                    <div class="w-full md:w-1/2 p-6 sm:p-8 flex flex-col justify-between bg-white dark:bg-gray-800">
+                        <div>
+                            <!-- Category name and breadcrumb link -->
+                            <span class="text-xs text-indigo-600 dark:text-indigo-400 font-extrabold uppercase tracking-widest block mb-1">
+                                {{ $product->category->name }}
                             </span>
-                            @if($product->promo_tag)
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border border-amber-150 dark:border-amber-900/25">
-                                    ✨ {{ $product->promo_tag }}
-                                </span>
-                            @endif
-                        </div>
+                            
+                            <!-- Product Title -->
+                            <h2 class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white leading-tight mb-2">
+                                {{ $product->name }}
+                            </h2>
 
-                        <!-- Price Info container -->
-                        <div class="py-3 border-y border-gray-100 dark:border-gray-700 mb-5">
-                            <span class="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-widest block font-bold mb-0.5">Harga Terbaik</span>
-                            @if($product->has_discount)
-                                <div class="flex items-baseline gap-2 flex-wrap">
-                                    <span class="text-2xl font-black text-rose-600 dark:text-rose-450 leading-none">
-                                        Rp {{ number_format($product->selling_price, 0, ',', '.') }}
+                            <!-- Ratings, Reviews, and Sold Volumes -->
+                            <div class="flex items-center gap-2 mb-4 text-xs">
+                                <div class="flex items-center text-amber-400">
+                                    <span>★</span>
+                                    <span class="ml-1 font-bold text-gray-800 dark:text-gray-200">{{ $product->average_rating }}</span>
+                                </div>
+                                <span class="text-gray-300 dark:text-gray-600">·</span>
+                                <span class="text-gray-550 dark:text-gray-400 font-medium">{{ $product->reviews->count() }} Ulasan</span>
+                                <span class="text-gray-300 dark:text-gray-600">·</span>
+                                <span class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded font-extrabold">{{ $product->sales_count }}+ Terjual</span>
+                            </div>
+
+                            <!-- Special Tags Row (Bebas Ongkir, Cashback) -->
+                            <div class="flex flex-wrap items-center gap-2 mb-4">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border border-green-150 dark:border-green-900/25">
+                                    🚚 Bebas Ongkir
+                                </span>
+                                @if($product->promo_tag)
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border border-amber-150 dark:border-amber-900/25">
+                                        ✨ {{ $product->promo_tag }}
                                     </span>
-                                    <span class="text-xs text-gray-400 dark:text-gray-500 line-through">
+                                @endif
+                            </div>
+
+                            <!-- Price Info container -->
+                            <div class="py-3 border-y border-gray-100 dark:border-gray-700 mb-5">
+                                <span class="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-widest block font-bold mb-0.5">Harga Terbaik</span>
+                                @if($product->has_discount)
+                                    <div class="flex items-baseline gap-2 flex-wrap">
+                                        <span class="text-2xl font-black text-rose-600 dark:text-rose-450 leading-none">
+                                            Rp {{ number_format($product->selling_price, 0, ',', '.') }}
+                                        </span>
+                                        <span class="text-xs text-gray-400 dark:text-gray-500 line-through">
+                                            Rp {{ number_format($product->price, 0, ',', '.') }}
+                                        </span>
+                                        <span class="text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 rounded-lg">
+                                            Hemat Rp {{ number_format($product->price - $product->selling_price, 0, ',', '.') }}
+                                        </span>
+                                    </div>
+                                @else
+                                    <span class="text-2xl font-black text-gray-900 dark:text-white leading-none">
                                         Rp {{ number_format($product->price, 0, ',', '.') }}
                                     </span>
-                                    <span class="text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 rounded-lg">
-                                        Hemat Rp {{ number_format($product->price - $product->selling_price, 0, ',', '.') }}
-                                    </span>
+                                @endif
+                            </div>
+
+                            <!-- Interactive Options Selection (Dynamic Sizing & Colors) -->
+                            @if($product->variants->isNotEmpty())
+                                @php
+                                    $colors = $product->variants->pluck('color')->unique();
+                                    $sizes = $product->variants->where('color', $this->selectedColor)->pluck('size')->unique();
+                                    $currentVariant = $this->selectedVariant;
+                                    $variantStock = $currentVariant ? $currentVariant->stock : 0;
+                                @endphp
+                                <div class="space-y-4 mb-5">
+                                    <!-- Color Picker -->
+                                    <div>
+                                        <h4 class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">PILIH WARNA: <span class="text-gray-800 dark:text-white font-bold">{{ $this->selectedColor }}</span></h4>
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            @foreach($colors as $color)
+                                                <button 
+                                                    wire:click="selectColor('{{ $color }}')"
+                                                    class="px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition duration-150 {{ $this->selectedColor === $color ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-650 hover:border-indigo-600' }}"
+                                                >
+                                                    {{ $color }}
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
+
+                                    <!-- Sizing buttons selector -->
+                                    <div>
+                                        <h4 class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">PILIH UKURAN (EU): <span class="text-gray-800 dark:text-white font-bold">{{ $this->selectedSize }}</span></h4>
+                                        <div class="flex flex-wrap gap-2">
+                                            @foreach($sizes as $size)
+                                                @php
+                                                    $vStock = $product->variants->where('color', $this->selectedColor)->where('size', $size)->first()?->stock ?? 0;
+                                                @endphp
+                                                <button 
+                                                    wire:click="selectSize('{{ $size }}')" 
+                                                    {{ $vStock <= 0 ? 'disabled' : '' }}
+                                                    class="px-3 py-2 text-xs font-bold border-2 rounded-xl transition duration-150 relative {{ $this->selectedSize === $size ? 'bg-indigo-600 text-white border-indigo-600' : ($vStock <= 0 ? 'bg-gray-50 dark:bg-gray-800 text-gray-450 border-gray-200 dark:border-gray-700 cursor-not-allowed opacity-50' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-650 hover:border-indigo-600') }}"
+                                                >
+                                                    {{ $size }}
+                                                    @if($vStock <= 0)
+                                                        <span class="absolute -top-1 -right-1 bg-rose-600 w-1.5 h-1.5 rounded-full"></span>
+                                                    @endif
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
+
+                                    <!-- Dynamic stock count for variant -->
+                                    <div class="text-xs">
+                                        @if($currentVariant)
+                                            @if($variantStock > 0)
+                                                <span class="text-emerald-600 dark:text-emerald-400 font-extrabold">✓ Stok Tersedia: {{ $variantStock }} unit</span>
+                                            @else
+                                                <span class="text-rose-600 dark:text-rose-450 font-extrabold">✗ Stok Varian Habis!</span>
+                                            @endif
+                                        @else
+                                            <span class="text-amber-600 dark:text-amber-400 font-bold">Silakan pilih kombinasi warna dan ukuran.</span>
+                                        @endif
+                                    </div>
                                 </div>
-                            @else
-                                <span class="text-2xl font-black text-gray-900 dark:text-white leading-none">
-                                    Rp {{ number_format($product->price, 0, ',', '.') }}
-                                </span>
                             @endif
-                        </div>
 
-                        <!-- Interactive Options Selection (Sizing & Colors Mockups) -->
-                        <div class="space-y-4 mb-5" x-data="{ selectedSize: 42, selectedColor: 'Black' }">
-                            <!-- Color Picker Mockup -->
-                            <div>
-                                <h4 class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">PILIH WARNA: <span class="text-gray-800 dark:text-white" x-text="selectedColor"></span></h4>
-                                <div class="flex items-center gap-3">
-                                    <button @click="selectedColor = 'Black'" :class="selectedColor === 'Black' ? 'ring-2 ring-indigo-600 ring-offset-2 dark:ring-offset-gray-800' : ''" class="w-7 h-7 rounded-full bg-black border border-gray-300 transition-all" title="Black"></button>
-                                    <button @click="selectedColor = 'White'" :class="selectedColor === 'White' ? 'ring-2 ring-indigo-600 ring-offset-2 dark:ring-offset-gray-800' : ''" class="w-7 h-7 rounded-full bg-white border border-gray-300 transition-all" title="White"></button>
-                                    <button @click="selectedColor = 'Indigo Blue'" :class="selectedColor === 'Indigo Blue' ? 'ring-2 ring-indigo-600 ring-offset-2 dark:ring-offset-gray-800' : ''" class="w-7 h-7 rounded-full bg-indigo-600 border border-gray-300 transition-all" title="Indigo"></button>
-                                    <button @click="selectedColor = 'Crimson Red'" :class="selectedColor === 'Crimson Red' ? 'ring-2 ring-indigo-600 ring-offset-2 dark:ring-offset-gray-800' : ''" class="w-7 h-7 rounded-full bg-rose-600 border border-gray-300 transition-all" title="Red"></button>
-                                </div>
-                            </div>
-
-                            <!-- Sizing buttons selector mockup -->
-                            <div>
-                                <h4 class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">PILIH UKURAN (EU):</h4>
-                                <div class="flex flex-wrap gap-2">
-                                    <template x-for="sz in [39, 40, 41, 42, 43, 44]">
-                                        <button @click="selectedSize = sz" 
-                                                :class="selectedSize === sz ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-250 dark:border-gray-600 hover:border-indigo-600'" 
-                                                class="w-11 py-2 text-xs font-bold border-2 rounded-xl transition duration-150" 
-                                                x-text="sz">
-                                        </button>
-                                    </template>
-                                </div>
+                            <!-- Product Description panel -->
+                            <div class="mb-5">
+                                <h3 class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1.5">Deskripsi Produk</h3>
+                                <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 leading-relaxed max-h-[120px] overflow-y-auto pr-2">
+                                    {{ $product->description }}
+                                </p>
                             </div>
                         </div>
 
-                        <!-- Product Description panel -->
-                        <div class="mb-5">
-                            <h3 class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1.5">Deskripsi Produk</h3>
-                            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 leading-relaxed max-h-[120px] overflow-y-auto pr-2">
-                                {{ $product->description }}
-                            </p>
-                        </div>
-                    </div>
+                        <!-- Buy Actions Row -->
+                        <div>
+                            <!-- Delivery Estimate Info -->
+                            <div class="flex items-center gap-2 mb-4 bg-gray-50 dark:bg-gray-900/40 p-3 rounded-2xl text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-400 border border-gray-100 dark:border-gray-800">
+                                <span>Est. pengiriman tiba dalam 2-4 hari kerja (JNE / J&T / Sicepat).</span>
+                            </div>
 
-                    <!-- Buy Actions Row -->
-                    <div>
-                        <!-- Delivery Estimate Info -->
-                        <div class="flex items-center gap-2 mb-4 bg-gray-50 dark:bg-gray-900/40 p-3 rounded-2xl text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-400 border border-gray-100 dark:border-gray-800">
-                            <span>🚛 Est. pengiriman tiba dalam 2-4 hari kerja (JNE / J&T / Sicepat).</span>
+                            <!-- Add to Cart Primary Button -->
+                            @php
+                                $selectedV = $this->selectedVariant;
+                                $canAddToCart = $selectedV && $selectedV->stock > 0;
+                            @endphp
+                            <button 
+                                wire:click="addToCart({{ $product->id }}, {{ $selectedV?->id }})" 
+                                {{ !$canAddToCart ? 'disabled' : '' }} 
+                                class="w-full inline-flex items-center justify-center gap-2.5 px-6 py-4 rounded-2xl text-xs sm:text-sm font-black transition duration-150 {{ $canAddToCart ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 dark:shadow-none hover:scale-[1.01]' : 'bg-gray-150 dark:bg-gray-700 text-gray-400 cursor-not-allowed' }}"
+                            >
+                                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                <span>Masukkan ke Keranjang Belanja</span>
+                            </button>
                         </div>
-
-                        <!-- Add to Cart Primary Button -->
-                        <button 
-                            wire:click="addToCart({{ $product->id }})" 
-                            {{ $product->stock <= 0 ? 'disabled' : '' }} 
-                            class="w-full inline-flex items-center justify-center gap-2.5 px-6 py-4 rounded-2xl text-xs sm:text-sm font-black transition duration-150 {{ $product->stock > 0 ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 dark:shadow-none hover:scale-[1.01]' : 'bg-gray-150 dark:bg-gray-700 text-gray-400 cursor-not-allowed' }}"
-                        >
-                            <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                            <span>Masukkan ke Keranjang Belanja</span>
-                        </button>
                     </div>
                 </div>
+
+                <!-- Bottom Section: Customer Reviews -->
+                <div class="border-t border-gray-100 dark:border-gray-700 p-6 sm:p-8 bg-gray-50/30 dark:bg-gray-850/40">
+                    <h3 class="text-base sm:text-lg font-black text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                        💬 Ulasan Pembeli <span class="bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-xs px-2.5 py-0.5 rounded-full font-bold">{{ $product->reviews->count() }}</span>
+                    </h3>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Left Column: Statistics & Write Review Form -->
+                        <div class="space-y-6">
+                            <!-- Ratings Summary -->
+                            <div class="bg-white dark:bg-gray-800 p-5 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm flex items-center gap-4">
+                                <div class="text-center shrink-0">
+                                    <div class="text-4xl font-black text-gray-900 dark:text-white leading-none mb-1">{{ $product->average_rating }}</div>
+                                    <span class="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">dari 5 bintang</span>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center text-amber-400 mb-1.5">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <span class="text-lg">{{ $i <= round($product->average_rating) ? '★' : '☆' }}</span>
+                                        @endfor
+                                    </div>
+                                    <p class="text-xs text-gray-550 dark:text-gray-450 font-medium">95% pembeli sangat puas dengan kenyamanan produk ini.</p>
+                                </div>
+                            </div>
+
+                            <!-- Write a Review Form -->
+                            <div class="bg-white dark:bg-gray-800 p-5 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                                <h4 class="text-sm font-bold text-gray-900 dark:text-white mb-3">Tulis Ulasan Anda</h4>
+                                @auth
+                                    <form wire:submit.prevent="submitReview" class="space-y-4">
+                                        <!-- Rating Selector -->
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Beri Bintang:</label>
+                                            <div class="flex items-center gap-2">
+                                                @for($r = 1; $r <= 5; $r++)
+                                                    <button 
+                                                        type="button" 
+                                                        wire:click="$set('reviewRating', {{ $r }})" 
+                                                        class="text-2xl transition hover:scale-110 focus:outline-none {{ $this->reviewRating >= $r ? 'text-amber-400' : 'text-gray-300 dark:text-gray-650' }}"
+                                                    >
+                                                        ★
+                                                    </button>
+                                                @endfor
+                                            </div>
+                                        </div>
+
+                                        <!-- Comment textarea -->
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Komentar:</label>
+                                            <textarea 
+                                                wire:model="reviewComment" 
+                                                rows="3" 
+                                                placeholder="Bagikan pengalaman Anda menggunakan sepatu ini..." 
+                                                class="w-full text-xs p-3 rounded-xl border border-gray-300 dark:border-gray-650 bg-gray-50 dark:bg-gray-750 text-gray-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                                            ></textarea>
+                                            @error('reviewComment') <span class="text-red-500 text-[10px] font-bold mt-1 block">{{ $message }}</span> @enderror
+                                        </div>
+
+                                        <button 
+                                            type="submit" 
+                                            class="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition"
+                                        >
+                                            Kirim Ulasan
+                                        </button>
+                                    </form>
+                                @else
+                                    <div class="text-center py-4 bg-gray-50 dark:bg-gray-900/40 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+                                        <p class="text-xs text-gray-500 dark:text-gray-450 mb-2">Silakan login untuk mengirimkan ulasan.</p>
+                                        <a href="{{ route('login') }}" class="inline-flex text-xs font-bold text-indigo-600 hover:underline">Masuk Sekarang ➜</a>
+                                    </div>
+                                @endauth
+                            </div>
+                        </div>
+
+                        <!-- Right Columns: Reviews List -->
+                        <div class="lg:col-span-2 space-y-4 max-h-[380px] overflow-y-auto pr-2 scrollbar-thin">
+                            @forelse($product->reviews as $rev)
+                                <div class="bg-white dark:bg-gray-800 p-4.5 rounded-2xl border border-gray-100 dark:border-gray-700/80 shadow-sm space-y-2.5">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <span class="text-xs font-bold text-gray-900 dark:text-white">{{ $rev->user->name }}</span>
+                                            <!-- Stars rating -->
+                                            <div class="flex text-amber-400 text-xs mt-0.5">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    <span>{{ $i <= $rev->rating ? '★' : '☆' }}</span>
+                                                @endfor
+                                            </div>
+                                        </div>
+                                        <span class="text-[10px] text-gray-400 dark:text-gray-500">{{ $rev->created_at->format('d M Y') }}</span>
+                                    </div>
+                                    @if($rev->comment)
+                                        <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">{{ $rev->comment }}</p>
+                                    @else
+                                        <p class="text-xs italic text-gray-400 dark:text-gray-550">Pembeli tidak memberikan komentar.</p>
+                                    @endif
+                                </div>
+                            @empty
+                                <div class="text-center py-12 bg-white dark:bg-gray-850/20 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700">
+                                    <div class="text-3xl mb-2">💬</div>
+                                    <p class="text-xs text-gray-550 dark:text-gray-450">Belum ada ulasan untuk produk ini. Jadilah yang pertama memberikan ulasan!</p>
+                                </div>
+                            @endforelse
+                        </div>
             </div>
         </div>
     @endif
 </div>
+

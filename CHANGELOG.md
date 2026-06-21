@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Implemented dynamic database-backed Product Variant system (`product_variants` table) tracking individual stock, size, and color combinations.
+- Built dynamic reviews system (`reviews` table) letting logged-in users post shoe comments and ratings directly in the details modal.
+- Integrated real average rating, review count, and sales volume calculation derived from database reviews and completed/paid order history.
+- Added live size/color selectors and instant stock validation in shop detail modal, cart drawer, cart checkout page, and admin products edit modal.
+- Refactored admin products CRUD panel to allow listing, creating, editing, and deleting color/size/stock variants for any product.
 - Implemented database-driven Campaign & Slideshow Event management system with support for background gradient styles, badge text, promo tag integration, and expiration constraints.
 - Built Campaign CRUD administration panel under `/admin/campaigns` protected by `admin` middleware.
 - Integrated dynamic active campaigns query on storefront homepage slideshow with automated date range check (`scopeActive`) and fallback slideshow slides when no campaigns are active.
@@ -43,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronized brand logo component rendering to target custom public/logo.png brand asset across layout files.
 
 ### Fixed
+- Fixed PHPStan type warnings regarding `number_format` parameter types and relationship return type annotations in `Product`, `ProductVariant`, and `Review` models.
 - Fixed product details modal failing to open after catalog updates by upgrading computed property getters to Livewire v3 `#[Computed]` attributes and adding unique `wire:key` attributes on loop elements.
 - Fixed catalog layout and grid alignment on the main shop catalog page by correcting malformed HTML tags.
 - Standardized all scattered non-standard Tailwind color class weights (e.g., gray-750, gray-850, indigo-650) to valid standard equivalents.

@@ -41,7 +41,7 @@ new #[Layout('layouts.app')] class extends Component
 
     public function getItemsProperty()
     {
-        return CartItem::with('product')
+        return CartItem::with(['product', 'productVariant'])
             ->where('user_id', Auth::id())
             ->get();
     }
@@ -136,7 +136,9 @@ new #[Layout('layouts.app')] class extends Component
     public function increment(int $itemId): void
     {
         $item = CartItem::findOrFail($itemId);
-        if ($item->quantity + 1 > $item->product->stock) {
+        $maxStock = $item->productVariant ? $item->productVariant->stock : $item->product->stock;
+        
+        if ($item->quantity + 1 > $maxStock) {
             $this->dispatch('notify', type: 'error', message: 'Tidak dapat menambah lebih banyak. Stok tidak mencukupi!');
             return;
         }
@@ -188,7 +190,8 @@ new #[Layout('layouts.app')] class extends Component
 
         // Verify stock for all items
         foreach ($cartItems as $item) {
-            if ($item->product->stock < $item->quantity) {
+            $maxStock = $item->productVariant ? $item->productVariant->stock : $item->product->stock;
+            if ($maxStock < $item->quantity) {
                 $this->dispatch('notify', type: 'error', message: "Stok tidak mencukupi untuk {$item->product->name}!");
                 return;
             }
@@ -251,11 +254,18 @@ new #[Layout('layouts.app')] class extends Component
 
                 // Create order items & decrement stock
                 foreach ($cartItems as $item) {
-                    $item->product->decrement('stock', $item->quantity);
+                    if ($item->productVariant) {
+                        $item->productVariant->decrement('stock', $item->quantity);
+                    } else {
+                        $item->product->decrement('stock', $item->quantity);
+                    }
 
                     OrderItem::create([
                         'order_id' => $order->id,
                         'product_id' => $item->product_id,
+                        'product_variant_id' => $item->product_variant_id,
+                        'size' => $item->size,
+                        'color' => $item->color,
                         'name' => $item->product->name,
                         'price' => $item->product->selling_price,
                         'quantity' => $item->quantity,
@@ -421,6 +431,11 @@ new #[Layout('layouts.app')] class extends Component
                                         <p class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wider">
                                             {{ $item->product->category->name }}
                                         </p>
+                                        @if($item->size || $item->color)
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                Pilihan: @if($item->color) {{ $item->color }} @endif @if($item->size) - EU {{ $item->size }} @endif
+                                            </p>
+                                        @endif
                                         <div class="flex items-center gap-2 mt-2">
                                             <button wire:click="decrement({{ $item->id }})" class="p-1 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-500 hover:text-gray-700 transition">
                                                 <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>

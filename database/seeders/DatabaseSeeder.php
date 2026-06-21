@@ -2,8 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Campaign;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductVariant;
+use App\Models\Review;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -360,5 +363,86 @@ class DatabaseSeeder extends Seeder
         foreach ($additionalProducts as $p) {
             Product::create($p);
         }
+
+        // 5. Seed Product Variants for all products
+        $sizes = ['39', '40', '41', '42', '43'];
+        $colors = ['Hitam', 'Putih', 'Abu-abu', 'Biru'];
+        $products = Product::all();
+        foreach ($products as $prod) {
+            $variantCount = rand(3, 4);
+            $selectedCombinations = [];
+            for ($i = 0; $i < $variantCount; $i++) {
+                $size = $sizes[array_rand($sizes)];
+                $color = $colors[array_rand($colors)];
+                $combo = "$size-$color";
+                if (in_array($combo, $selectedCombinations)) {
+                    continue;
+                }
+                $selectedCombinations[] = $combo;
+
+                ProductVariant::create([
+                    'product_id' => $prod->id,
+                    'size' => $size,
+                    'color' => $color,
+                    'stock' => rand(5, 15),
+                ]);
+            }
+        }
+
+        // 6. Seed Product Reviews
+        $users = User::where('role', 'customer')->get();
+        if ($users->isNotEmpty()) {
+            $comments = [
+                5 => ['Sepatu sangat nyaman dipakai dan empuk banget!', 'Kualitas premium, jahitan rapi, dan pengiriman super cepat.', 'Sangat memuaskan, pas di kaki dan desainnya trendi.'],
+                4 => ['Bagus sekali, ukuran pas tapi kardusnya agak penyok.', 'Nyaman dipakai jalan jauh, recommended seller!', 'Kualitas oke sesuai harga, respon admin ramah.'],
+                3 => ['Ukuran agak sempit dibanding standar, tapi bahannya bagus.', 'Lumayan untuk harga segini, tapi lemnya kurang rapi sedikit.'],
+            ];
+
+            foreach ($products as $prod) {
+                $reviewCount = rand(2, 3);
+                for ($i = 0; $i < $reviewCount; $i++) {
+                    $user = $users->random();
+                    $rating = rand(3, 5);
+                    $commentList = $comments[$rating];
+                    $comment = $commentList[array_rand($commentList)];
+
+                    Review::create([
+                        'user_id' => $user->id,
+                        'product_id' => $prod->id,
+                        'rating' => $rating,
+                        'comment' => $comment,
+                    ]);
+                }
+            }
+        }
+
+        // 7. Seed Active Campaigns
+        Campaign::create([
+            'title' => 'Ramadhan Berkarya Mega Sale',
+            'subtitle' => 'Dapatkan diskon hingga 70% untuk sneakers pilihan selama bulan suci.',
+            'description' => 'Diskon khusus Ramadhan untuk model running dan sneakers.',
+            'badge_text' => 'PROMO BERKAH',
+            'promo_tag' => 'Ramadhan',
+            'button_text' => 'Belanja Sekarang',
+            'button_link' => '#catalog',
+            'bg_gradient' => 'emerald',
+            'start_date' => now()->subDays(2),
+            'end_date' => now()->addDays(15),
+            'is_active' => true,
+        ]);
+
+        Campaign::create([
+            'title' => 'Festival Hari Raya Promo',
+            'subtitle' => 'Lengkapi langkah suci Anda dengan koleksi sneakers terbaik kami.',
+            'description' => 'Promo hari raya.',
+            'badge_text' => 'SPESIAL MUDIK',
+            'promo_tag' => 'Idul Fitri',
+            'button_text' => 'Mulai Belanja',
+            'button_link' => '#catalog',
+            'bg_gradient' => 'rose',
+            'start_date' => now()->subDays(1),
+            'end_date' => now()->addDays(20),
+            'is_active' => true,
+        ]);
     }
 }

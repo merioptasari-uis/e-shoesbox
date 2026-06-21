@@ -20,7 +20,7 @@ new class extends Component
             return collect();
         }
 
-        return CartItem::with('product')
+        return CartItem::with(['product', 'productVariant'])
             ->where('user_id', Auth::id())
             ->get();
     }
@@ -28,15 +28,16 @@ new class extends Component
     public function getTotalProperty(): float
     {
         return $this->items->sum(function ($item) {
-            return $item->product->price * $item->quantity;
+            return $item->product->selling_price * $item->quantity;
         });
     }
 
     public function increment(int $itemId): void
     {
         $item = CartItem::findOrFail($itemId);
+        $maxStock = $item->productVariant ? $item->productVariant->stock : $item->product->stock;
         
-        if ($item->quantity + 1 > $item->product->stock) {
+        if ($item->quantity + 1 > $maxStock) {
             $this->dispatch('notify', type: 'error', message: 'Tidak dapat menambah lebih banyak. Stok tidak mencukupi!');
             return;
         }
@@ -147,11 +148,16 @@ new class extends Component
                                             <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
                                                 {{ $item->product->name }}
                                             </h3>
-                                            <p class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wider">
+                                            <p class="text-[10px] text-indigo-600 dark:text-indigo-400 font-extrabold uppercase tracking-wider">
                                                 {{ $item->product->category->name }}
                                             </p>
-                                            <span class="text-sm font-extrabold text-gray-900 dark:text-gray-100 block mt-1">
-                                                Rp {{ number_format($item->product->price, 0, ',', '.') }}
+                                            @if($item->size || $item->color)
+                                                <p class="text-[11px] text-gray-550 dark:text-gray-405 font-semibold mt-0.5">
+                                                    Pilihan: @if($item->color) {{ $item->color }} @endif @if($item->size) - EU {{ $item->size }} @endif
+                                                </p>
+                                            @endif
+                                            <span class="text-sm font-extrabold text-gray-900 dark:text-gray-100 block mt-1.5">
+                                                Rp {{ number_format($item->product->selling_price, 0, ',', '.') }}
                                             </span>
 
                                             <!-- Qty Controls -->

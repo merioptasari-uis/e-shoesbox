@@ -30,6 +30,12 @@ state([
     'additional_images' => [],
     'current_additional_images' => [],
     'promo_tag' => '',
+
+    // Variant fields
+    'variants' => [],
+    'new_size' => '',
+    'new_color' => '',
+    'new_stock' => 0,
 ]);
 
 rules([
@@ -47,18 +53,19 @@ rules([
 
 $openCreateModal = function () {
     $this->resetErrorBag();
-    $this->reset(['editingProductId', 'category_id', 'name', 'description', 'price', 'discount_price', 'stock', 'weight', 'current_image_path', 'additional_images', 'current_additional_images', 'promo_tag']);
+    $this->reset(['editingProductId', 'category_id', 'name', 'description', 'price', 'discount_price', 'stock', 'weight', 'current_image_path', 'additional_images', 'current_additional_images', 'promo_tag', 'variants', 'new_size', 'new_color', 'new_stock']);
     // Set default category if exists
     $firstCategory = Category::first();
     if ($firstCategory) {
         $this->category_id = $firstCategory->id;
     }
+    $this->variants = [];
     $this->isModalOpen = true;
 };
 
 $openEditModal = function ($id) {
     $this->resetErrorBag();
-    $product = Product::with('images')->findOrFail($id);
+    $product = Product::with(['images', 'variants'])->findOrFail($id);
     
     $this->editingProductId = $product->id;
     $this->category_id = $product->category_id;
@@ -73,7 +80,94 @@ $openEditModal = function ($id) {
     $this->current_additional_images = $product->images;
     $this->promo_tag = $product->promo_tag ?? '';
     
+    $this->variants = $product->variants->toArray();
+    $this->new_size = '';
+    $this->new_color = '';
+    $this->new_stock = 0;
+    
     $this->isModalOpen = true;
+};
+
+$addVariant = function () {
+    $this->validate([
+        'new_size' => 'required|string|max:50',
+        'new_color' => 'required|string|max:50',
+        'new_stock' => 'required|integer|min:0',
+    ], [
+        'new_size.required' => 'Ukuran wajib diisi.',
+        'new_color.required' => 'Warna wajib diisi.',
+        'new_stock.required' => 'Stok wajib diisi.',
+    ]);
+
+    $size = trim($this->new_size);
+    $color = trim($this->new_color);
+    $stock = (int) $this->new_stock;
+
+    // Check duplicate
+    foreach ($this->variants as $v) {
+        if (strtolower($v['size']) === strtolower($size) && strtolower($v['color']) === strtolower($color)) {
+            $this->addError('new_size', 'Kombinasi ukuran dan warna ini sudah ada.');
+            return;
+        }
+    }
+
+    if ($this->editingProductId) {
+        $variant = \App\Models\ProductVariant::create([
+            'product_id' => $this->editingProductId,
+            'size' => $size,
+            'color' => $color,
+            'stock' => $stock,
+        ]);
+        $this->variants[] = $variant->toArray();
+        $this->stock = (int) \App\Models\ProductVariant::where('product_id', $this->editingProductId)->sum('stock');
+    } else {
+        $this->variants[] = [
+            'id' => null,
+            'size' => $size,
+            'color' => $color,
+            'stock' => $stock,
+        ];
+        $this->stock = array_sum(array_column($this->variants, 'stock'));
+    }
+
+    $this->new_size = '';
+    $this->new_color = '';
+    $this->new_stock = 0;
+};
+
+$deleteVariant = function ($index, $id = null) {
+    if ($id) {
+        \App\Models\ProductVariant::destroy($id);
+    }
+    
+    unset($this->variants[$index]);
+    $this->variants = array_values($this->variants);
+    
+    if ($this->editingProductId) {
+        $this->stock = (int) \App\Models\ProductVariant::where('product_id', $this->editingProductId)->sum('stock');
+    } else {
+        $this->stock = array_sum(array_column($this->variants, 'stock'));
+    }
+};
+
+$updateVariantStock = function ($index, $newStockValue) {
+    $newStockValue = (int) $newStockValue;
+    if ($newStockValue < 0) {
+        $newStockValue = 0;
+    }
+    
+    $this->variants[$index]['stock'] = $newStockValue;
+    
+    $id = $this->variants[$index]['id'] ?? null;
+    if ($id) {
+        \App\Models\ProductVariant::where('id', $id)->update(['stock' => $newStockValue]);
+    }
+    
+    if ($this->editingProductId) {
+        $this->stock = (int) \App\Models\ProductVariant::where('product_id', $this->editingProductId)->sum('stock');
+    } else {
+        $this->stock = array_sum(array_column($this->variants, 'stock'));
+    }
 };
 
 $saveProduct = function () {
@@ -112,6 +206,19 @@ $saveProduct = function () {
         }
         
         $product = Product::create($validated);
+        
+        // Save variants if creating product
+        if (!empty($this->variants)) {
+            foreach ($this->variants as $variantData) {
+                \App\Models\ProductVariant::create([
+                    'product_id' => $product->id,
+                    'size' => $variantData['size'],
+                    'color' => $variantData['color'],
+                    'stock' => $variantData['stock'],
+                ]);
+            }
+        }
+        
         session()->flash('message', 'Produk berhasil dibuat!');
     }
     
@@ -393,8 +500,11 @@ $getCategories = function () {
                                     <!-- Stock -->
                                     <div>
                                         <x-input-label for="form_stock" :value="__('Stok')" />
-                                        <x-text-input wire:model="stock" id="form_stock" class="block mt-1 w-full" type="number" required />
+                                        <x-text-input wire:model="stock" id="form_stock" class="block mt-1 w-full {{ !empty($variants) ? 'bg-gray-100 dark:bg-gray-700 cursor-not-allowed text-gray-500' : '' }}" type="number" required :readonly="!empty($variants)" />
                                         <x-input-error :messages="$errors->get('stock')" class="mt-1" />
+                                        @if(!empty($variants))
+                                            <span class="text-[10px] text-gray-500 dark:text-gray-400 mt-1 block">Dihitung otomatis dari varian</span>
+                                        @endif
                                     </div>
                                     <!-- Weight -->
                                     <div>
@@ -425,6 +535,74 @@ $getCategories = function () {
                                         <option value="Mega Sale">Mega Sale</option>
                                     </select>
                                     <x-input-error :messages="$errors->get('promo_tag')" class="mt-1" />
+                                </div>
+
+                                <!-- Dynamic Product Variants Section -->
+                                <div class="border-t border-gray-100 dark:border-gray-700 pt-4 mt-4">
+                                    <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100 mb-2">Varian Produk (Opsional)</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Tentukan stok spesifik untuk setiap kombinasi ukuran dan warna sepatu.</p>
+
+                                    <!-- Variants List -->
+                                    @if (!empty($variants))
+                                        <div class="mb-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/30">
+                                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-xs">
+                                                <thead class="bg-gray-100 dark:bg-gray-800">
+                                                    <tr>
+                                                        <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Ukuran</th>
+                                                        <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Warna</th>
+                                                        <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300 w-24">Stok</th>
+                                                        <th class="px-3 py-2 text-right font-semibold text-gray-600 dark:text-gray-300 w-12">Aksi</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
+                                                    @foreach ($variants as $index => $variant)
+                                                        <tr wire:key="variant-{{ $index }}">
+                                                            <td class="px-3 py-2 text-gray-900 dark:text-gray-100 font-medium">EU {{ $variant['size'] }}</td>
+                                                            <td class="px-3 py-2 text-gray-900 dark:text-gray-100">{{ $variant['color'] }}</td>
+                                                            <td class="px-3 py-2">
+                                                                <input type="number" 
+                                                                    wire:change="updateVariantStock({{ $index }}, $event.target.value)" 
+                                                                    value="{{ $variant['stock'] }}" 
+                                                                    class="w-20 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-150 focus:ring-indigo-500 focus:border-indigo-500" 
+                                                                    min="0"
+                                                                />
+                                                            </td>
+                                                            <td class="px-3 py-2 text-right">
+                                                                <button type="button" 
+                                                                    wire:click="deleteVariant({{ $index }}, {{ $variant['id'] ?? 'null' }})" 
+                                                                    class="text-rose-600 hover:text-rose-800 transition font-bold"
+                                                                >
+                                                                    ✕
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    @endif
+
+                                    <!-- Add New Variant Inputs -->
+                                    <div class="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-gray-200 dark:border-gray-700 space-y-3">
+                                        <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider block">Tambah Varian Baru:</span>
+                                        <div class="grid grid-cols-3 gap-2">
+                                            <div>
+                                                <input type="text" wire:model="new_size" placeholder="Ukuran (misal: 42)" class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500" />
+                                                @error('new_size') <span class="text-rose-500 text-[10px] block mt-1">{{ $message }}</span> @enderror
+                                            </div>
+                                            <div>
+                                                <input type="text" wire:model="new_color" placeholder="Warna (misal: Hitam)" class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500" />
+                                                @error('new_color') <span class="text-rose-500 text-[10px] block mt-1">{{ $message }}</span> @enderror
+                                            </div>
+                                            <div>
+                                                <input type="number" wire:model="new_stock" placeholder="Stok" min="0" class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500" />
+                                                @error('new_stock') <span class="text-rose-500 text-[10px] block mt-1">{{ $message }}</span> @enderror
+                                            </div>
+                                        </div>
+                                        <button type="button" wire:click="addVariant" class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-xl shadow-sm text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-750 transition cursor-pointer">
+                                            ＋ Tambah Varian
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <!-- Integrated Premium Product Images Section -->
