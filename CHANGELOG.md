@@ -1,0 +1,19 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- Created `provinces` and `cities` database tables and seeder utilizing RajaOngkir API.
+- Implemented responsive Customer Shop shoe catalog page at `/` with search, category filtering, and price sorting.
+- Developed persistent database-backed cart utilizing `cart_items` table with real-time stock limits.
+- Built slide-out Mini-Cart drawer Livewire component accessible across pages.
+- Created dedicated `/cart` page with recipient details, address inputs, shipping destination selectors, courier selectors, and RajaOngkir shipping rate estimates.
+- Integrated Midtrans Snap Embedded JavaScript payment overlay for checkout.
+- Built POST webhook receiver `/api/midtrans/notification` with CSRF protection bypassed.
+- Created Order details status tracker view `/order/{order}` with active polling.
+- Developed Admin Orders dashboard panel at `/admin/orders` to manage delivery tracking and fulfillments.
