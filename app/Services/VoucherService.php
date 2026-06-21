@@ -19,7 +19,7 @@ class VoucherService
         if (! $voucher) {
             return [
                 'isValid' => false,
-                'message' => 'Voucher code is invalid.',
+                'message' => 'Kode voucher tidak valid.',
                 'voucher' => null,
             ];
         }
@@ -27,7 +27,7 @@ class VoucherService
         if (! $voucher->is_active) {
             return [
                 'isValid' => false,
-                'message' => 'This voucher is no longer active.',
+                'message' => 'Voucher ini sudah tidak aktif.',
                 'voucher' => $voucher,
             ];
         }
@@ -35,7 +35,7 @@ class VoucherService
         if ($voucher->expires_at && Carbon::now()->greaterThanOrEqualTo($voucher->expires_at)) {
             return [
                 'isValid' => false,
-                'message' => 'This voucher has expired.',
+                'message' => 'Voucher ini telah kedaluwarsa.',
                 'voucher' => $voucher,
             ];
         }
@@ -43,7 +43,7 @@ class VoucherService
         if ($subtotal < $voucher->min_spend) {
             return [
                 'isValid' => false,
-                'message' => 'Minimum spend of Rp '.number_format($voucher->min_spend, 0, ',', '.').' is required to use this voucher.',
+                'message' => 'Minimal belanja Rp '.number_format($voucher->min_spend, 0, ',', '.').' diperlukan untuk menggunakan voucher ini.',
                 'voucher' => $voucher,
             ];
         }
@@ -51,7 +51,7 @@ class VoucherService
         if ($voucher->limit_total !== null && $voucher->used_count >= $voucher->limit_total) {
             return [
                 'isValid' => false,
-                'message' => 'This voucher usage limit has been reached.',
+                'message' => 'Batas penggunaan voucher ini telah tercapai.',
                 'voucher' => $voucher,
             ];
         }
@@ -65,7 +65,7 @@ class VoucherService
             if ($userUsage >= $voucher->limit_per_user) {
                 return [
                     'isValid' => false,
-                    'message' => 'You have reached the usage limit for this voucher.',
+                    'message' => 'Anda telah mencapai batas penggunaan untuk voucher ini.',
                     'voucher' => $voucher,
                 ];
             }
@@ -73,7 +73,7 @@ class VoucherService
 
         return [
             'isValid' => true,
-            'message' => 'Voucher applied successfully.',
+            'message' => 'Voucher berhasil digunakan.',
             'voucher' => $voucher,
         ];
     }

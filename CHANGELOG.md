@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Implemented premium product details modal/panel with a multi-image thumbnail gallery selector on the customer shop catalog page.
+- Fully localized all application UI views and user-facing notifications to Indonesian, including navigation, shopping cart, order details tracking, admin products, admin orders, admin vouchers, and authentication views.
 - Implemented stacked voucher system supporting free shipping and percentage/fixed discounts with expiry and usage checks.
 - Created `provinces` and `cities` database tables and seeder utilizing RajaOngkir API.
 - Implemented responsive Customer Shop shoe catalog page at `/` with search, category filtering, and price sorting.
