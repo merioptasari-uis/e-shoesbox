@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed checkout race conditions under high concurrency by introducing pessimistic row locking (`lockForUpdate`) on product and variant records during order placement.
 - Fixed incomplete stock restoration where order cancellation/expiry only recovered parent product stock, now correctly restoring specific variant stock levels in both the Midtrans webhook and Admin panel.
+- Fixed the large vertical gap between the main product image and thumbnails in the shop product detail modal by replacing 'justify-between' with a standard 'gap-4' flex layout.
 
 ### Changed
 - Refactored storefront Flash Sale section to display products dynamically using active scheduler dates (`flash_sale_start` <= now <= `flash_sale_end`).
