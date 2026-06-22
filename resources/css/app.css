@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    /* Fix native date picker indicator icon visibility in dark mode */
+    .dark ::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+    }
+    
+    @media (prefers-color-scheme: dark) {
+        ::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+        }
+    }
+}
