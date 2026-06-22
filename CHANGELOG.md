@@ -38,6 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implemented datetime-local input fields in the admin products edit form for precise scheduling of flash sale start and end times.
 
 ### Fixed
+- Fixed class-based dark mode switching in Tailwind CSS by adding `darkMode: 'class'` to tailwind.config.js.
+- Updated form input and navigation components (focus rings, active links, button rings) to use `violet` focus and active styling instead of `indigo`.
 - Fixed native date picker indicator icon visibility in dark mode by applying webkit filter inversion on dark mode backgrounds.
 - Fixed products admin modal not opening due to premature closing of the component root element in products.blade.php.
 - Fixed campaigns admin modal layout being too small/narrow by widening it to max-w-3xl and arranging form fields into a two-column grid.
