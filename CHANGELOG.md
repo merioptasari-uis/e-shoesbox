@@ -8,8 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Created a database migration introducing `hex_color` to `product_variants` and `emoji` & `custom_bg` to `campaigns` tables.
+- Integrated color picker and HEX text input controls in the admin products panel to support dynamic, code-free color variants addition.
+- Integrated emoji picker/text inputs and custom gradient CSS style field in the admin campaigns editor.
 - Centralized color swatch lookup helper `ProductVariant::getHexColor($color)` supporting basic and extended shoe colors (Cream, Maroon, Tosca, Gold, Silver, Orange, Purple, etc.).
 - Integrated general promo tags (`Flash Sale`, `Cashback`, `Diskon Besar`, `New Arrival`) into admin campaigns and products forms.
+
+### Changed
+- Updated storefront shopping carousel and catalog card swatch loops to prioritize dynamic DB colors and campaign slide gradients/emojis dynamically, utilizing automated fallback schemes.
 
 ### Changed
 - Synchronized campaign slideshow emoji presentation in shop storefront, mapping general promo tags to distinct emojis (⚡, 💰, 🏷️, 👟).

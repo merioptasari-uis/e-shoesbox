@@ -21,6 +21,8 @@ state([
     'button_text' => 'Lihat Koleksi',
     'button_link' => '#catalog',
     'bg_gradient' => 'indigo',
+    'emoji' => '',
+    'custom_bg' => '',
     'start_date' => '',
     'end_date' => '',
     'is_active' => true,
@@ -35,6 +37,8 @@ rules([
     'button_text' => ['required', 'string', 'max:255'],
     'button_link' => ['required', 'string', 'max:255'],
     'bg_gradient' => ['required', 'string', 'in:indigo,emerald,rose,amber,purple'],
+    'emoji' => ['nullable', 'string', 'max:50'],
+    'custom_bg' => ['nullable', 'string', 'max:255'],
     'start_date' => ['nullable', 'date'],
     'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
     'is_active' => ['boolean'],
@@ -42,7 +46,7 @@ rules([
 
 $openCreateModal = function () {
     $this->resetErrorBag();
-    $this->reset(['editingCampaignId', 'title', 'subtitle', 'description', 'badge_text', 'promo_tag', 'button_text', 'button_link', 'bg_gradient', 'start_date', 'end_date', 'is_active']);
+    $this->reset(['editingCampaignId', 'title', 'subtitle', 'description', 'badge_text', 'promo_tag', 'emoji', 'custom_bg', 'button_text', 'button_link', 'bg_gradient', 'start_date', 'end_date', 'is_active']);
     $this->button_text = 'Lihat Koleksi';
     $this->button_link = '#catalog';
     $this->bg_gradient = 'indigo';
@@ -63,6 +67,8 @@ $openEditModal = function ($id) {
     $this->button_text = $campaign->button_text;
     $this->button_link = $campaign->button_link;
     $this->bg_gradient = $campaign->bg_gradient;
+    $this->emoji = $campaign->emoji ?? '';
+    $this->custom_bg = $campaign->custom_bg ?? '';
     $this->start_date = $campaign->start_date ? $campaign->start_date->format('Y-m-d\TH:i') : '';
     $this->end_date = $campaign->end_date ? $campaign->end_date->format('Y-m-d\TH:i') : '';
     $this->is_active = $campaign->is_active;
@@ -82,6 +88,8 @@ $saveCampaign = function () {
         'button_text' => $this->button_text,
         'button_link' => $this->button_link,
         'bg_gradient' => $this->bg_gradient,
+        'emoji' => $this->emoji !== '' ? $this->emoji : null,
+        'custom_bg' => $this->custom_bg !== '' ? $this->custom_bg : null,
         'start_date' => $this->start_date !== '' ? $this->start_date : null,
         'end_date' => $this->end_date !== '' ? $this->end_date : null,
         'is_active' => $this->is_active,
@@ -191,22 +199,28 @@ $getCampaignsProperty = function () {
                                             </span>
                                         @endif
                                         @if($campaign->promo_tag)
-                                            <span class="inline-flex items-center px-2 py-0.5 text-xxs font-black rounded bg-rose-100 dark:bg-rose-950/40 text-rose-800 dark:text-rose-455">
-                                                🏷️ {{ $campaign->promo_tag }}
+                                            <span class="inline-flex items-center px-2 py-0.5 text-xxs font-black rounded bg-rose-100 dark:bg-rose-955/40 text-rose-800 dark:text-rose-455">
+                                                {{ $campaign->emoji ?: '🏷️' }} {{ $campaign->promo_tag }}
                                             </span>
                                         @endif
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold
-                                        {{ $campaign->bg_gradient === 'indigo' ? 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-800 dark:text-indigo-300' : '' }}
-                                        {{ $campaign->bg_gradient === 'emerald' ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300' : '' }}
-                                        {{ $campaign->bg_gradient === 'rose' ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-300' : '' }}
-                                        {{ $campaign->bg_gradient === 'amber' ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300' : '' }}
-                                        {{ $campaign->bg_gradient === 'purple' ? 'bg-purple-50 dark:bg-purple-950/30 text-purple-800 dark:text-purple-300' : '' }}
-                                    ">
-                                        {{ ucfirst($campaign->bg_gradient) }} Gradient
-                                    </span>
+                                    @if($campaign->custom_bg)
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700 shadow-sm" style="background: {{ $campaign->custom_bg }}; border-color: rgba(0,0,0,0.1)">
+                                            Custom CSS BG
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold
+                                            {{ $campaign->bg_gradient === 'indigo' ? 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-800 dark:text-indigo-300' : '' }}
+                                            {{ $campaign->bg_gradient === 'emerald' ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300' : '' }}
+                                            {{ $campaign->bg_gradient === 'rose' ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-300' : '' }}
+                                            {{ $campaign->bg_gradient === 'amber' ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300' : '' }}
+                                            {{ $campaign->bg_gradient === 'purple' ? 'bg-purple-50 dark:bg-purple-950/30 text-purple-850 dark:text-purple-300' : '' }}
+                                        ">
+                                            {{ ucfirst($campaign->bg_gradient) }} Gradient
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                                     <div class="flex flex-col text-xs">
@@ -303,7 +317,7 @@ $getCampaignsProperty = function () {
                         <x-input-error :messages="$errors->get('description')" class="mt-1" />
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-3 gap-4">
                         <!-- Badge Text -->
                         <div>
                             <x-input-label for="campaign_badge" :value="__('Teks Badge')" />
@@ -328,6 +342,13 @@ $getCampaignsProperty = function () {
                             </select>
                             <x-input-error :messages="$errors->get('promo_tag')" class="mt-1" />
                         </div>
+
+                        <!-- Custom Emoji -->
+                        <div>
+                            <x-input-label for="campaign_emoji" :value="__('Emoji Tag (Opsional)')" />
+                            <x-text-input wire:model="emoji" id="campaign_emoji" placeholder="misal: ⚡ atau 🎒" class="block mt-1 w-full" type="text" />
+                            <x-input-error :messages="$errors->get('emoji')" class="mt-1" />
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
@@ -346,17 +367,27 @@ $getCampaignsProperty = function () {
                         </div>
                     </div>
 
-                    <!-- Background Gradient Selection -->
-                    <div>
-                        <x-input-label for="bg_grad" :value="__('Warna Gradasi Background')" />
-                        <select wire:model="bg_gradient" id="bg_grad" class="block mt-1 w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-950 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            <option value="indigo">Indigo (Ungu-Pink)</option>
-                            <option value="emerald">Emerald (Hijau-Biru)</option>
-                            <option value="rose">Rose (Merah-Orange)</option>
-                            <option value="amber">Amber (Kuning-Oranye)</option>
-                            <option value="purple">Purple (Ungu-Merah)</option>
-                        </select>
-                        <x-input-error :messages="$errors->get('bg_gradient')" class="mt-1" />
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Background Gradient Selection -->
+                        <div>
+                            <x-input-label for="bg_grad" :value="__('Warna Gradasi (Preset)')" />
+                            <select wire:model="bg_gradient" id="bg_grad" class="block mt-1 w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-950 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="indigo">Indigo (Ungu-Pink)</option>
+                                <option value="emerald">Emerald (Hijau-Biru)</option>
+                                <option value="rose">Rose (Merah-Orange)</option>
+                                <option value="amber">Amber (Kuning-Oranye)</option>
+                                <option value="purple">Purple (Ungu-Merah)</option>
+                            </select>
+                            <x-input-error :messages="$errors->get('bg_gradient')" class="mt-1" />
+                        </div>
+
+                        <!-- Custom Background CSS -->
+                        <div>
+                            <x-input-label for="custom_bg" :value="__('Custom Background CSS/Gradient')" />
+                            <x-text-input wire:model="custom_bg" id="custom_bg" placeholder="misal: linear-gradient(to right, #ff007f, #7f00ff)" class="block mt-1 w-full text-xs" type="text" />
+                            <span class="text-[10px] text-gray-500 dark:text-gray-400 block mt-0.5">Opsional. Menimpa gradasi preset di samping.</span>
+                            <x-input-error :messages="$errors->get('custom_bg')" class="mt-1" />
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
