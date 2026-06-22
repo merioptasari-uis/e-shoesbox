@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added dynamic Flash Sale scheduling columns `flash_sale_start` and `flash_sale_end` to the `products` table, model casts, and fillable attributes.
+- Implemented datetime-local input fields in the admin products edit form for precise scheduling of flash sale start and end times.
+
 ### Changed
+- Refactored storefront Flash Sale section to display products dynamically using active scheduler dates (`flash_sale_start` <= now <= `flash_sale_end`).
+- Updated storefront countdown timer to be fully dynamic, counting down to the nearest expiring active flash sale.
+- Redesigned color swatches and sizing selectors in storefront details modal with high-fidelity circular indicators and diagonal strike-through out-of-stock styles.
+- Reduced love/wishlist icon size to `h-4 w-4` to fit balancedly inside the product card circle button.
 - Restricted storefront Flash Sale section to only show products explicitly tagged with promo_tag 'Flash Sale'.
 - Refactored storefront Flash Sale countdown timer to dynamically calculate time remaining until midnight instead of a static hardcoded time.
 - Added 'Flash Sale' label to the admin promo tag selection dropdown to enable explicit control.

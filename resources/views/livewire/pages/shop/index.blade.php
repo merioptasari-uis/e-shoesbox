@@ -158,6 +158,41 @@ new #[Layout('layouts.app')] class extends Component
         return $gallery;
     }
 
+    #[Computed]
+    public function flashSaleProducts()
+    {
+        return Product::query()
+            ->with(['category', 'variants'])
+            ->where('is_active', true)
+            ->where('promo_tag', 'Flash Sale')
+            ->whereNotNull('flash_sale_start')
+            ->whereNotNull('flash_sale_end')
+            ->where('flash_sale_start', '<=', now())
+            ->where('flash_sale_end', '>=', now())
+            ->take(8)
+            ->get();
+    }
+
+    #[Computed]
+    public function flashSaleRemainingSeconds(): int
+    {
+        $closestEndingProduct = Product::query()
+            ->where('is_active', true)
+            ->where('promo_tag', 'Flash Sale')
+            ->whereNotNull('flash_sale_start')
+            ->whereNotNull('flash_sale_end')
+            ->where('flash_sale_start', '<=', now())
+            ->where('flash_sale_end', '>=', now())
+            ->orderBy('flash_sale_end', 'asc')
+            ->first();
+
+        if ($closestEndingProduct) {
+            return max(0, now()->diffInSeconds($closestEndingProduct->flash_sale_end, false));
+        }
+
+        return 0;
+    }
+
     public function with(): array
     {
         $query = Product::query()->with(['category', 'variants'])->where('is_active', true);
@@ -526,45 +561,46 @@ new #[Layout('layouts.app')] class extends Component
     </div>
 
     <!-- Interactive Flash Sale Section (urges buying with countdown) -->
-    @php
-        $flashSaleProducts = $products->filter(fn($p) => $p->promo_tag === 'Flash Sale')->take(4);
-    @endphp
-    @if($flashSaleProducts->isNotEmpty())
+    @if($this->flashSaleProducts->isNotEmpty())
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
             <div class="bg-gradient-to-r from-rose-50 to-orange-50 dark:from-red-950/15 dark:to-orange-950/15 rounded-[32px] p-6 sm:p-8 border border-red-100/50 dark:border-red-900/20 shadow-sm">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <div class="flex items-center gap-3">
                         <span class="text-3xl animate-bounce">⚡</span>
                         <div>
-                            <h2 class="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 tracking-tight flex items-center gap-2">
+                            <h2 class="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-450 tracking-tight flex items-center gap-2">
                                 FLASH SALE HARI INI
                             </h2>
-                            <p class="text-xs text-orange-600 dark:text-orange-300 font-semibold uppercase tracking-wider">Diskon Paling Heboh Spesial Jam Ini!</p>
+                            <p class="text-xs text-orange-600 dark:text-orange-350 font-semibold uppercase tracking-wider">Diskon Paling Heboh Spesial Jam Ini!</p>
                         </div>
                     </div>
                     <!-- Countdown Timer -->
                     <div x-data="{
+                             secondsRemaining: {{ $this->flashSaleRemainingSeconds }},
                              hours: '00',
                              minutes: '00',
                              seconds: '00',
                              init() {
-                                 const calculateTime = () => {
-                                     let now = new Date();
-                                     let midnight = new Date();
-                                     midnight.setHours(24, 0, 0, 0);
-                                     let totalSeconds = Math.floor((midnight.getTime() - now.getTime()) / 1000);
-                                     if (totalSeconds < 0) totalSeconds = 0;
+                                 const updateTimer = () => {
+                                     if (this.secondsRemaining <= 0) {
+                                         this.hours = '00';
+                                         this.minutes = '00';
+                                         this.seconds = '00';
+                                         return;
+                                     }
                                      
-                                     let h = Math.floor(totalSeconds / 3600);
-                                     let m = Math.floor((totalSeconds % 3600) / 60);
-                                     let s = totalSeconds % 60;
+                                     let h = Math.floor(this.secondsRemaining / 3600);
+                                     let m = Math.floor((this.secondsRemaining % 3600) / 60);
+                                     let s = this.secondsRemaining % 60;
                                      
                                      this.hours = String(h).padStart(2, '0');
                                      this.minutes = String(m).padStart(2, '0');
                                      this.seconds = String(s).padStart(2, '0');
+                                     
+                                     this.secondsRemaining--;
                                  };
-                                 calculateTime();
-                                 setInterval(calculateTime, 1000);
+                                 updateTimer();
+                                 setInterval(updateTimer, 1000);
                              }
                          }" 
                          class="flex items-center gap-2 font-mono text-xs sm:text-sm font-bold text-white bg-rose-600 px-4 py-2 rounded-2xl shadow-md self-start sm:self-auto">
@@ -579,7 +615,7 @@ new #[Layout('layouts.app')] class extends Component
 
                 <!-- Flash Sale Products Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                    @foreach($flashSaleProducts as $prod)
+                    @foreach($this->flashSaleProducts as $prod)
                         @php
                             $ratingVal = $prod->average_rating;
                             $mockSalesCount = $prod->sales_count;
@@ -808,7 +844,7 @@ new #[Layout('layouts.app')] class extends Component
                                 
                                 <!-- Heart/Wishlist Button -->
                                 <button @click.stop="isLiked = !isLiked" class="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/90 dark:bg-gray-700/90 text-gray-500 hover:text-rose-600 shadow flex items-center justify-center transition hover:scale-110">
-                                    <svg :class="isLiked ? 'fill-rose-500 text-rose-500' : 'text-gray-500'" class="h-4.5 w-4.5 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg :class="isLiked ? 'fill-rose-500 text-rose-500' : 'text-gray-500'" class="h-4 w-4 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                     </svg>
                                 </button>
@@ -964,9 +1000,9 @@ new #[Layout('layouts.app')] class extends Component
                                             title="{{ $prod->variants->isNotEmpty() ? 'Pilih Varian' : 'Tambah Ke Keranjang' }}"
                                         >
                                             @if($prod->variants->isNotEmpty())
-                                                <svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>
                                             @else
-                                                <svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
                                             @endif
                                         </button>
                                     </div>
@@ -1103,7 +1139,7 @@ new #[Layout('layouts.app')] class extends Component
                                 <span class="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-widest block font-bold mb-0.5">Harga Terbaik</span>
                                 @if($product->has_discount)
                                     <div class="flex items-baseline gap-2 flex-wrap">
-                                        <span class="text-2xl font-black text-rose-600 dark:text-rose-450 leading-none">
+                                        <span class="text-2xl font-black text-rose-600 dark:text-rose-455 leading-none">
                                             Rp {{ number_format($product->selling_price, 0, ',', '.') }}
                                         </span>
                                         <span class="text-xs text-gray-400 dark:text-gray-500 line-through">
@@ -1120,6 +1156,50 @@ new #[Layout('layouts.app')] class extends Component
                                 @endif
                             </div>
 
+                            @if($product->is_active_flash_sale)
+                                <div class="my-4 bg-gradient-to-r from-rose-500 to-orange-500 text-white p-3 rounded-2xl flex items-center justify-between shadow-md">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xl animate-pulse">⚡</span>
+                                        <div>
+                                            <div class="text-[10px] font-black uppercase tracking-wider opacity-90 leading-none">Flash Sale Sedang Berlangsung!</div>
+                                            <div class="text-[9px] opacity-75">Beli sebelum kehabisan!</div>
+                                        </div>
+                                    </div>
+                                    @php
+                                        $secondsLeft = max(0, now()->diffInSeconds($product->flash_sale_end, false));
+                                    @endphp
+                                    <div x-data="{
+                                             secondsRemaining: {{ $secondsLeft }},
+                                             hours: '00',
+                                             minutes: '00',
+                                             seconds: '00',
+                                             init() {
+                                                 const updateTimer = () => {
+                                                     if (this.secondsRemaining <= 0) {
+                                                         this.hours = '00';
+                                                         this.minutes = '00';
+                                                         this.seconds = '00';
+                                                         return;
+                                                     }
+                                                     let h = Math.floor(this.secondsRemaining / 3600);
+                                                     let m = Math.floor((this.secondsRemaining % 3600) / 60);
+                                                     let s = this.secondsRemaining % 60;
+                                                     this.hours = String(h).padStart(2, '0');
+                                                     this.minutes = String(m).padStart(2, '0');
+                                                     this.seconds = String(s).padStart(2, '0');
+                                                     this.secondsRemaining--;
+                                                 };
+                                                 updateTimer();
+                                                 setInterval(updateTimer, 1000);
+                                             }
+                                         }"
+                                         class="flex items-center gap-1 font-mono text-xs font-black bg-black/20 px-3 py-1.5 rounded-xl shrink-0"
+                                    >
+                                        <span x-text="hours">00</span>:<span x-text="minutes">00</span>:<span x-text="seconds">00</span>
+                                    </div>
+                                </div>
+                            @endif
+
                             <!-- Interactive Options Selection (Dynamic Sizing & Colors) -->
                             @if($product->variants->isNotEmpty())
                                 @php
@@ -1132,7 +1212,7 @@ new #[Layout('layouts.app')] class extends Component
                                     <!-- Color Picker -->
                                     <div>
                                         <h4 class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">PILIH WARNA: <span class="text-gray-800 dark:text-white font-extrabold">{{ $this->selectedColor }}</span></h4>
-                                        <div class="flex items-center gap-2 flex-wrap bg-transparent">
+                                        <div class="flex items-center gap-3.5 flex-wrap bg-transparent">
                                             @foreach($colors as $color)
                                                 @php
                                                     $hexColor = match(strtolower(trim($color))) {
@@ -1151,12 +1231,17 @@ new #[Layout('layouts.app')] class extends Component
                                                 @endphp
                                                 <button 
                                                     wire:click="selectColor('{{ $color }}')"
-                                                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition duration-150 {{ $this->selectedColor === $color ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100 dark:shadow-none' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-indigo-600 hover:scale-[1.02]' }}"
+                                                    class="relative w-9 h-9 rounded-full border-2 transition duration-200 focus:outline-none hover:scale-110 flex items-center justify-center {{ $this->selectedColor === $color ? 'border-indigo-600 dark:border-indigo-400 ring-2 ring-indigo-500/20' : 'border-gray-200 dark:border-gray-700' }}"
+                                                    title="{{ $color }}"
                                                 >
                                                     @if($hexColor)
-                                                        <span class="w-3 h-3 rounded-full border border-gray-200 dark:border-gray-650 shadow-inner block" style="background-color: {{ $hexColor }};"></span>
+                                                        <span class="w-7 h-7 rounded-full border border-gray-200 dark:border-gray-600 shadow-inner" style="background-color: {{ $hexColor }};"></span>
+                                                    @else
+                                                        <span class="text-[9px] font-bold text-gray-500 dark:text-gray-400 uppercase">{{ substr($color, 0, 2) }}</span>
                                                     @endif
-                                                    <span>{{ $color }}</span>
+                                                    @if($this->selectedColor === $color)
+                                                        <span class="absolute -bottom-2.5 px-1 bg-indigo-600 dark:bg-indigo-500 text-white text-[7px] font-black rounded-md uppercase tracking-wider scale-90">Selected</span>
+                                                    @endif
                                                 </button>
                                             @endforeach
                                         </div>
@@ -1173,11 +1258,13 @@ new #[Layout('layouts.app')] class extends Component
                                                 <button 
                                                     wire:click="selectSize('{{ $size }}')" 
                                                     {{ $vStock <= 0 ? 'disabled' : '' }}
-                                                    class="px-3.5 py-2 text-xs font-bold border-2 rounded-xl transition duration-150 relative {{ $this->selectedSize === $size ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100 dark:shadow-none scale-105' : ($vStock <= 0 ? 'bg-gray-50 dark:bg-gray-850 text-gray-400 border-gray-250 dark:border-gray-750 cursor-not-allowed opacity-50' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-indigo-600') }}"
+                                                    class="w-12 h-10 flex items-center justify-center text-xs font-black border-2 rounded-xl transition duration-250 relative {{ $this->selectedSize === $size ? 'bg-indigo-600 text-white border-indigo-600 shadow-md ring-2 ring-indigo-500/20' : ($vStock <= 0 ? 'bg-gray-50 dark:bg-gray-850 text-gray-300 dark:text-gray-605 border-gray-150 dark:border-gray-750/80 cursor-not-allowed opacity-50' : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-250 border-gray-200 dark:border-gray-600 hover:border-indigo-600 hover:scale-105') }}"
                                                 >
                                                     {{ $size }}
                                                     @if($vStock <= 0)
-                                                        <span class="absolute -top-1 -right-1 bg-rose-600 w-1.5 h-1.5 rounded-full"></span>
+                                                        <div class="absolute inset-0 bg-transparent flex items-center justify-center">
+                                                            <div class="w-full h-[1.5px] bg-gray-300 dark:bg-gray-700 rotate-12"></div>
+                                                        </div>
                                                     @endif
                                                 </button>
                                             @endforeach
