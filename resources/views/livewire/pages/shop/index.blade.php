@@ -527,7 +527,7 @@ new #[Layout('layouts.app')] class extends Component
 
     <!-- Interactive Flash Sale Section (urges buying with countdown) -->
     @php
-        $flashSaleProducts = $products->filter(fn($p) => $p->has_discount)->take(4);
+        $flashSaleProducts = $products->filter(fn($p) => $p->promo_tag === 'Flash Sale')->take(4);
     @endphp
     @if($flashSaleProducts->isNotEmpty())
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
@@ -544,20 +544,27 @@ new #[Layout('layouts.app')] class extends Component
                     </div>
                     <!-- Countdown Timer -->
                     <div x-data="{
-                             hours: '02',
-                             minutes: '48',
-                             seconds: '15',
+                             hours: '00',
+                             minutes: '00',
+                             seconds: '00',
                              init() {
-                                 let totalSeconds = 2 * 3600 + 48 * 60 + 15;
-                                 setInterval(() => {
-                                     if (totalSeconds > 0) totalSeconds--;
+                                 const calculateTime = () => {
+                                     let now = new Date();
+                                     let midnight = new Date();
+                                     midnight.setHours(24, 0, 0, 0);
+                                     let totalSeconds = Math.floor((midnight.getTime() - now.getTime()) / 1000);
+                                     if (totalSeconds < 0) totalSeconds = 0;
+                                     
                                      let h = Math.floor(totalSeconds / 3600);
                                      let m = Math.floor((totalSeconds % 3600) / 60);
                                      let s = totalSeconds % 60;
+                                     
                                      this.hours = String(h).padStart(2, '0');
                                      this.minutes = String(m).padStart(2, '0');
                                      this.seconds = String(s).padStart(2, '0');
-                                 }, 1000);
+                                 };
+                                 calculateTime();
+                                 setInterval(calculateTime, 1000);
                              }
                          }" 
                          class="flex items-center gap-2 font-mono text-xs sm:text-sm font-bold text-white bg-rose-600 px-4 py-2 rounded-2xl shadow-md self-start sm:self-auto">
