@@ -228,3 +228,105 @@ test('placeOrder sends detailed item payload to Midtrans Snap API', function () 
         ->call('placeOrder')
         ->assertHasNoErrors();
 });
+
+test('opening product detail modal does not trigger variant warning notification', function () {
+    $product = Product::create([
+        'category_id' => $this->category->id,
+        'name' => 'Shoe Warning Test',
+        'slug' => 'shoe-warning-test',
+        'description' => 'Test description',
+        'price' => 100000,
+        'stock' => 5,
+    ]);
+
+    $this->actingAs($this->customer);
+
+    Volt::test('pages.shop.index')
+        ->call('openDetailModal', $product->id)
+        ->assertNotDispatched('notify');
+});
+
+test('buyNow method redirects to checkout with query parameters', function () {
+    $product = Product::create([
+        'category_id' => $this->category->id,
+        'name' => 'Shoe Buy Now Test',
+        'slug' => 'shoe-buy-now-test',
+        'description' => 'Test description',
+        'price' => 100000,
+        'stock' => 5,
+    ]);
+
+    $this->actingAs($this->customer);
+
+    Volt::test('pages.shop.index')
+        ->call('buyNow', $product->id)
+        ->assertRedirect(route('cart', [
+            'product_id' => $product->id,
+            'variant_id' => null,
+            'qty' => 1,
+        ]));
+});
+
+test('cart page handles buy now query params and places order without clearing database cart', function () {
+    $product = Product::create([
+        'category_id' => $this->category->id,
+        'name' => 'Buy Now Direct Item',
+        'slug' => 'buy-now-direct-item',
+        'description' => 'Test description',
+        'price' => 100000,
+        'stock' => 5,
+    ]);
+
+    $province = Province::create(['id' => 1, 'name' => 'DKI Jakarta']);
+    $city = City::create(['id' => 151, 'province_id' => 1, 'name' => 'Jakarta Barat', 'type' => 'Kota', 'postal_code' => '11510']);
+
+    // Create a persistent cart item in database that should NOT be deleted
+    $persistentProduct = Product::create([
+        'category_id' => $this->category->id,
+        'name' => 'Persistent Cart Item',
+        'slug' => 'persistent-cart-item',
+        'description' => 'Test description',
+        'price' => 50000,
+        'stock' => 5,
+    ]);
+    CartItem::create([
+        'user_id' => $this->customer->id,
+        'product_id' => $persistentProduct->id,
+        'quantity' => 1,
+    ]);
+
+    $this->actingAs($this->customer);
+
+    // Mock MidtransService
+    $midtransMock = Mockery::mock(MidtransService::class);
+    $midtransMock->shouldReceive('getSnapToken')
+        ->once()
+        ->andReturn('mock-snap-token-buy-now');
+
+    $this->app->instance(MidtransService::class, $midtransMock);
+
+    Volt::test('pages.shop.cart', [
+        'product_id' => $product->id,
+        'qty' => 1,
+    ])
+        ->set('recipientName', 'John Doe')
+        ->set('phoneNumber', '08123456789')
+        ->set('addressLine', 'Test Address')
+        ->set('provinceId', $province->id)
+        ->set('cityId', $city->id)
+        ->set('courier', 'jne')
+        ->set('selectedService', 'REG')
+        ->set('shippingCost', 10000)
+        ->call('placeOrder')
+        ->assertHasNoErrors();
+
+    // Verify order was created for the Buy Now product, not the persistent one
+    $order = Order::latest()->first();
+    expect($order->subtotal_amount)->toEqual(100000.0);
+    expect($order->total_amount)->toEqual(110000.0);
+    expect($order->items->first()->product_id)->toEqual($product->id);
+
+    // Verify persistent cart item was NOT deleted
+    expect(CartItem::where('user_id', $this->customer->id)->count())->toEqual(1);
+    expect(CartItem::where('user_id', $this->customer->id)->first()->product_id)->toEqual($persistentProduct->id);
+});

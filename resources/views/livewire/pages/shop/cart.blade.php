@@ -30,17 +30,44 @@ new #[Layout('layouts.app')] class extends Component
     public string $voucherCode = '';
     public ?\App\Models\Voucher $appliedProductVoucher = null;
     public ?\App\Models\Voucher $appliedShippingVoucher = null;
+    public ?int $buyNowProductId = null;
+    public ?int $buyNowVariantId = null;
+    public int $buyNowQty = 1;
 
     protected $listeners = ['cart-updated' => '$refresh'];
 
-    public function mount(): void
+    public function mount(?int $product_id = null, ?int $variant_id = null, int $qty = 1): void
     {
         $this->recipientName = Auth::user()->name;
         $this->phoneNumber = Auth::user()->phone ?? '';
+
+        $this->buyNowProductId = $product_id ?? (request()->query('product_id') ? (int) request()->query('product_id') : null);
+        $this->buyNowVariantId = $variant_id ?? (request()->query('variant_id') ? (int) request()->query('variant_id') : null);
+        $this->buyNowQty = $product_id ? $qty : (request()->query('qty') ? (int) request()->query('qty') : 1);
     }
 
     public function getItemsProperty()
     {
+        if ($this->buyNowProductId) {
+            $product = \App\Models\Product::findOrFail($this->buyNowProductId);
+            $variant = $this->buyNowVariantId ? \App\Models\ProductVariant::findOrFail($this->buyNowVariantId) : null;
+
+            $item = new CartItem([
+                'user_id' => Auth::id(),
+                'product_id' => $this->buyNowProductId,
+                'product_variant_id' => $this->buyNowVariantId,
+                'size' => $variant ? $variant->size : null,
+                'color' => $variant ? $variant->color : null,
+                'quantity' => $this->buyNowQty,
+            ]);
+            $item->setRelation('product', $product);
+            if ($variant) {
+                $item->setRelation('productVariant', $variant);
+            }
+
+            return collect([$item]);
+        }
+
         return CartItem::with(['product', 'productVariant'])
             ->where('user_id', Auth::id())
             ->get();
@@ -133,8 +160,25 @@ new #[Layout('layouts.app')] class extends Component
         $this->revalidateAppliedVouchers();
     }
 
-    public function increment(int $itemId): void
+    public function increment(?int $itemId = null): void
     {
+        if ($this->buyNowProductId) {
+            $product = \App\Models\Product::findOrFail($this->buyNowProductId);
+            $maxStock = $this->buyNowVariantId
+                ? \App\Models\ProductVariant::findOrFail($this->buyNowVariantId)->stock
+                : $product->stock;
+
+            if ($this->buyNowQty + 1 > $maxStock) {
+                $this->dispatch('notify', type: 'error', message: 'Tidak dapat menambah lebih banyak. Stok tidak mencukupi!');
+                return;
+            }
+            $this->buyNowQty++;
+            $this->dispatch('cart-updated');
+            $this->fetchShippingRates();
+            $this->revalidateAppliedVouchers();
+            return;
+        }
+
         $item = CartItem::findOrFail($itemId);
         $maxStock = $item->productVariant ? $item->productVariant->stock : $item->product->stock;
         
@@ -148,8 +192,20 @@ new #[Layout('layouts.app')] class extends Component
         $this->revalidateAppliedVouchers();
     }
 
-    public function decrement(int $itemId): void
+    public function decrement(?int $itemId = null): void
     {
+        if ($this->buyNowProductId) {
+            if ($this->buyNowQty <= 1) {
+                $this->redirect(route('shop.index'), navigate: true);
+                return;
+            }
+            $this->buyNowQty--;
+            $this->dispatch('cart-updated');
+            $this->fetchShippingRates();
+            $this->revalidateAppliedVouchers();
+            return;
+        }
+
         $item = CartItem::findOrFail($itemId);
         if ($item->quantity <= 1) {
             $item->delete();
@@ -161,8 +217,13 @@ new #[Layout('layouts.app')] class extends Component
         $this->revalidateAppliedVouchers();
     }
 
-    public function remove(int $itemId): void
+    public function remove(?int $itemId = null): void
     {
+        if ($this->buyNowProductId) {
+            $this->redirect(route('shop.index'), navigate: true);
+            return;
+        }
+
         $item = CartItem::findOrFail($itemId);
         $item->delete();
         $this->dispatch('cart-updated');
@@ -272,8 +333,10 @@ new #[Layout('layouts.app')] class extends Component
                     ]);
                 }
 
-                // Delete cart items
-                CartItem::where('user_id', Auth::id())->delete();
+                // Delete cart items if not in Buy Now mode
+                if (!$this->buyNowProductId) {
+                    CartItem::where('user_id', Auth::id())->delete();
+                }
 
                 // Construct item details for Midtrans
                 $midtransItems = [];
