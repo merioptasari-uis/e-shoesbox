@@ -201,7 +201,7 @@ new #[Layout('layouts.app')] class extends Component
                 <p class="text-xs text-gray-500 mt-1">Dibuat pada {{ $order->created_at->format('d M Y H:i') }}</p>
             </div>
 
-            <div>
+            <div class="flex flex-col sm:items-end gap-2.5">
                 <!-- Status Badge -->
                 <span class="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider
                     {{ $order->status === 'completed' ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-900/30' : '' }}
@@ -212,6 +212,16 @@ new #[Layout('layouts.app')] class extends Component
                 ">
                     {{ match ($order->status) { 'pending' => 'Menunggu Pembayaran', 'processing' => 'Diproses', 'shipping' => 'Dalam Pengiriman', 'completed' => 'Selesai', 'cancelled' => 'Dibatalkan', default => $order->status } }}
                 </span>
+
+                <!-- Print Invoice Button -->
+                <a 
+                    href="{{ route('order.print', $order) }}" 
+                    target="_blank"
+                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-bold transition shadow-sm w-fit"
+                >
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    Cetak Invoice
+                </a>
             </div>
         </div>
 

@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Implemented print-friendly invoice export functionality for customer order-details page.
+- Added print-friendly warehouse shipping label printing for administrators in the orders management sidebar.
+- Added direct 'Laporan' shortcut link to admin navigation and mobile sidebar menus pointing to the analytics reports dashboard.
 - Implemented comprehensive Admin Order Management panel with dynamic Search & Filters (by Invoice, Customer, Tracking Resi, Email, Order Status, Payment Status, and Courier).
 - Added Auto-Status Promotion to automatically change order status to 'shipping' once a non-empty Tracking Number (Resi) is saved.
 - Implemented a Detailed Payment Summary card displaying Midtrans Transaction ID, Payment Type, Bank/Issuer details, and callback timestamps.
