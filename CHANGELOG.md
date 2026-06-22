@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Redesigned the customer reviews card list and write-review form in `index.blade.php` to use premium, consistent typography and standard Tailwind CSS colors, resolving the white text on white background readability issue in the input area.
 - Enforced backend and frontend constraints restricting product reviews to verified customers who have a completed order for that specific product.
 - Updated the product details review cards to display avatar bubbles and "Pembeli Terverifikasi" badges for authentic review representation.
+- Fixed text contrast of review statistics ("95% pembeli") on the product details page by replacing invalid Tailwind color classes (`text-gray-550`, `dark:text-gray-450`) with standard gray variants.
+- Fixed text contrast of standard text inputs, textarea description, select categories, and variant stock inputs in the admin edit product modal to ensure readability in both light and dark themes, and preventing them from blending with the modal background.
 - Fixed the product variant and reviews feature test to simulate a completed order for the user before verifying review submission.
 
 ### Added
