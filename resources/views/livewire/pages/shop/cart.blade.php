@@ -303,10 +303,7 @@ new #[Layout('layouts.app')] class extends Component
             $this->dispatch('cart-updated');
             
             // Dispatch event to show payment modal
-            $this->dispatch('pay-order', [
-                'snapToken' => $payment->snap_token,
-                'orderId' => $order->id,
-            ]);
+            $this->dispatch('pay-order', snapToken: $payment->snap_token, orderId: $order->id);
 
         } catch (\Exception $e) {
             Log::error('Order placement failed: ' . $e->getMessage());
@@ -387,7 +384,33 @@ new #[Layout('layouts.app')] class extends Component
 };
 ?>
 
-<div class="py-12 bg-gray-50 dark:bg-gray-900 min-h-screen">
+<div class="py-12 bg-gray-50 dark:bg-gray-900 min-h-screen"
+     x-data
+     @pay-order.window="
+         const snapToken = $event.detail.snapToken;
+         const orderId = $event.detail.orderId;
+
+         if (!snapToken || snapToken.startsWith('mock-snap-token')) {
+             alert('Token pembayaran tiruan dibuat. Mengalihkan ke halaman status pesanan...');
+             window.location.href = '/order/' + orderId;
+             return;
+         }
+
+         snap.pay(snapToken, {
+             onSuccess: function(result) {
+                 window.location.href = '/order/' + orderId;
+             },
+             onPending: function(result) {
+                 window.location.href = '/order/' + orderId;
+             },
+             onError: function(result) {
+                 alert('Pembayaran gagal!');
+             },
+             onClose: function() {
+                 alert('Anda menutup popup pembayaran sebelum menyelesaikan transaksi.');
+             }
+         });
+     ">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-8 tracking-tight">Penyelesaian Pesanan</h1>
 
@@ -692,36 +715,7 @@ new #[Layout('layouts.app')] class extends Component
         data-client-key="{{ config('services.midtrans.client_key') }}"
     ></script>
 
-    <script>
-        document.addEventListener('livewire:init', () => {
-            Livewire.on('pay-order', (eventData) => {
-                const data = eventData[0];
-                const snapToken = data.snapToken;
-                const orderId = data.orderId;
-
-                if (!snapToken || snapToken.startsWith('mock-snap-token')) {
-                    alert('Token pembayaran tiruan dibuat. Mengalihkan ke halaman status pesanan...');
-                    window.location.href = '/order/' + orderId;
-                    return;
-                }
-
-                snap.pay(snapToken, {
-                    onSuccess: function(result) {
-                        window.location.href = '/order/' + orderId;
-                    },
-                    onPending: function(result) {
-                        window.location.href = '/order/' + orderId;
-                    },
-                    onError: function(result) {
-                        alert("Pembayaran gagal!");
-                    },
-                    onClose: function() {
-                        alert('Anda menutup popup pembayaran sebelum menyelesaikan transaksi.');
-                    }
-                });
-            });
-        });
-    </script>
+    <!-- Script listener removed in favor of Alpine.js event listener on root element -->
 
     <!-- Toast alerts -->
     <div x-data="{ notifications: [] }" 

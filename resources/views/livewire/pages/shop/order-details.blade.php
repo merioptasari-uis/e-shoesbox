@@ -252,9 +252,34 @@ new #[Layout('layouts.app')] class extends Component
 
                 <!-- Pay Button (if payment is still pending) -->
                 @if($order->status === 'pending' && $order->payment?->status === 'pending' && $order->payment?->snap_token)
-                    <div class="mt-6">
+                    <div class="mt-6" x-data="{
+                        pay() {
+                            const snapToken = '{{ $order->payment->snap_token }}';
+                            
+                            if (snapToken.startsWith('mock-snap-token')) {
+                                alert('Mensimulasikan popup sandbox pembayaran.');
+                                $wire.simulateSettlement();
+                                return;
+                            }
+
+                            snap.pay(snapToken, {
+                                onSuccess: function(result) {
+                                    $wire.checkPaymentStatus();
+                                },
+                                onPending: function(result) {
+                                    $wire.checkPaymentStatus();
+                                },
+                                onError: function(result) {
+                                    alert('Pembayaran gagal!');
+                                },
+                                onClose: function() {
+                                    alert('Popup ditutup. Anda dapat mencoba membayar kembali dengan mengklik Bayar Sekarang.');
+                                }
+                            });
+                        }
+                    }">
                         <button 
-                            id="pay-button"
+                            @click="pay()"
                             class="w-full flex items-center justify-center px-6 py-4 border border-transparent text-sm font-semibold rounded-2xl text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-lg shadow-indigo-150 dark:shadow-none"
                         >
                             Bayar Sekarang
@@ -266,38 +291,6 @@ new #[Layout('layouts.app')] class extends Component
                         src="{{ config('services.midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" 
                         data-client-key="{{ config('services.midtrans.client_key') }}"
                     ></script>
-
-                    <script>
-                        document.addEventListener('DOMContentLoaded', () => {
-                            const payButton = document.getElementById('pay-button');
-                            if (payButton) {
-                                payButton.addEventListener('click', () => {
-                                    const snapToken = '{{ $order->payment->snap_token }}';
-                                    
-                                    if (snapToken.startsWith('mock-snap-token')) {
-                                        alert('Mensimulasikan popup sandbox pembayaran.');
-                                        $wire.simulateSettlement();
-                                        return;
-                                    }
-
-                                    snap.pay(snapToken, {
-                                        onSuccess: function(result) {
-                                            $wire.checkPaymentStatus();
-                                        },
-                                        onPending: function(result) {
-                                            $wire.checkPaymentStatus();
-                                        },
-                                        onError: function(result) {
-                                            alert("Pembayaran gagal!");
-                                        },
-                                        onClose: function() {
-                                            alert('Popup ditutup. Anda dapat mencoba membayar kembali dengan mengklik Bayar Sekarang.');
-                                        }
-                                    });
-                                });
-                            }
-                        });
-                    </script>
                 @endif
             </div>
         </div>

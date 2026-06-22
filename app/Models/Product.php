@@ -141,12 +141,10 @@ class Product extends Model
      */
     public function getSalesCountAttribute(): int
     {
-        $realSales = (int) OrderItem::where('product_id', $this->id)
+        return (int) OrderItem::where('product_id', $this->id)
             ->whereHas('order', function ($query) {
-                $query->whereIn('status', ['paid', 'completed', 'shipping', 'delivered']);
+                $query->whereIn('status', ['processing', 'shipping', 'completed']);
             })
             ->sum('quantity');
-
-        return $realSales > 0 ? $realSales : 30 + ($this->id * 23) % 450;
     }
 }
