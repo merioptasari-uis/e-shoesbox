@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added "Buy Now" (Beli Langsung) direct checkout button in the product details modal, bypassing the persistent database cart.
 - Implemented an interactive Mock Midtrans Sandbox Payment Simulation modal in the order details page, allowing developers and customers to test simulated payments (Virtual Account, GoPay, Credit Card) when sandbox API keys are invalid or missing.
 - Added a "Pesanan Diterima" (Confirm Order Received) button on the order details view when status is "Dalam Pengiriman", allowing buyers to mark order status as "Selesai" (completed) and unlock product review capabilities.
+- Implemented a responsive visual order progress timeline stepper at the top of the Customer Order Details page, dynamically tracking created, paid, processing, shipping, and completed milestones with custom indicators.
+- Added a visual automatic voucher recommendations section in the checkout sidebar, allowing users to apply eligible shipping or product vouchers in one click, and providing dynamic spending reminders to encourage cart value increases.
 
 ### Fixed
 - Refined UI/UX of "+ Keranjang" (Add to Cart) and "Beli Langsung" (Buy Now) buttons in the product details modal, resolving the oversized layout and shopping cart SVG icon overflow.

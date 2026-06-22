@@ -204,6 +204,115 @@ new #[Layout('layouts.app')] class extends Component
             </div>
         </div>
 
+        <!-- Order Progress Stepper -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status Alur Pesanan</h3>
+                @if($order->status === 'cancelled')
+                    <span class="text-xs font-extrabold text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Dibatalkan
+                    </span>
+                @endif
+            </div>
+
+            <!-- Stepper Container -->
+            <div class="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6 md:gap-2">
+                <!-- Line background for Desktop (Horizontal) -->
+                <div class="hidden md:block absolute left-0 right-0 top-1/2 -translate-y-1/2 h-0.5 bg-gray-150 dark:bg-gray-700 -z-10 rounded-full">
+                    <!-- Progress bar line -->
+                    <div class="h-full bg-indigo-650 dark:bg-indigo-500 rounded-full transition-all duration-500" 
+                         style="width: {{ $order->status === 'completed' ? '100%' : ($order->status === 'shipping' ? '75%' : ($order->status === 'processing' ? '50%' : ($order->status === 'pending' && $order->payment?->status === 'settlement' ? '50%' : ($order->status === 'pending' ? '25%' : '0%')))) }}">
+                    </div>
+                </div>
+
+                @php
+                    $steps = [
+                        ['id' => 'created', 'label' => 'Pesanan Dibuat', 'desc' => 'Menunggu verifikasi', 'icon' => 'created'],
+                        ['id' => 'paid', 'label' => 'Pembayaran', 'desc' => 'Diverifikasi', 'icon' => 'paid'],
+                        ['id' => 'processing', 'label' => 'Diproses', 'desc' => 'Sedang disiapkan', 'icon' => 'processing'],
+                        ['id' => 'shipping', 'label' => 'Dikirim', 'desc' => 'Dalam perjalanan', 'icon' => 'shipping'],
+                        ['id' => 'completed', 'label' => 'Selesai', 'desc' => 'Diterima pembeli', 'icon' => 'completed'],
+                    ];
+
+                    $currentStatus = $order->status;
+                    $paymentStatus = $order->payment?->status;
+
+                    // Map order states to step completeness
+                    $stepStates = [];
+                    // Created is always true
+                    $stepStates['created'] = true;
+                    // Paid: true if payment is settled, or order is processing/shipping/completed
+                    $stepStates['paid'] = ($paymentStatus === 'settlement' || in_array($currentStatus, ['processing', 'shipping', 'completed']));
+                    // Processing: true if order status is processing, shipping, or completed
+                    $stepStates['processing'] = in_array($currentStatus, ['processing', 'shipping', 'completed']);
+                    // Shipping: true if shipping or completed
+                    $stepStates['shipping'] = in_array($currentStatus, ['shipping', 'completed']);
+                    // Completed: true if completed
+                    $stepStates['completed'] = ($currentStatus === 'completed');
+
+                    // Check active states
+                    $activeStep = 'created';
+                    if ($stepStates['completed']) {
+                        $activeStep = 'completed';
+                    } elseif ($stepStates['shipping']) {
+                        $activeStep = 'shipping';
+                    } elseif ($stepStates['processing']) {
+                        $activeStep = 'processing';
+                    } elseif ($stepStates['paid']) {
+                        $activeStep = 'processing'; // If paid, next active is processing
+                    } else {
+                        $activeStep = 'paid'; // If created but unpaid, active is paid (since they need to pay)
+                    }
+                @endphp
+
+                @foreach($steps as $index => $step)
+                    @php
+                        $isCompleted = $stepStates[$step['id']];
+                        $isActive = ($activeStep === $step['id'] && $currentStatus !== 'cancelled');
+                        $isCancelled = ($currentStatus === 'cancelled' && !$isCompleted);
+                    @endphp
+
+                    <div class="flex md:flex-col items-center gap-4 md:gap-2 flex-1 w-full relative">
+                        <!-- Step Circle Icon -->
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 border-2 transition-all duration-300 z-10
+                            {{ $isCompleted 
+                                ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-600 text-indigo-600 dark:text-indigo-400 font-extrabold shadow-sm' 
+                                : ($isActive 
+                                    ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-500 text-amber-500 font-extrabold animate-pulse' 
+                                    : ($isCancelled 
+                                        ? 'bg-rose-50 dark:bg-rose-950/20 border-rose-500 text-rose-500' 
+                                        : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500')) }}
+                        ">
+                            @if($step['id'] === 'created')
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            @elseif($step['id'] === 'paid')
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                            @elseif($step['id'] === 'processing')
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            @elseif($step['id'] === 'shipping')
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            @elseif($step['id'] === 'completed')
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            @endif
+                        </div>
+
+                        <!-- Labels -->
+                        <div class="text-left md:text-center">
+                            <p class="text-xs font-extrabold 
+                                {{ $isCompleted ? 'text-indigo-900 dark:text-indigo-200 font-bold' : ($isActive ? 'text-amber-700 dark:text-amber-400 font-bold' : ($isCancelled ? 'text-rose-500' : 'text-gray-500 dark:text-gray-400')) }}
+                            ">
+                                {{ $step['label'] }}
+                            </p>
+                            <p class="text-[10px] text-gray-450 dark:text-gray-500 font-medium">
+                                {{ $step['desc'] }}
+                            </p>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
         <!-- Simulation Banner for Local Developers -->
         @if($order->status === 'pending')
             <div class="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/30 rounded-3xl p-6 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
