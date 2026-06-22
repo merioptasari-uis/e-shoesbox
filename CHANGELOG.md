@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Centralized color swatch lookup helper `ProductVariant::getHexColor($color)` supporting basic and extended shoe colors (Cream, Maroon, Tosca, Gold, Silver, Orange, Purple, etc.).
+- Integrated general promo tags (`Flash Sale`, `Cashback`, `Diskon Besar`, `New Arrival`) into admin campaigns and products forms.
+
+### Changed
+- Synchronized campaign slideshow emoji presentation in shop storefront, mapping general promo tags to distinct emojis (⚡, 💰, 🏷️, 👟).
+- Refactored storefront product listing and variant color detail modals to pull from the centralized `ProductVariant::getHexColor` lookup, resolving sync disparity.
 - Created a new database migration adding `shipped_at` and `completed_at` columns to the `orders` table.
 - Implemented model boot event listeners in `Order.php` to auto-populate `shipped_at` and `completed_at` timestamps upon status transitions.
 - Added bulk auto-completion utility button "Selesaikan Otomatis (+14 Hari)" on the Admin Order Management panel, enabling bulk transitions of orders shipped >= 14 days ago to "completed".

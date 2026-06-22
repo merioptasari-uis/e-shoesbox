@@ -408,6 +408,10 @@ new #[Layout('layouts.app')] class extends Component
                                 'Natal' => '🎄',
                                 'Imlek' => '🏮',
                                 'Tahun Baru' => '🎆',
+                                'Flash Sale' => '⚡',
+                                'Cashback' => '💰',
+                                'Diskon Besar' => '🏷️',
+                                'New Arrival' => '👟',
                                 default => '✨',
                             };
                         @endphp
@@ -911,6 +915,22 @@ new #[Layout('layouts.app')] class extends Component
                                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-indigo-600/90 dark:bg-indigo-900/90 text-white dark:text-indigo-300 shadow backdrop-blur-sm border border-indigo-500/25">
                                                     🎆 {{ $prod->promo_tag }}
                                                 </span>
+                                            @elseif($prod->promo_tag === 'Flash Sale')
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-amber-500/90 dark:bg-amber-955/90 text-white dark:text-amber-300 shadow backdrop-blur-sm border border-amber-500/25">
+                                                    ⚡ {{ $prod->promo_tag }}
+                                                </span>
+                                            @elseif($prod->promo_tag === 'Cashback')
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-emerald-500/90 dark:bg-emerald-955/90 text-white dark:text-emerald-300 shadow backdrop-blur-sm border border-emerald-500/25">
+                                                    💰 {{ $prod->promo_tag }}
+                                                </span>
+                                            @elseif($prod->promo_tag === 'Diskon Besar')
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-rose-600/90 dark:bg-rose-900/90 text-white dark:text-rose-300 shadow backdrop-blur-sm border border-rose-500/25">
+                                                    🏷️ {{ $prod->promo_tag }}
+                                                </span>
+                                            @elseif($prod->promo_tag === 'New Arrival')
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-blue-600/90 dark:bg-blue-900/90 text-white dark:text-blue-300 shadow backdrop-blur-sm border border-blue-500/25">
+                                                    👟 {{ $prod->promo_tag }}
+                                                </span>
                                             @else
                                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-purple-600/90 dark:bg-purple-900/90 text-white dark:text-purple-300 shadow backdrop-blur-sm border border-purple-500/25">
                                                     ✨ {{ $prod->promo_tag }}
@@ -932,19 +952,7 @@ new #[Layout('layouts.app')] class extends Component
                                                 <div class="flex items-center gap-1 bg-transparent">
                                                     @foreach($uniqueColors->take(3) as $color)
                                                         @php
-                                                            $hexColor = match(strtolower(trim($color))) {
-                                                                'hitam', 'black' => '#1a1a1a',
-                                                                'putih', 'white' => '#f3f4f6',
-                                                                'merah', 'red' => '#ef4444',
-                                                                'biru', 'blue' => '#3b82f6',
-                                                                'hijau', 'green' => '#10b981',
-                                                                'kuning', 'yellow' => '#f59e0b',
-                                                                'abu-abu', 'abu', 'gray', 'grey' => '#9ca3af',
-                                                                'cokelat', 'coklat', 'brown' => '#78350f',
-                                                                'navy' => '#1e3a8a',
-                                                                'pink', 'merah muda' => '#ec4899',
-                                                                default => null
-                                                            };
+                                                            $hexColor = \App\Models\ProductVariant::getHexColor($color);
                                                         @endphp
                                                         @if($hexColor)
                                                             <span class="w-2.5 h-2.5 rounded-full border border-gray-200 dark:border-gray-600 block shadow-sm ring-1 ring-black/5" style="background-color: {{ $hexColor }};" title="{{ $color }}"></span>
@@ -1215,19 +1223,7 @@ new #[Layout('layouts.app')] class extends Component
                                         <div class="flex items-center gap-3.5 flex-wrap bg-transparent">
                                             @foreach($colors as $color)
                                                 @php
-                                                    $hexColor = match(strtolower(trim($color))) {
-                                                        'hitam', 'black' => '#1a1a1a',
-                                                        'putih', 'white' => '#ffffff',
-                                                        'merah', 'red' => '#ef4444',
-                                                        'biru', 'blue' => '#3b82f6',
-                                                        'hijau', 'green' => '#10b981',
-                                                        'kuning', 'yellow' => '#f59e0b',
-                                                        'abu-abu', 'abu', 'gray', 'grey' => '#9ca3af',
-                                                        'cokelat', 'coklat', 'brown' => '#78350f',
-                                                        'navy' => '#1e3a8a',
-                                                        'pink', 'merah muda' => '#ec4899',
-                                                        default => null
-                                                    };
+                                                    $hexColor = \App\Models\ProductVariant::getHexColor($color);
                                                 @endphp
                                                 <button 
                                                     wire:click="selectColor('{{ $color }}')"
