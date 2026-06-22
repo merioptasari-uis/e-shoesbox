@@ -495,6 +495,7 @@ $getCategories = function () {
                                         <x-input-label for="form_promo_tag" :value="__('Label Promo / Hari Raya')" />
                                         <select wire:model="promo_tag" id="form_promo_tag" class="mt-1 block w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
                                             <option value="">- Tanpa Promo -</option>
+                                            <option value="Flash Sale">⚡ Flash Sale</option>
                                             <option value="Idul Fitri">Idul Fitri</option>
                                             <option value="Natal">Natal</option>
                                             <option value="Imlek">Imlek</option>
