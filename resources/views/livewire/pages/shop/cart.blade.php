@@ -518,6 +518,22 @@ new #[Layout('layouts.app')] class extends Component
         }
     }
 
+    public function getAvailableVouchersProperty()
+    {
+        return \App\Models\Voucher::where('is_active', true)
+            ->where(function ($q) {
+                $q->whereNull('expires_at')
+                  ->orWhere('expires_at', '>', now());
+            })
+            ->get();
+    }
+
+    public function applyVoucherCode(string $code): void
+    {
+        $this->voucherCode = $code;
+        $this->applyVoucher();
+    }
+
     public function with(): array
     {
         return [
@@ -804,6 +820,94 @@ new #[Layout('layouts.app')] class extends Component
                                             </button>
                                         </div>
                                     @endif
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Voucher Recommendations Section -->
+                        @if($this->availableVouchers->isNotEmpty())
+                            <div class="space-y-3 pb-4 border-b border-gray-100 dark:border-gray-700">
+                                <span class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Voucher Tersedia Untukmu</span>
+                                <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                                    @foreach($this->availableVouchers as $voucher)
+                                        @php
+                                            $isEligible = $this->subtotal >= $voucher->min_spend;
+                                            $isApplied = ($appliedProductVoucher?->id === $voucher->id || $appliedShippingVoucher?->id === $voucher->id);
+                                            $missingSpend = $voucher->min_spend - $this->subtotal;
+                                        @endphp
+
+                                        <div class="p-3 rounded-2xl border transition-all duration-300 flex items-center justify-between gap-3 relative overflow-hidden
+                                            {{ $isApplied 
+                                                ? 'bg-emerald-50/60 dark:bg-emerald-950/25 border-emerald-500/50' 
+                                                : ($isEligible 
+                                                    ? 'bg-gray-50 dark:bg-gray-800/40 border-gray-150 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-900/50' 
+                                                    : 'bg-gray-50/50 dark:bg-gray-800/20 border-gray-100 dark:border-gray-800 opacity-75') }}
+                                        ">
+                                            <!-- Visual Coupon Dash Line on Left side -->
+                                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b
+                                                {{ $voucher->type === 'shipping' 
+                                                    ? 'from-teal-400 to-emerald-500' 
+                                                    : 'from-indigo-400 to-purple-500' }}
+                                            "></div>
+
+                                            <div class="flex-1 min-w-0 pl-1.5">
+                                                <div class="flex items-center gap-1.5 mb-1 bg-transparent">
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide
+                                                        {{ $voucher->type === 'shipping' 
+                                                            ? 'bg-teal-55 dark:bg-teal-950/40 text-teal-700 dark:text-teal-400' 
+                                                            : 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400' }}
+                                                    ">
+                                                        {{ $voucher->type === 'shipping' ? 'Gratis Ongkir' : ($voucher->type === 'percentage' ? 'Diskon ' . number_format($voucher->value) . '%' : 'Diskon Rp ' . number_format($voucher->value, 0, ',', '.')) }}
+                                                    </span>
+                                                    <span class="text-[10px] font-extrabold text-gray-550 dark:text-gray-400 font-mono tracking-wider">{{ $voucher->code }}</span>
+                                                </div>
+                                                
+                                                <p class="text-[11px] text-gray-900 dark:text-gray-100 font-bold truncate bg-transparent">
+                                                    @if($voucher->type === 'shipping')
+                                                        Potongan ongkos kirim s.d Rp {{ number_format($voucher->max_discount ?? $voucher->value, 0, ',', '.') }}
+                                                    @else
+                                                        Potongan harga belanja s.d Rp {{ number_format($voucher->max_discount ?? $voucher->value, 0, ',', '.') }}
+                                                    @endif
+                                                </p>
+                                                
+                                                <!-- Min Spend / Eligibility text -->
+                                                @if(!$isEligible)
+                                                    <p class="text-[10px] text-amber-600 dark:text-amber-400 font-semibold mt-0.5 bg-transparent">
+                                                        Belanja kurang <span class="font-extrabold">Rp {{ number_format($missingSpend, 0, ',', '.') }}</span>
+                                                    </p>
+                                                @else
+                                                    <p class="text-[10px] text-gray-450 dark:text-gray-500 mt-0.5 bg-transparent">
+                                                        Min. belanja Rp {{ number_format($voucher->min_spend, 0, ',', '.') }}
+                                                    </p>
+                                                @endif
+                                            </div>
+
+                                            <div class="shrink-0 bg-transparent">
+                                                @if($isApplied)
+                                                    <button 
+                                                        wire:click="removeVoucher('{{ $voucher->type === 'shipping' ? 'shipping' : 'product' }}')" 
+                                                        class="px-2.5 py-1.5 text-[10px] font-extrabold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-xl transition border border-rose-200 dark:border-rose-900/30"
+                                                    >
+                                                        Hapus
+                                                    </button>
+                                                @elseif($isEligible)
+                                                    <button 
+                                                        wire:click="applyVoucherCode('{{ $voucher->code }}')" 
+                                                        class="px-2.5 py-1.5 text-[10px] font-extrabold text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-650 dark:hover:bg-indigo-600 rounded-xl transition shadow-sm"
+                                                    >
+                                                        Gunakan
+                                                    </button>
+                                                @else
+                                                    <button 
+                                                        disabled 
+                                                        class="px-2.5 py-1.5 text-[10px] font-extrabold text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 rounded-xl cursor-not-allowed border border-transparent"
+                                                    >
+                                                        Klaim
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
                             </div>
                         @endif
