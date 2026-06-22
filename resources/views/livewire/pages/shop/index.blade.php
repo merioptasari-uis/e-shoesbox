@@ -121,6 +121,21 @@ new #[Layout('layouts.app')] class extends Component
     }
 
     #[Computed]
+    public function canUserReview(): bool
+    {
+        if (!Auth::check()) {
+            return false;
+        }
+
+        return \App\Models\Order::where('user_id', Auth::id())
+            ->where('status', 'completed')
+            ->whereHas('items', function ($query) {
+                $query->where('product_id', $this->selectedProductId);
+            })
+            ->exists();
+    }
+
+    #[Computed]
     public function selectedProduct(): ?Product
     {
         if (!$this->selectedProductId) {
@@ -166,6 +181,11 @@ new #[Layout('layouts.app')] class extends Component
     {
         if (!Auth::check()) {
             $this->dispatch('notify', type: 'error', message: 'Anda harus login untuk menulis ulasan!');
+            return;
+        }
+
+        if (!$this->canUserReview) {
+            $this->dispatch('notify', type: 'error', message: 'Anda hanya dapat menulis ulasan setelah membeli produk ini dan pesanan Anda selesai!');
             return;
         }
 
@@ -782,7 +802,7 @@ new #[Layout('layouts.app')] class extends Component
                                 </button>
 
                                 <!-- Product Image Container -->
-                                <div wire:click="openDetailModal({{ $prod->id }})" class="relative pt-[100%] bg-gradient-to-br from-indigo-50/50 via-purple-50/50 to-pink-50/50 dark:from-gray-750 dark:to-gray-800 overflow-hidden cursor-pointer">
+                                <div wire:click="openDetailModal({{ $prod->id }})" class="relative pt-[100%] bg-gradient-to-br from-indigo-50/50 via-purple-50/50 to-pink-50/50 dark:from-gray-800 dark:to-gray-900 overflow-hidden cursor-pointer">
                                     @if($prod->image_path)
                                         <img src="{{ asset('storage/' . $prod->image_path) }}" alt="{{ $prod->name }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-500">
                                     @else
@@ -956,7 +976,7 @@ new #[Layout('layouts.app')] class extends Component
                 <!-- Upper Section: Columns -->
                 <div class="flex flex-col md:flex-row">
                     <!-- Left Column: Media Gallery -->
-                    <div class="w-full md:w-1/2 p-6 bg-gradient-to-br from-indigo-50/30 via-purple-50/30 to-pink-50/30 dark:from-gray-850 dark:to-gray-900 flex flex-col justify-between">
+                    <div class="w-full md:w-1/2 p-6 bg-gradient-to-br from-indigo-50/30 via-purple-50/30 to-pink-50/30 dark:from-gray-900 dark:to-gray-950 flex flex-col justify-between">
                         <!-- Main Preview Image -->
                         <div class="relative pt-[100%] rounded-2xl overflow-hidden bg-white dark:bg-gray-755 shadow-inner border border-gray-100 dark:border-gray-700">
                             @if(count($gallery) > 0)
@@ -1064,7 +1084,7 @@ new #[Layout('layouts.app')] class extends Component
                                             @foreach($colors as $color)
                                                 <button 
                                                     wire:click="selectColor('{{ $color }}')"
-                                                    class="px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition duration-150 {{ $this->selectedColor === $color ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-650 hover:border-indigo-600' }}"
+                                                    class="px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition duration-150 {{ $this->selectedColor === $color ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-indigo-600' }}"
                                                 >
                                                     {{ $color }}
                                                 </button>
@@ -1083,7 +1103,7 @@ new #[Layout('layouts.app')] class extends Component
                                                 <button 
                                                     wire:click="selectSize('{{ $size }}')" 
                                                     {{ $vStock <= 0 ? 'disabled' : '' }}
-                                                    class="px-3 py-2 text-xs font-bold border-2 rounded-xl transition duration-150 relative {{ $this->selectedSize === $size ? 'bg-indigo-600 text-white border-indigo-600' : ($vStock <= 0 ? 'bg-gray-50 dark:bg-gray-800 text-gray-450 border-gray-200 dark:border-gray-700 cursor-not-allowed opacity-50' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-650 hover:border-indigo-600') }}"
+                                                    class="px-3 py-2 text-xs font-bold border-2 rounded-xl transition duration-150 relative {{ $this->selectedSize === $size ? 'bg-indigo-600 text-white border-indigo-600' : ($vStock <= 0 ? 'bg-gray-50 dark:bg-gray-800 text-gray-400 border-gray-200 dark:border-gray-700 cursor-not-allowed opacity-50' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-indigo-600') }}"
                                                 >
                                                     {{ $size }}
                                                     @if($vStock <= 0)
@@ -1143,7 +1163,7 @@ new #[Layout('layouts.app')] class extends Component
                 </div>
 
                 <!-- Bottom Section: Customer Reviews -->
-                <div class="border-t border-gray-100 dark:border-gray-700 p-6 sm:p-8 bg-gray-50/30 dark:bg-gray-850/40">
+                <div class="border-t border-gray-100 dark:border-gray-700 p-6 sm:p-8 bg-gray-50/30 dark:bg-gray-900/40">
                     <h3 class="text-base sm:text-lg font-black text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                         💬 Ulasan Pembeli <span class="bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-xs px-2.5 py-0.5 rounded-full font-bold">{{ $product->reviews->count() }}</span>
                     </h3>
@@ -1171,80 +1191,104 @@ new #[Layout('layouts.app')] class extends Component
                             <div class="bg-white dark:bg-gray-800 p-5 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
                                 <h4 class="text-sm font-bold text-gray-900 dark:text-white mb-3">Tulis Ulasan Anda</h4>
                                 @auth
-                                    <form wire:submit.prevent="submitReview" class="space-y-4">
-                                        <!-- Rating Selector -->
-                                        <div>
-                                            <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Beri Bintang:</label>
-                                            <div class="flex items-center gap-2">
-                                                @for($r = 1; $r <= 5; $r++)
-                                                    <button 
-                                                        type="button" 
-                                                        wire:click="$set('reviewRating', {{ $r }})" 
-                                                        class="text-2xl transition hover:scale-110 focus:outline-none {{ $this->reviewRating >= $r ? 'text-amber-400' : 'text-gray-300 dark:text-gray-650' }}"
-                                                    >
-                                                        ★
-                                                    </button>
-                                                @endfor
+                                    @if($this->canUserReview)
+                                        <form wire:submit.prevent="submitReview" class="space-y-4">
+                                            <!-- Rating Selector -->
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Beri Bintang:</label>
+                                                <div class="flex items-center gap-2">
+                                                    @for($r = 1; $r <= 5; $r++)
+                                                        <button 
+                                                            type="button" 
+                                                            wire:click="$set('reviewRating', {{ $r }})" 
+                                                            class="text-2xl transition hover:scale-110 focus:outline-none {{ $this->reviewRating >= $r ? 'text-amber-400' : 'text-gray-300 dark:text-gray-600' }}"
+                                                        >
+                                                            ★
+                                                        </button>
+                                                    @endfor
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        <!-- Comment textarea -->
-                                        <div>
-                                            <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Komentar:</label>
-                                            <textarea 
-                                                wire:model="reviewComment" 
-                                                rows="3" 
-                                                placeholder="Bagikan pengalaman Anda menggunakan sepatu ini..." 
-                                                class="w-full text-xs p-3 rounded-xl border border-gray-300 dark:border-gray-650 bg-gray-50 dark:bg-gray-750 text-gray-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:outline-none"
-                                            ></textarea>
-                                            @error('reviewComment') <span class="text-red-500 text-[10px] font-bold mt-1 block">{{ $message }}</span> @enderror
-                                        </div>
+                                            <!-- Comment textarea -->
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Komentar:</label>
+                                                <textarea 
+                                                    wire:model="reviewComment" 
+                                                    rows="3" 
+                                                    placeholder="Bagikan pengalaman Anda menggunakan sepatu ini..." 
+                                                    class="w-full text-xs p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none"
+                                                ></textarea>
+                                                @error('reviewComment') <span class="text-red-500 text-[10px] font-bold mt-1 block">{{ $message }}</span> @enderror
+                                            </div>
 
-                                        <button 
-                                            type="submit" 
-                                            class="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition"
-                                        >
-                                            Kirim Ulasan
-                                        </button>
-                                    </form>
+                                            <button 
+                                                type="submit" 
+                                                class="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition"
+                                            >
+                                                Kirim Ulasan
+                                            </button>
+                                        </form>
+                                    @else
+                                        <div class="text-center py-4 bg-gray-50/50 dark:bg-gray-900/20 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1 font-semibold">Ulasan Terkunci</p>
+                                            <p class="text-[10px] text-gray-500 dark:text-gray-400 px-2 leading-relaxed">Anda hanya dapat menulis ulasan setelah membeli produk ini dan status pesanan Anda telah 'Selesai'.</p>
+                                        </div>
+                                    @endif
                                 @else
-                                    <div class="text-center py-4 bg-gray-50 dark:bg-gray-900/40 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
-                                        <p class="text-xs text-gray-500 dark:text-gray-450 mb-2">Silakan login untuk mengirimkan ulasan.</p>
-                                        <a href="{{ route('login') }}" class="inline-flex text-xs font-bold text-indigo-600 hover:underline">Masuk Sekarang ➜</a>
+                                    <div class="text-center py-4 bg-gray-50/50 dark:bg-gray-900/20 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Silakan login untuk mengirimkan ulasan.</p>
+                                        <a href="{{ route('login') }}" class="inline-flex text-xs font-bold text-indigo-600 hover:underline" wire:navigate>Masuk Sekarang ➜</a>
                                     </div>
                                 @endauth
                             </div>
                         </div>
-
+                        
                         <!-- Right Columns: Reviews List -->
                         <div class="lg:col-span-2 space-y-4 max-h-[380px] overflow-y-auto pr-2 scrollbar-thin">
                             @forelse($product->reviews as $rev)
-                                <div class="bg-white dark:bg-gray-800 p-4.5 rounded-2xl border border-gray-100 dark:border-gray-700/80 shadow-sm space-y-2.5">
-                                    <div class="flex justify-between items-start">
-                                        <div>
-                                            <span class="text-xs font-bold text-gray-900 dark:text-white">{{ $rev->user->name }}</span>
-                                            <!-- Stars rating -->
-                                            <div class="flex text-amber-400 text-xs mt-0.5">
-                                                @for($i = 1; $i <= 5; $i++)
-                                                    <span>{{ $i <= $rev->rating ? '★' : '☆' }}</span>
-                                                @endfor
+                                <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm space-y-3 hover:shadow-md transition duration-200">
+                                    <div class="flex items-center gap-3">
+                                        <!-- User Avatar Bubble -->
+                                        <div class="w-9 h-9 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-extrabold text-xs uppercase border border-indigo-100 dark:border-indigo-900/50">
+                                            {{ substr($rev->user->name, 0, 2) }}
+                                        </div>
+                                        <!-- User Name and Rating -->
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <span class="text-xs font-bold text-gray-900 dark:text-white truncate">{{ $rev->user->name }}</span>
+                                                <span class="text-[10px] text-gray-400 dark:text-gray-500">{{ $rev->created_at->format('d M Y') }}</span>
+                                            </div>
+                                            <div class="flex items-center gap-1.5 mt-0.5">
+                                                <!-- Stars rating -->
+                                                <div class="flex text-amber-400 text-xs">
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        <span>{{ $i <= $rev->rating ? '★' : '☆' }}</span>
+                                                    @endfor
+                                                </div>
+                                                <span class="text-[10px] text-emerald-605 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shrink-0">
+                                                    <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                                    Pembeli Terverifikasi
+                                                </span>
                                             </div>
                                         </div>
-                                        <span class="text-[10px] text-gray-400 dark:text-gray-500">{{ $rev->created_at->format('d M Y') }}</span>
                                     </div>
-                                    @if($rev->comment)
-                                        <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">{{ $rev->comment }}</p>
-                                    @else
-                                        <p class="text-xs italic text-gray-400 dark:text-gray-550">Pembeli tidak memberikan komentar.</p>
-                                    @endif
+                                    <div class="pl-12">
+                                        @if($rev->comment)
+                                            <p class="text-xs text-gray-650 dark:text-gray-300 leading-relaxed">{{ $rev->comment }}</p>
+                                        @else
+                                            <p class="text-xs italic text-gray-400 dark:text-gray-500 font-medium">Pembeli tidak memberikan komentar.</p>
+                                        @endif
+                                    </div>
                                 </div>
                             @empty
-                                <div class="text-center py-12 bg-white dark:bg-gray-850/20 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700">
+                                <div class="text-center py-12 bg-white dark:bg-gray-900/25 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700">
                                     <div class="text-3xl mb-2">💬</div>
-                                    <p class="text-xs text-gray-550 dark:text-gray-450">Belum ada ulasan untuk produk ini. Jadilah yang pertama memberikan ulasan!</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Belum ada ulasan untuk produk ini. Jadilah yang pertama memberikan ulasan!</p>
                                 </div>
                             @endforelse
                         </div>
+                    </div>
+                </div>
             </div>
         </div>
     @endif

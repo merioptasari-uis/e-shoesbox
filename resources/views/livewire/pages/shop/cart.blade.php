@@ -391,8 +391,7 @@ new #[Layout('layouts.app')] class extends Component
          const orderId = $event.detail.orderId;
 
          if (!snapToken || snapToken.startsWith('mock-snap-token')) {
-             alert('Token pembayaran tiruan dibuat. Mengalihkan ke halaman status pesanan...');
-             window.location.href = '/order/' + orderId;
+             window.location.href = '/order/' + orderId + '?showMockPay=1';
              return;
          }
 
@@ -583,33 +582,49 @@ new #[Layout('layouts.app')] class extends Component
                             @error('courier') <span class="text-rose-500 text-xs mt-2 block">{{ $message }}</span> @enderror
                         </div>
 
-                        <!-- Shipping Service Choices -->
-                        @if(!empty($shippingServices))
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Layanan Tersedia</label>
-                                <div class="space-y-2">
-                                    @foreach($shippingServices as $srv)
-                                        <div 
-                                            wire:click="selectService('{{ $srv['service'] }}', {{ $srv['cost'] }})"
-                                            class="flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition {{ $selectedService === $srv['service'] ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/20 ring-2 ring-indigo-600/20' : 'border-gray-100 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700/30' }}"
-                                        >
-                                            <div>
-                                                <span class="text-sm font-extrabold text-gray-900 dark:text-gray-100 uppercase">{{ $srv['service'] }}</span>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $srv['description'] }} - {{ $srv['etd'] }} hari</p>
-                                            </div>
-                                            <span class="text-sm font-bold text-gray-900 dark:text-gray-100">
-                                                Rp {{ number_format($srv['cost'], 0, ',', '.') }}
-                                            </span>
-                                        </div>
-                                    @endforeach
+                        <!-- Shipping Service Choices Loading & Content -->
+                        <div class="relative">
+                            <!-- Loading Indicator -->
+                            <div wire:loading wire:target="courier, provinceId, cityId, fetchShippingRates" class="w-full">
+                                <div class="flex items-center justify-center p-6 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 animate-pulse">
+                                    <svg class="animate-spin h-5 w-5 text-indigo-600 dark:text-indigo-400 mr-3" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span class="text-xs font-bold text-gray-600 dark:text-gray-400">Sedang mengambil tarif pengiriman...</span>
                                 </div>
-                                @error('selectedService') <span class="text-rose-500 text-xs mt-2 block">{{ $message }}</span> @enderror
                             </div>
-                        @elseif($courier && empty($shippingServices))
-                            <div class="p-4 bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300 rounded-2xl text-xs font-medium border border-amber-100 dark:border-amber-900/30">
-                                Memuat layanan pengiriman... Pastikan Kota/Kabupaten tujuan telah terpilih.
+
+                            <!-- Content to hide when loading -->
+                            <div wire:loading.remove wire:target="courier, provinceId, cityId, fetchShippingRates">
+                                @if(!empty($shippingServices))
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Layanan Tersedia</label>
+                                        <div class="space-y-2">
+                                            @foreach($shippingServices as $srv)
+                                                <div 
+                                                    wire:click="selectService('{{ $srv['service'] }}', {{ $srv['cost'] }})"
+                                                    class="flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition {{ $selectedService === $srv['service'] ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/20 ring-2 ring-indigo-600/20' : 'border-gray-100 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700/30' }}"
+                                                >
+                                                    <div>
+                                                        <span class="text-sm font-extrabold text-gray-900 dark:text-gray-100 uppercase">{{ $srv['service'] }}</span>
+                                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $srv['description'] }} - {{ $srv['etd'] }} hari</p>
+                                                    </div>
+                                                    <span class="text-sm font-bold text-gray-900 dark:text-gray-100">
+                                                        Rp {{ number_format($srv['cost'], 0, ',', '.') }}
+                                                    </span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                        @error('selectedService') <span class="text-rose-500 text-xs mt-2 block">{{ $message }}</span> @enderror
+                                    </div>
+                                @elseif($courier && empty($shippingServices))
+                                    <div class="p-4 bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300 rounded-2xl text-xs font-medium border border-amber-100 dark:border-amber-900/30">
+                                        Memuat layanan pengiriman... Pastikan Kota/Kabupaten tujuan telah terpilih.
+                                    </div>
+                                @endif
                             </div>
-                        @endif
+                        </div>
                     </div>
                 </div>
 
