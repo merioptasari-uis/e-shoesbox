@@ -26,8 +26,9 @@ class MidtransService
      * Generate Snap Token from Midtrans.
      *
      * @param  array<string, string>  $customerDetails
+     * @param  array<int, array<string, mixed>>  $itemDetails
      */
-    public function getSnapToken(string $orderNumber, float $amount, array $customerDetails): ?string
+    public function getSnapToken(string $orderNumber, float $amount, array $customerDetails, array $itemDetails = []): ?string
     {
         // If server key is empty or placeholder, return a mock token for local testing
         if (empty($this->serverKey) || str_starts_with($this->serverKey, 'sk-proj') || str_starts_with($this->serverKey, 'sk-ant') || str_starts_with($this->serverKey, 'AIzaSy') || str_contains($this->serverKey, 'key_here')) {
@@ -55,6 +56,10 @@ class MidtransService
                     'unit' => 'hours',
                 ],
             ];
+
+            if (! empty($itemDetails)) {
+                $payload['item_details'] = $itemDetails;
+            }
 
             $response = Http::withHeaders([
                 'Accept' => 'application/json',

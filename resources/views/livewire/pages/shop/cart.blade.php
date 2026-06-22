@@ -275,6 +275,61 @@ new #[Layout('layouts.app')] class extends Component
                 // Delete cart items
                 CartItem::where('user_id', Auth::id())->delete();
 
+                // Construct item details for Midtrans
+                $midtransItems = [];
+                foreach ($cartItems as $item) {
+                    $nameParts = [$item->product->name];
+                    $variantSpecs = [];
+                    if ($item->color) {
+                        $variantSpecs[] = $item->color;
+                    }
+                    if ($item->size) {
+                        $variantSpecs[] = $item->size;
+                    }
+                    if (!empty($variantSpecs)) {
+                        $nameParts[] = '(' . implode(', ', $variantSpecs) . ')';
+                    }
+                    $itemName = implode(' ', $nameParts);
+
+                    $midtransItems[] = [
+                        'id' => 'item-' . ($item->product_variant_id ?? $item->product_id),
+                        'price' => (int) $item->product->selling_price,
+                        'quantity' => (int) $item->quantity,
+                        'name' => mb_substr($itemName, 0, 50),
+                    ];
+                }
+
+                if ($this->shippingCost > 0) {
+                    $courierName = strtoupper($this->courier);
+                    $shippingName = "Ongkir ({$courierName} - {$this->selectedService})";
+                    $midtransItems[] = [
+                        'id' => 'shipping',
+                        'price' => (int) $this->shippingCost,
+                        'quantity' => 1,
+                        'name' => mb_substr($shippingName, 0, 50),
+                    ];
+                }
+
+                if ($this->productDiscount > 0) {
+                    $voucherCode = $this->appliedProductVoucher->code ?? 'Promo';
+                    $midtransItems[] = [
+                        'id' => 'promo-product',
+                        'price' => - (int) min($this->subtotal, $this->productDiscount),
+                        'quantity' => 1,
+                        'name' => mb_substr("Diskon Voucher ({$voucherCode})", 0, 50),
+                    ];
+                }
+
+                if ($this->shippingDiscount > 0) {
+                    $voucherCode = $this->appliedShippingVoucher->code ?? 'Promo Ongkir';
+                    $midtransItems[] = [
+                        'id' => 'promo-shipping',
+                        'price' => - (int) min($this->shippingCost, $this->shippingDiscount),
+                        'quantity' => 1,
+                        'name' => mb_substr("Diskon Ongkir ({$voucherCode})", 0, 50),
+                    ];
+                }
+
                 // Fetch Midtrans Snap Token
                 $snapToken = $midtransService->getSnapToken(
                     $order->order_number,
@@ -283,7 +338,8 @@ new #[Layout('layouts.app')] class extends Component
                         'name' => $this->recipientName,
                         'email' => Auth::user()->email,
                         'phone' => $this->phoneNumber,
-                    ]
+                    ],
+                    $midtransItems
                 );
 
                 Payment::create([
