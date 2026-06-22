@@ -3,9 +3,16 @@
 [![Laravel Version](https://img.shields.io/badge/Laravel-13.x-red.svg)](https://laravel.com)
 [![Livewire Version](https://img.shields.io/badge/Livewire-4.x-blue.svg)](https://laravel-livewire.com)
 [![TailwindCSS Version](https://img.shields.io/badge/TailwindCSS-4.x-38bdf8.svg)](https://tailwindcss.com)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 A modern, high-fidelity, and feature-rich online shoe marketplace application built on top of Laravel 13, Livewire 4 (Volt), TailwindCSS 4, and MySQL. The system is designed to provide a premium shopping experience featuring interactive product catalogs, real-time variant selections, automated vouchers, integrated RajaOngkir shipping calculation, and a seamless Midtrans payment flow.
+
+---
+
+## 👥 Tim Pengembang (Development Team)
+
+Proyek ini dikembangkan sebagai tugas kuliah oleh kelompok:
+- **Meri Optasari** (Ketua Kelompok)
+- **Reza Saponna** (Anggota Kelompok)
 
 ---
 
@@ -41,6 +48,18 @@ A modern, high-fidelity, and feature-rich online shoe marketplace application bu
 - **Livewire**: `^4.x` (featuring Volt & Blaze)
 - **CSS Framework**: TailwindCSS `^4.x`
 - **Bundler**: Vite
+
+### 🗄️ Arsitektur Database (Database Schema)
+
+Aplikasi ini menggunakan skema database relasional untuk menyimpan data toko secara terstruktur:
+- **users**: Data otentikasi untuk Pelanggan (Customer) dan Administrator (Admin).
+- **products**: Data produk sepatu, deskripsi, harga dasar, berat produk, promo tag, dan penjadwalan Flash Sale.
+- **product_variants**: Menyimpan detail varian spesifik berdasarkan kombinasi Ukuran (Size), Warna (Hex Color), dan tingkat stok masing-masing.
+- **campaigns**: Data banner promosi interaktif di halaman beranda dengan kustomisasi gradien background CSS, teks badge, dan emoji.
+- **vouchers**: Data kupon promo aktif pendukung potongan ongkos kirim (Bebas Ongkir) dan potongan harga belanja.
+- **orders & order_items**: Rincian transaksi pembelian, alamat penerima, pilihan kurir, nomor resi pengiriman, serta referensi kode voucher.
+- **payments**: Pencatatan data pembayaran terintegrasi Midtrans (Virtual Account, GoPay, Credit Card) beserta status pembayaran.
+- **reviews**: Rating bintang dan ulasan umpan balik dari pembeli terverifikasi (Verified Buyer).
 
 ---
 
@@ -193,3 +212,21 @@ You can use the following default codes during cart checkout:
 1. **API Credentials**: Ensure `MIDTRANS_SERVER_KEY` and `RAJAONGKIR_API_KEY` are kept strictly in your local `.env` file. Do not share or push `.env` to GitHub.
 2. **Directory Permissions**: Laravel requires write access to the `storage/` and `bootstrap/cache/` directories. If you encounter permission errors on Apache, ensure these folders have read/write privileges.
 3. **Environment**: For local development, keep `APP_ENV=local` and `APP_DEBUG=true`. For production deployments, change these to `production` and `false` respectively.
+
+---
+
+## 🧪 Pengujian Sistem & Kualitas Kode (Testing & QA)
+
+Untuk menjamin keandalan sistem dan keselarasan kode sesuai standar industri (sangat berguna untuk laporan tugas kuliah), Anda dapat menjalankan perintah verifikasi berikut:
+
+1. **Linter & Code Formatting (Laravel Pint)**:
+   ```bash
+   composer run lint
+   ```
+   Secara otomatis merapikan penulisan kode PHP agar sesuai dengan standar PSR-12.
+
+2. **Pengujian Fungsional (Pest PHP)**:
+   ```bash
+   composer run test
+   ```
+   Menjalankan 75 suite test otomatis yang memverifikasi fungsionalitas keranjang belanja, auto-apply voucher diskon, restock stok varian saat order batal/expired, dan integrasi response webhook pembayaran.
