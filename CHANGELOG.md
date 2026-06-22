@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Implemented comprehensive Admin Order Management panel with dynamic Search & Filters (by Invoice, Customer, Tracking Resi, Email, Order Status, Payment Status, and Courier).
+- Added Auto-Status Promotion to automatically change order status to 'shipping' once a non-empty Tracking Number (Resi) is saved.
+- Implemented a Detailed Payment Summary card displaying Midtrans Transaction ID, Payment Type, Bank/Issuer details, and callback timestamps.
+- Added Quick Action utilities in the admin order sidebar, including Copy Invoice, Copy Tracking Number, and one-click direct WhatsApp chat link formatting Indonesian phone numbers.
 - Implemented complete local RajaOngkir shipping locations JSON dataset (`database/data/rajaongkir_locations.json`) containing all 34 provinces and 501 cities of Indonesia.
 - Updated `RajaOngkirSeeder` to securely load geographical data from the local JSON dataset as a fallback when `RAJAONGKIR_API_KEY` is not present, enabling zero-network deterministic seeding.
 - Added "Buy Now" (Beli Langsung) direct checkout button in the product details modal, bypassing the persistent database cart.

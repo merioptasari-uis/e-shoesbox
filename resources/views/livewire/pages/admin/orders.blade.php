@@ -11,6 +11,12 @@ new #[Layout('layouts.app')] class extends Component
     public string $trackingNumber = '';
     public string $orderStatus = '';
 
+    // Search and Filters
+    public string $search = '';
+    public string $statusFilter = '';
+    public string $paymentStatusFilter = '';
+    public string $courierFilter = '';
+
     public function mount(): void
     {
         if (!Auth::user()->isAdmin()) {
@@ -44,6 +50,12 @@ new #[Layout('layouts.app')] class extends Component
         $oldStatus = $order->status;
         $newStatus = $this->orderStatus;
 
+        // Auto-Status Promotion: processing + tracking number -> shipping
+        if ($newStatus === 'processing' && $this->trackingNumber !== '' && $order->tracking_number === null) {
+            $newStatus = 'shipping';
+            $this->orderStatus = 'shipping';
+        }
+
         $order->update([
             'tracking_number' => $this->trackingNumber !== '' ? $this->trackingNumber : null,
             'status' => $newStatus,
@@ -71,11 +83,47 @@ new #[Layout('layouts.app')] class extends Component
         $this->closeDetails();
     }
 
+    public function cleanWhatsAppPhone(string $phone): string
+    {
+        $cleaned = preg_replace('/[^0-9]/', '', $phone);
+        if (str_starts_with($cleaned, '0')) {
+            $cleaned = '62' . substr($cleaned, 1);
+        } elseif (str_starts_with($cleaned, '8')) {
+            $cleaned = '62' . $cleaned;
+        }
+        return $cleaned;
+    }
+
     public function getOrdersProperty()
     {
-        return Order::with(['user', 'payment', 'items'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = Order::with(['user', 'payment', 'items']);
+
+        if (!empty($this->search)) {
+            $query->where(function($q) {
+                $q->where('order_number', 'like', '%' . $this->search . '%')
+                  ->orWhere('shipping_recipient_name', 'like', '%' . $this->search . '%')
+                  ->orWhere('tracking_number', 'like', '%' . $this->search . '%')
+                  ->orWhereHas('user', function($qu) {
+                      $qu->where('email', 'like', '%' . $this->search . '%');
+                  });
+            });
+        }
+
+        if (!empty($this->statusFilter)) {
+            $query->where('status', $this->statusFilter);
+        }
+
+        if (!empty($this->paymentStatusFilter)) {
+            $query->whereHas('payment', function($qp) {
+                $qp->where('status', $this->paymentStatusFilter);
+            });
+        }
+
+        if (!empty($this->courierFilter)) {
+            $query->where('shipping_courier', $this->courierFilter);
+        }
+
+        return $query->orderBy('created_at', 'desc')->get();
     }
 };
 ?>
@@ -86,6 +134,63 @@ new #[Layout('layouts.app')] class extends Component
             <div>
                 <h1 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">Manajemen Pesanan</h1>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Tinjau pesanan, kelola pelacakan pengiriman, dan perbarui siklus status.</p>
+            </div>
+        </div>
+
+        <!-- Search and Filters Section -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm mb-8 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Search input -->
+                <div class="md:col-span-1">
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Cari Pesanan</label>
+                    <div class="relative">
+                        <input 
+                            wire:model.live.debounce.300ms="search" 
+                            type="text" 
+                            placeholder="No. Faktur, Nama, Resi, Email..."
+                            class="w-full pl-9 pr-4 py-2.5 border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                        >
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Filter -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Status Pesanan</label>
+                    <select wire:model.live="statusFilter" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                        <option value="">Semua Status</option>
+                        <option value="pending">Menunggu Pembayaran</option>
+                        <option value="processing">Diproses</option>
+                        <option value="shipping">Dikirim</option>
+                        <option value="completed">Selesai</option>
+                        <option value="cancelled">Dibatalkan</option>
+                    </select>
+                </div>
+
+                <!-- Payment Status Filter -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Status Pembayaran</label>
+                    <select wire:model.live="paymentStatusFilter" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                        <option value="">Semua Pembayaran</option>
+                        <option value="pending">Menunggu</option>
+                        <option value="settlement">Lunas</option>
+                        <option value="expire">Kadaluarsa</option>
+                        <option value="cancel">Batal</option>
+                    </select>
+                </div>
+
+                <!-- Courier Filter -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Kurir Pengiriman</label>
+                    <select wire:model.live="courierFilter" class="w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                        <option value="">Semua Kurir</option>
+                        <option value="jne">JNE</option>
+                        <option value="pos">POS Indonesia</option>
+                        <option value="tiki">TIKI</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -179,11 +284,43 @@ new #[Layout('layouts.app')] class extends Component
                             </div>
 
                             <!-- Invoice and Info -->
-                            <div class="space-y-1">
+                            <div class="space-y-2">
                                 <span class="text-xs text-gray-400 block">Nomor Pesanan</span>
-                                <span class="text-base font-extrabold text-gray-900 dark:text-gray-100">{{ $detailOrder->order_number }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-base font-extrabold text-gray-900 dark:text-gray-100 select-all">{{ $detailOrder->order_number }}</span>
+                                    <button 
+                                        @click="navigator.clipboard.writeText('{{ $detailOrder->order_number }}'); $dispatch('notify', { type: 'success', message: 'Nomor pesanan disalin!' })"
+                                        class="p-1 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
+                                        title="Salin No. Pesanan"
+                                    >
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                                    </button>
+                                </div>
                                 <p class="text-xs text-gray-500">Pelanggan: {{ $detailOrder->shipping_recipient_name }} ({{ $detailOrder->shipping_phone_number }})</p>
                                 <p class="text-xs text-gray-500">{{ $detailOrder->shipping_address_line }}, {{ $detailOrder->shipping_city }}, {{ $detailOrder->shipping_province }}</p>
+                                
+                                <!-- Quick Actions (WhatsApp & Call) -->
+                                <div class="flex items-center gap-2 mt-2 pt-2 border-t border-gray-50 dark:border-gray-700/50">
+                                    <a 
+                                        href="https://wa.me/{{ $this->cleanWhatsAppPhone($detailOrder->shipping_phone_number) }}" 
+                                        target="_blank"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/40 dark:text-emerald-300 rounded-xl text-xs font-semibold transition"
+                                    >
+                                        <svg class="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24">
+                                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.665.989 3.3 1.472 5.358 1.473 5.466 0 9.914-4.437 9.917-9.896.002-2.646-1.03-5.132-2.906-7.01C17.142 1.839 14.66 1.8 12.016 1.8c-5.468 0-9.916 4.439-9.919 9.899-.001 2.124.562 4.103 1.63 5.864l-.973 3.553 3.655-.96l-.161-.092zm8.813-5.267c-.29-.145-1.72-.85-1.987-.947-.267-.097-.461-.145-.655.145-.194.29-.752.947-.922 1.14-.169.194-.339.218-.63.073-.29-.145-1.223-.45-2.33-1.437-.862-.77-1.443-1.72-1.613-2.012-.17-.29-.018-.448.128-.592.131-.13.29-.339.436-.509.145-.17.194-.29.291-.485.097-.194.048-.364-.024-.509-.073-.145-.655-1.577-.898-2.16-.236-.569-.475-.491-.655-.5h-.56c-.194 0-.509.073-.776.364-.267.29-1.02 1.02-1.02 2.487 0 1.468 1.067 2.88 1.213 3.074.145.194 2.1 3.21 5.09 4.506.71.307 1.266.491 1.7.63.714.227 1.36.195 1.872.118.571-.085 1.72-.704 1.962-1.383.243-.679.243-1.262.17-1.383-.073-.12-.267-.194-.558-.339z"/>
+                                        </svg>
+                                        WhatsApp
+                                    </a>
+                                    @if($detailOrder->tracking_number)
+                                        <button 
+                                            @click="navigator.clipboard.writeText('{{ $detailOrder->tracking_number }}'); $dispatch('notify', { type: 'success', message: 'Nomor resi disalin!' })"
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-xl text-xs font-semibold transition"
+                                        >
+                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                            Salin Resi
+                                        </button>
+                                    @endif
+                                </div>
                             </div>
 
                             <!-- Items -->
@@ -200,6 +337,53 @@ new #[Layout('layouts.app')] class extends Component
                                     <span>Rp {{ number_format($detailOrder->total_amount, 0, ',', '.') }}</span>
                                 </div>
                             </div>
+
+                            <!-- Payment Details -->
+                            @if($detailOrder->payment)
+                                @php
+                                    $payment = $detailOrder->payment;
+                                    $payload = $payment->payment_payload;
+                                    $bankInfo = '';
+                                    if ($payload) {
+                                        if ($payment->payment_type === 'bank_transfer' && isset($payload['va_numbers'][0]['bank'])) {
+                                            $bankInfo = ' (' . strtoupper($payload['va_numbers'][0]['bank']) . ')';
+                                        } elseif ($payment->payment_type === 'cstore' && isset($payload['store'])) {
+                                            $bankInfo = ' (' . strtoupper($payload['store']) . ')';
+                                        }
+                                    }
+                                @endphp
+                                <div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-2xl border border-gray-100 dark:border-gray-700/50 space-y-3">
+                                    <h3 class="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Detail Pembayaran</h3>
+                                    <div class="space-y-1.5 text-xs text-gray-500 dark:text-gray-400">
+                                        <div class="flex justify-between">
+                                            <span>Metode:</span>
+                                            <span class="font-semibold text-gray-900 dark:text-gray-100 uppercase">{{ str_replace('_', ' ', $payment->payment_type ?? 'Midtrans') }}{{ $bankInfo }}</span>
+                                        </div>
+                                        @if($payment->transaction_id)
+                                            <div class="flex justify-between">
+                                                <span>ID Transaksi:</span>
+                                                <span class="font-mono text-gray-700 dark:text-gray-300 select-all">{{ substr($payment->transaction_id, 0, 18) }}...</span>
+                                            </div>
+                                        @endif
+                                        <div class="flex justify-between">
+                                            <span>Status:</span>
+                                            <span class="font-bold uppercase
+                                                {{ $payment->status === 'settlement' ? 'text-emerald-600 dark:text-emerald-400' : '' }}
+                                                {{ $payment->status === 'pending' ? 'text-amber-600 dark:text-amber-400' : '' }}
+                                                {{ in_array($payment->status, ['expire', 'cancel']) ? 'text-rose-600 dark:text-rose-400' : '' }}
+                                            ">
+                                                {{ match ($payment->status) { 'pending' => 'MENUNGGU', 'settlement' => 'LUNAS', 'expire' => 'KADALUARSA', 'cancel' => 'BATAL', default => strtoupper($payment->status) } }}
+                                            </span>
+                                        </div>
+                                        @if($payment->updated_at)
+                                            <div class="flex justify-between">
+                                                <span>Waktu:</span>
+                                                <span>{{ $payment->updated_at->timezone('Asia/Jakarta')->format('d M Y H:i') }} WIB</span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
 
                             <!-- Form updates -->
                             <div class="space-y-4">
