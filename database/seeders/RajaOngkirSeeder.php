@@ -76,6 +76,7 @@ class RajaOngkirSeeder extends Seeder
                     ['province_id' => '9', 'province' => 'Jawa Barat'],
                     ['province_id' => '11', 'province' => 'Jawa Timur'],
                     ['province_id' => '39', 'province' => 'DI Yogyakarta'],
+                    ['province_id' => '17', 'province' => 'Kepulauan Riau'],
                 ];
                 $citiesData = [
                     [
@@ -109,6 +110,14 @@ class RajaOngkirSeeder extends Seeder
                         'type' => 'Kota',
                         'city_name' => 'Yogyakarta',
                         'postal_code' => '55111',
+                    ],
+                    [
+                        'city_id' => '48',
+                        'province_id' => '17',
+                        'province' => 'Kepulauan Riau',
+                        'type' => 'Kota',
+                        'city_name' => 'Batam',
+                        'postal_code' => '29400',
                     ],
                 ];
             }
