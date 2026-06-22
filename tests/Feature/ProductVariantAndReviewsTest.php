@@ -2,6 +2,8 @@
 
 use App\Models\CartItem;
 use App\Models\Category;
+use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Review;
@@ -103,6 +105,37 @@ test('logged in user can submit a review and select variants in detail modal', f
     ]);
 
     $this->actingAs($this->user);
+
+    // Create a completed order so the user is authorized to submit a review
+    $order = Order::create([
+        'user_id' => $this->user->id,
+        'order_number' => 'INV/'.date('Ymd').'/99999',
+        'subtotal_amount' => 100000,
+        'shipping_cost' => 0,
+        'discount_amount' => 0,
+        'shipping_discount_amount' => 0,
+        'total_amount' => 100000,
+        'shipping_courier' => 'jne',
+        'shipping_service' => 'REG',
+        'status' => 'completed',
+        'shipping_recipient_name' => $this->user->name,
+        'shipping_phone_number' => '0812345678',
+        'shipping_address_line' => 'Test Address',
+        'shipping_province' => 'Jawa Barat',
+        'shipping_city' => 'Bandung',
+        'shipping_postal_code' => '40111',
+    ]);
+
+    OrderItem::create([
+        'order_id' => $order->id,
+        'product_id' => $product->id,
+        'product_variant_id' => $variant->id,
+        'size' => '42',
+        'color' => 'Biru',
+        'name' => $product->name,
+        'price' => 100000,
+        'quantity' => 1,
+    ]);
 
     Volt::test('pages.shop.index')
         ->call('openDetailModal', $product->id)

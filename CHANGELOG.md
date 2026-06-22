@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Implemented an interactive Mock Midtrans Sandbox Payment Simulation modal in the order details page, allowing developers and customers to test simulated payments (Virtual Account, GoPay, Credit Card) when sandbox API keys are invalid or missing.
+- Added a "Pesanan Diterima" (Confirm Order Received) button on the order details view when status is "Dalam Pengiriman", allowing buyers to mark order status as "Selesai" (completed) and unlock product review capabilities.
+
+### Fixed
+- Added a visual loading spinner and pulse skeleton loader on the checkout page (`cart.blade.php`) while fetching RajaOngkir shipping rates to improve user feedback.
+- Redesigned the customer reviews card list and write-review form in `index.blade.php` to use premium, consistent typography and standard Tailwind CSS colors, resolving the white text on white background readability issue in the input area.
+- Enforced backend and frontend constraints restricting product reviews to verified customers who have a completed order for that specific product.
+- Updated the product details review cards to display avatar bubbles and "Pembeli Terverifikasi" badges for authentic review representation.
+- Fixed the product variant and reviews feature test to simulate a completed order for the user before verifying review submission.
+
+### Added
 - Implemented dynamic database-backed Product Variant system (`product_variants` table) tracking individual stock, size, and color combinations.
 - Built dynamic reviews system (`reviews` table) letting logged-in users post shoe comments and ratings directly in the details modal.
 - Integrated real average rating, review count, and sales volume calculation derived from database reviews and completed/paid order history.
