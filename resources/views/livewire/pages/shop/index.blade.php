@@ -1064,7 +1064,7 @@ new #[Layout('layouts.app')] class extends Component
                 <!-- Upper Section: Columns -->
                 <div class="flex flex-col md:flex-row">
                     <!-- Left Column: Media Gallery -->
-                    <div class="w-full md:w-1/2 p-6 bg-gradient-to-br from-indigo-50/30 via-purple-50/30 to-pink-50/30 dark:from-gray-900 dark:to-gray-950 flex flex-col justify-between">
+                    <div class="w-full md:w-1/2 p-6 bg-gradient-to-br from-indigo-50/30 via-purple-50/30 to-pink-50/30 dark:from-gray-900 dark:to-gray-950 flex flex-col gap-4">
                         <!-- Main Preview Image -->
                         <div class="relative pt-[100%] rounded-2xl overflow-hidden bg-white dark:bg-gray-755 shadow-inner border border-gray-100 dark:border-gray-700">
                             @if(count($gallery) > 0)
