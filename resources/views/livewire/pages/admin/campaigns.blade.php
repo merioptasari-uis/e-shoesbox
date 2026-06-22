@@ -4,8 +4,15 @@ use App\Models\Campaign;
 use function Livewire\Volt\layout;
 use function Livewire\Volt\state;
 use function Livewire\Volt\rules;
+use function Livewire\Volt\usesPagination;
+use function Livewire\Volt\updated;
 
+usesPagination();
 layout('layouts.app');
+
+updated(['search' => function () {
+    $this->resetPage();
+}]);
 
 state([
     'search' => '',
@@ -124,7 +131,7 @@ $getCampaignsProperty = function () {
         $query->where('title', 'like', '%' . $this->search . '%')
               ->orWhere('promo_tag', 'like', '%' . $this->search . '%');
     }
-    return $query->orderBy('created_at', 'desc')->get();
+    return $query->orderBy('created_at', 'desc')->paginate(5);
 };
 ?>
 
@@ -284,6 +291,11 @@ $getCampaignsProperty = function () {
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination Links -->
+            <div class="px-6 py-4 border-t border-gray-150 dark:border-gray-700/80 bg-gray-50/50 dark:bg-gray-900/10">
+                {{ $this->campaigns->links() }}
+            </div>
         </div>
     </div>
 
@@ -295,7 +307,10 @@ $getCampaignsProperty = function () {
                     {{ $editingCampaignId ? 'Edit Campaign Banner' : 'Buat Campaign Banner' }}
                 </h3>
 
-                <form wire:submit.prevent="saveCampaign" class="space-y-4 py-4 overflow-y-auto flex-1 pr-1">
+                <form wire:submit.prevent="saveCampaign" class="space-y-4 py-4 overflow-y-auto flex-1 pr-1 text-xs">
+                    <div class="border-b border-gray-100 dark:border-gray-700 pb-1 mb-3">
+                        <span class="text-[10px] font-black text-indigo-650 dark:text-indigo-400 uppercase tracking-widest">Informasi Utama</span>
+                    </div>
                     <!-- Title -->
                     <div>
                         <x-input-label for="campaign_title" :value="__('Judul Campaign')" />
@@ -317,6 +332,9 @@ $getCampaignsProperty = function () {
                         <x-input-error :messages="$errors->get('description')" class="mt-1" />
                     </div>
 
+                    <div class="border-b border-gray-100 dark:border-gray-700 pb-1 mb-3 pt-2">
+                        <span class="text-[10px] font-black text-indigo-650 dark:text-indigo-400 uppercase tracking-widest">Lencana & Tagging</span>
+                    </div>
                     <div class="grid grid-cols-3 gap-4">
                         <!-- Badge Text -->
                         <div>
@@ -351,6 +369,9 @@ $getCampaignsProperty = function () {
                         </div>
                     </div>
 
+                    <div class="border-b border-gray-100 dark:border-gray-700 pb-1 mb-3 pt-2">
+                        <span class="text-[10px] font-black text-indigo-650 dark:text-indigo-400 uppercase tracking-widest">Aksi & Gaya Latar</span>
+                    </div>
                     <div class="grid grid-cols-2 gap-4">
                         <!-- Button Text -->
                         <div>

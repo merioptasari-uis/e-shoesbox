@@ -4,8 +4,15 @@ use App\Models\Voucher;
 use function Livewire\Volt\layout;
 use function Livewire\Volt\state;
 use function Livewire\Volt\rules;
+use function Livewire\Volt\usesPagination;
+use function Livewire\Volt\updated;
 
+usesPagination();
 layout('layouts.app');
+
+updated(['search' => function () {
+    $this->resetPage();
+}]);
 
 state([
     'search' => '',
@@ -108,7 +115,7 @@ $getVouchersProperty = function () {
     if (!empty($this->search)) {
         $query->where('code', 'like', '%' . $this->search . '%');
     }
-    return $query->orderBy('created_at', 'desc')->get();
+    return $query->orderBy('created_at', 'desc')->paginate(10);
 };
 ?>
 
@@ -231,6 +238,11 @@ $getVouchersProperty = function () {
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Pagination Links -->
+            <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700/80 bg-gray-50/50 dark:bg-gray-900/10">
+                {{ $this->vouchers->links() }}
             </div>
         </div>
     </div>

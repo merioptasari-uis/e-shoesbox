@@ -9,9 +9,16 @@ use function Livewire\Volt\layout;
 use function Livewire\Volt\state;
 use function Livewire\Volt\rules;
 use function Livewire\Volt\usesFileUploads;
+use function Livewire\Volt\usesPagination;
+use function Livewire\Volt\updated;
 
 usesFileUploads();
+usesPagination();
 layout('layouts.app');
+
+updated(['search' => function () {
+    $this->resetPage();
+}]);
 
 state([
     'search' => '',
@@ -353,7 +360,7 @@ $getProducts = function () {
     return Product::with('category')
         ->where('name', 'like', '%' . $this->search . '%')
         ->latest()
-        ->get();
+        ->paginate(10);
 };
 
 $getCategories = function () {
@@ -473,6 +480,12 @@ $getCategories = function () {
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Pagination Links -->
+                <div class="px-6 py-4 border-t border-gray-150 dark:border-gray-700/80 bg-gray-50/50 dark:bg-gray-800/10 rounded-b-3xl">
+                    {{ $this->getProducts()->links() }}
+                </div>
+            </div>
             </div>
         </div>
     </div>
@@ -492,9 +505,13 @@ $getCategories = function () {
                                 {{ $editingProductId ? 'Edit Produk' : 'Tambah Produk Baru' }}
                             </h3>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <!-- Left Column: General Info & Description -->
-                                <div class="space-y-4 bg-transparent">
+                                <div class="space-y-5 bg-transparent">
+                                    <div class="border-b border-gray-100 dark:border-gray-700 pb-2 mb-4 flex items-center justify-between">
+                                        <span class="text-xs font-black text-indigo-650 dark:text-indigo-400 uppercase tracking-widest">Informasi Utama</span>
+                                        <span class="text-[10px] text-gray-400 font-bold">1 / 2</span>
+                                    </div>
                                     <!-- Product Name -->
                                     <div>
                                         <x-input-label for="form_name" :value="__('Nama Produk')" />
@@ -557,7 +574,11 @@ $getCategories = function () {
                                 </div>
 
                                 <!-- Right Column: Prices, Stock, Weight, & Photos -->
-                                <div class="space-y-4 bg-transparent">
+                                <div class="space-y-5 bg-transparent">
+                                    <div class="border-b border-gray-100 dark:border-gray-700 pb-2 mb-4 flex items-center justify-between">
+                                        <span class="text-xs font-black text-indigo-650 dark:text-indigo-400 uppercase tracking-widest">Harga, Stok & Foto</span>
+                                        <span class="text-[10px] text-gray-400 font-bold">2 / 2</span>
+                                    </div>
                                     <div class="grid grid-cols-2 gap-4">
                                         <!-- Price -->
                                         <div>

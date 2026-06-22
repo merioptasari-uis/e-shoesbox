@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Integrated pagination support for admin products, campaigns, orders, and vouchers list panels to manage high volumes of items efficiently.
+- Refined edit/create product and campaign modals with grouped layout cards and section headers ("Informasi Utama", "Harga, Stok & Foto", etc.) for a cleaner, structured admin UX.
+- Set up automatic page reset hooks inside admin search/filters filters to prevent users getting stuck on empty pages during query updates.
 - Created a database migration introducing `hex_color` to `product_variants` and `emoji` & `custom_bg` to `campaigns` tables.
 - Integrated color picker and HEX text input controls in the admin products panel to support dynamic, code-free color variants addition.
 - Integrated emoji picker/text inputs and custom gradient CSS style field in the admin campaigns editor.
