@@ -127,6 +127,45 @@ new #[Layout('layouts.app')] class extends Component
 
         return $query->orderBy('created_at', 'desc')->get();
     }
+
+    public function getEligibleForAutoCompletionCountProperty(): int
+    {
+        return Order::where('status', 'shipping')
+            ->where(function ($query) {
+                $query->where('shipped_at', '<=', now()->subDays(14))
+                    ->orWhere(function ($q) {
+                        $q->whereNull('shipped_at')
+                          ->where('updated_at', '<=', now()->subDays(14));
+                    });
+            })
+            ->count();
+    }
+
+    public function completeEligibleOrders(): void
+    {
+        $eligibleOrders = Order::where('status', 'shipping')
+            ->where(function ($query) {
+                $query->where('shipped_at', '<=', now()->subDays(14))
+                    ->orWhere(function ($q) {
+                        $q->whereNull('shipped_at')
+                          ->where('updated_at', '<=', now()->subDays(14));
+                    });
+            })
+            ->get();
+
+        $count = $eligibleOrders->count();
+
+        if ($count === 0) {
+            $this->dispatch('notify', type: 'error', message: 'Tidak ada pesanan yang memenuhi syarat untuk diselesaikan otomatis.');
+            return;
+        }
+
+        foreach ($eligibleOrders as $order) {
+            $order->update(['status' => 'completed']);
+        }
+
+        $this->dispatch('notify', type: 'success', message: "Berhasil menyelesaikan {$count} pesanan secara massal!");
+    }
 };
 ?>
 
@@ -136,6 +175,30 @@ new #[Layout('layouts.app')] class extends Component
             <div>
                 <h1 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">Manajemen Pesanan</h1>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Tinjau pesanan, kelola pelacakan pengiriman, dan perbarui siklus status.</p>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                @php
+                    $count = $this->eligibleForAutoCompletionCount;
+                @endphp
+                <button 
+                    wire:click="completeEligibleOrders" 
+                    @if($count === 0) disabled @endif
+                    class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold shadow-md transition-all duration-300 select-none
+                        @if($count > 0)
+                            bg-gradient-to-r from-emerald-600 to-teal-500 text-white hover:shadow-emerald-200/50 hover:shadow-lg dark:hover:shadow-emerald-950/20 active:scale-95 cursor-pointer
+                        @else
+                            bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed border border-gray-200 dark:border-gray-700
+                        @endif"
+                >
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                    <span>Selesaikan Otomatis (+14 Hari)</span>
+                    @if($count > 0)
+                        <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-black bg-white text-emerald-700 rounded-full animate-bounce">
+                            {{ $count }}
+                        </span>
+                    @endif
+                </button>
             </div>
         </div>
 
