@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Documented default pre-seeded admin and customer testing credentials in `README.md`.
 - Created a root-level `.htaccess` file directing Apache traffic to the `/public` folder for custom local subdirectory deployments.
 - Created a comprehensive `README.md` containing local Laragon deployment documentation, stack descriptions, virtual hosts mappings, integration guides, and security constraints.
 - Created `VoucherSeeder` class to seed default sandbox vouchers (`COBAINBARU`, `FREEONGKIR` for Bebas Ongkir with minimum spend Rp 150.000, and `DISKONHEBOH`).

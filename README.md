@@ -163,6 +163,20 @@ We have included a `.htaccess` file in the **project root directory** that autom
 ```
 *Make sure Apache's `mod_rewrite` module is enabled in your Laragon configuration (Laragon -> Apache -> Apache modules -> check `rewrite_module`).*
 
+## 👥 Default Testing Accounts (Akun Demo)
+
+You can log in using the following pre-seeded credentials for local testing:
+
+- **Store Administrator**:
+  - **Email**: `admin@e-shoesbox.com`
+  - **Password**: `password`
+  - **Role**: Admin (Akses panel admin di `/dashboard` atau menu laporan)
+
+- **Demo Customer**:
+  - **Email**: `customer@e-shoesbox.com`
+  - **Password**: `password`
+  - **Role**: Customer (Akses belanja dan lacak pesanan)
+
 ---
 
 ## 🎫 Default Seeded Vouchers (Testing Promos)
