@@ -321,6 +321,26 @@ new #[Layout('layouts.app')] class extends Component
                                         </button>
                                     @endif
                                 </div>
+
+                                <!-- Print Documents (Invoice & Label) -->
+                                <div class="flex items-center gap-2 mt-2 pt-2 border-t border-gray-50 dark:border-gray-700/50">
+                                    <a 
+                                        href="{{ route('order.print', $detailOrder) }}" 
+                                        target="_blank"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/40 dark:text-indigo-300 rounded-xl text-xs font-semibold transition"
+                                    >
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                        Cetak Invoice
+                                    </a>
+                                    <a 
+                                        href="{{ route('admin.order.shipping-label', $detailOrder) }}" 
+                                        target="_blank"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/40 dark:text-indigo-300 rounded-xl text-xs font-semibold transition"
+                                    >
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                        Cetak Label
+                                    </a>
+                                </div>
                             </div>
 
                             <!-- Items -->
