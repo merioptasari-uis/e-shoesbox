@@ -69,6 +69,33 @@ on(['cart-updated' => function () {
 
             <!-- Settings / Guest Links -->
             <div class="hidden sm:flex sm:items-center sm:ms-6 gap-4">
+                <!-- Theme Toggle Button -->
+                <div x-data="{ 
+                    theme: localStorage.getItem('theme') || 'light',
+                    toggleTheme() {
+                        if (this.theme === 'dark') {
+                            this.theme = 'light';
+                            localStorage.setItem('theme', 'light');
+                            document.documentElement.classList.remove('dark');
+                        } else {
+                            this.theme = 'dark';
+                            localStorage.setItem('theme', 'dark');
+                            document.documentElement.classList.add('dark');
+                        }
+                    }
+                }" class="flex items-center">
+                    <button @click="toggleTheme()" class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-150" title="Ubah Tema">
+                        <!-- Sun icon (visible in dark mode) -->
+                        <svg x-show="theme === 'dark'" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+                        </svg>
+                        <!-- Moon icon (visible in light mode) -->
+                        <svg x-show="theme !== 'dark'" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display: none;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    </button>
+                </div>
+
                 @if (auth()->check())
                     <!-- Cart Toggle Button -->
                     <button 
@@ -80,7 +107,7 @@ on(['cart-updated' => function () {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
                         </svg>
                         @if($this->cartCount > 0)
-                            <span class="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-extrabold leading-none text-white bg-indigo-600 rounded-full">
+                            <span class="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-extrabold leading-none text-white bg-violet-600 rounded-full">
                                 {{ $this->cartCount }}
                             </span>
                         @endif
@@ -168,6 +195,35 @@ on(['cart-updated' => function () {
 
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
+            <!-- Mobile Theme Toggle -->
+            <div x-data="{ 
+                theme: localStorage.getItem('theme') || 'light',
+                toggleTheme() {
+                    if (this.theme === 'dark') {
+                        this.theme = 'light';
+                        localStorage.setItem('theme', 'light');
+                        document.documentElement.classList.remove('dark');
+                    } else {
+                        this.theme = 'dark';
+                        localStorage.setItem('theme', 'dark');
+                        document.documentElement.classList.add('dark');
+                    }
+                }
+            }" class="px-4 py-2 flex items-center justify-between border-b border-gray-150 dark:border-gray-700/60 mb-2">
+                <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Tema Halaman</span>
+                <button @click="toggleTheme()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-600 text-xs font-semibold text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800">
+                    <span x-text="theme === 'dark' ? 'Mode Gelap' : 'Mode Terang'"></span>
+                    <!-- Sun icon -->
+                    <svg x-show="theme === 'dark'" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+                    </svg>
+                    <!-- Moon icon -->
+                    <svg x-show="theme !== 'dark'" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display: none;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
+            </div>
+
             @if (auth()->check())
                 <div class="px-4">
                     <div class="font-medium text-base text-gray-800 dark:text-gray-200" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>

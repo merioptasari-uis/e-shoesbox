@@ -398,11 +398,11 @@ new #[Layout('layouts.app')] class extends Component
                      @foreach($campaigns as $index => $camp)
                          @php
                              $gradientClasses = match($camp->bg_gradient) {
-                                 'emerald' => 'from-emerald-600 via-teal-650 to-indigo-700',
+                                 'emerald' => 'from-emerald-600 via-teal-650 to-violet-700',
                                  'rose' => 'from-rose-600 via-red-550 to-orange-500',
                                  'amber' => 'from-amber-500 via-yellow-550 to-orange-600',
                                  'purple' => 'from-purple-600 via-pink-600 to-rose-700',
-                                 default => 'from-indigo-600 via-purple-600 to-pink-500',
+                                 default => 'from-violet-600 via-purple-600 to-pink-500',
                              };
                              
                              $promoEmoji = $camp->emoji ?: match($camp->promo_tag) {
@@ -460,22 +460,22 @@ new #[Layout('layouts.app')] class extends Component
                 <!-- Right Promo Cards (1 Column next to slider) -->
                 <div class="flex flex-col gap-4">
                     <!-- Voucher Card with Copy Functionality -->
-                    <div x-data="{ copied: false }" class="relative overflow-hidden bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-800 dark:to-gray-800 rounded-3xl p-5 border border-indigo-100 dark:border-indigo-900/50 flex flex-col justify-between flex-1 group shadow-sm hover:shadow-md transition-shadow">
-                        <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl"></div>
+                    <div x-data="{ copied: false }" class="relative overflow-hidden bg-gradient-to-br from-violet-50 to-purple-50 dark:from-gray-800 dark:to-gray-800 rounded-3xl p-5 border border-violet-100 dark:border-violet-900/50 flex flex-col justify-between flex-1 group shadow-sm hover:shadow-md transition-shadow">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-violet-500/10 rounded-full blur-xl"></div>
                         <div>
                             <div class="flex justify-between items-center mb-2">
-                                <span class="text-[10px] font-extrabold uppercase tracking-widest text-indigo-700 dark:text-indigo-400">KODE DISKON EKSTRA</span>
-                                <span class="text-xs bg-indigo-200 dark:bg-indigo-950/50 text-indigo-800 dark:text-indigo-400 px-2 py-0.5 rounded-full font-bold">Terbatas</span>
+                                <span class="text-[10px] font-extrabold uppercase tracking-widest text-violet-700 dark:text-violet-400">KODE DISKON EKSTRA</span>
+                                <span class="text-xs bg-violet-200 dark:bg-violet-950/50 text-violet-800 dark:text-violet-400 px-2 py-0.5 rounded-full font-bold">Terbatas</span>
                             </div>
                             <h3 class="text-sm font-black text-gray-900 dark:text-white leading-snug mb-1">Promo Khusus Pengguna Baru</h3>
                             <p class="text-[11px] text-gray-500 dark:text-gray-400">Salin kode ini dan masukkan saat checkout untuk potongan harga langsung Rp 20.000!</p>
                         </div>
                         <div class="mt-4 flex items-center gap-2">
-                            <div class="flex-1 bg-white dark:bg-gray-700 border-2 border-dashed border-indigo-300 dark:border-indigo-600 rounded-2xl px-3 py-2 text-center text-xs font-black text-indigo-700 dark:text-indigo-300 select-all tracking-wider font-mono">
+                            <div class="flex-1 bg-white dark:bg-gray-700 border-2 border-dashed border-violet-300 dark:border-violet-600 rounded-2xl px-3 py-2 text-center text-xs font-black text-violet-700 dark:text-violet-300 select-all tracking-wider font-mono">
                                 COBAINBARU
                             </div>
                             <button @click="navigator.clipboard.writeText('COBAINBARU'); copied = true; setTimeout(() => copied = false, 2000)" 
-                                    :class="copied ? 'bg-emerald-600 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'"
+                                    :class="copied ? 'bg-emerald-600 text-white' : 'bg-violet-600 hover:bg-violet-700 text-white'"
                                     class="px-4 py-2 text-xs font-bold rounded-2xl transition duration-150 transform hover:scale-105 flex items-center gap-1 cursor-pointer">
                                 <span x-text="copied ? 'Tersalin!' : 'Salin'"></span>
                             </button>
@@ -506,22 +506,22 @@ new #[Layout('layouts.app')] class extends Component
             <!-- Display only static promo cards side-by-side if there are no active campaigns -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Voucher Card with Copy Functionality -->
-                <div x-data="{ copied: false }" class="relative overflow-hidden bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-800 dark:to-gray-800 rounded-3xl p-6 border border-indigo-100 dark:border-indigo-900/50 flex flex-col justify-between group shadow-sm hover:shadow-md transition-shadow min-h-[180px]">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl"></div>
+                <div x-data="{ copied: false }" class="relative overflow-hidden bg-gradient-to-br from-violet-50 to-purple-50 dark:from-gray-800 dark:to-gray-800 rounded-3xl p-6 border border-violet-100 dark:border-violet-900/50 flex flex-col justify-between group shadow-sm hover:shadow-md transition-shadow min-h-[180px]">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-violet-500/10 rounded-full blur-xl"></div>
                     <div>
                         <div class="flex justify-between items-center mb-2">
-                            <span class="text-[10px] font-extrabold uppercase tracking-widest text-indigo-700 dark:text-indigo-400">KODE DISKON EKSTRA</span>
-                            <span class="text-xs bg-indigo-200 dark:bg-indigo-950/50 text-indigo-800 dark:text-indigo-400 px-2 py-0.5 rounded-full font-bold">Terbatas</span>
+                            <span class="text-[10px] font-extrabold uppercase tracking-widest text-violet-700 dark:text-violet-400">KODE DISKON EKSTRA</span>
+                            <span class="text-xs bg-violet-200 dark:bg-violet-950/50 text-violet-800 dark:text-violet-400 px-2 py-0.5 rounded-full font-bold">Terbatas</span>
                         </div>
                         <h3 class="text-base font-black text-gray-900 dark:text-white leading-snug mb-1">Promo Khusus Pengguna Baru</h3>
                         <p class="text-xs text-gray-500 dark:text-gray-400">Salin kode ini dan masukkan saat checkout untuk potongan harga langsung Rp 20.000!</p>
                     </div>
                     <div class="mt-6 flex items-center gap-3">
-                        <div class="flex-1 bg-white dark:bg-gray-700 border-2 border-dashed border-indigo-300 dark:border-indigo-600 rounded-2xl px-4 py-2 text-center text-sm font-black text-indigo-700 dark:text-indigo-300 select-all tracking-wider font-mono">
+                        <div class="flex-1 bg-white dark:bg-gray-700 border-2 border-dashed border-violet-300 dark:border-violet-600 rounded-2xl px-4 py-2 text-center text-sm font-black text-violet-700 dark:text-violet-300 select-all tracking-wider font-mono">
                             COBAINBARU
                         </div>
                         <button @click="navigator.clipboard.writeText('COBAINBARU'); copied = true; setTimeout(() => copied = false, 2000)" 
-                                :class="copied ? 'bg-emerald-600 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'"
+                                :class="copied ? 'bg-emerald-600 text-white' : 'bg-violet-600 hover:bg-violet-700 text-white'"
                                 class="px-5 py-2.5 text-xs font-bold rounded-2xl transition duration-150 transform hover:scale-105 flex items-center gap-1 cursor-pointer">
                             <span x-text="copied ? 'Tersalin!' : 'Salin'"></span>
                         </button>
@@ -693,7 +693,7 @@ new #[Layout('layouts.app')] class extends Component
                 <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/80">
                     <h3 class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3">PENCARIAN</h3>
                     <div class="relative">
-                        <input wire:model.live.debounce.300ms="search" type="text" placeholder="Cari model sepatu..." class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500/25 focus:border-indigo-600 sm:text-sm transition-all duration-150">
+                        <input wire:model.live.debounce.300ms="search" type="text" placeholder="Cari model sepatu..." class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-600 sm:text-sm transition-all duration-150">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         </div>
@@ -704,7 +704,7 @@ new #[Layout('layouts.app')] class extends Component
                 <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/80">
                     <h3 class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">KATEGORI</h3>
                     <div class="space-y-1.5">
-                        <button wire:click="selectCategory(null)" class="w-full text-left px-3 py-2.5 rounded-xl text-xs sm:text-sm transition-all duration-150 flex items-center justify-between {{ is_null($category) ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50' }}">
+                        <button wire:click="selectCategory(null)" class="w-full text-left px-3 py-2.5 rounded-xl text-xs sm:text-sm transition-all duration-150 flex items-center justify-between {{ is_null($category) ? 'bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50' }}">
                             <span class="flex items-center gap-2">
                                 <span>👟</span>
                                 <span>Semua Kategori</span>
@@ -732,7 +732,7 @@ new #[Layout('layouts.app')] class extends Component
                                     }
                                 }
                             @endphp
-                            <button wire:click="selectCategory('{{ $cat->slug }}')" class="w-full text-left px-3 py-2.5 rounded-xl text-xs sm:text-sm transition-all duration-150 flex items-center justify-between {{ $category === $cat->slug ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50' }}">
+                            <button wire:click="selectCategory('{{ $cat->slug }}')" class="w-full text-left px-3 py-2.5 rounded-xl text-xs sm:text-sm transition-all duration-150 flex items-center justify-between {{ $category === $cat->slug ? 'bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50' }}">
                                 <span class="flex items-center gap-2">
                                     <span>{{ $icon }}</span>
                                     <span>{{ $cat->name }}</span>
@@ -753,14 +753,14 @@ new #[Layout('layouts.app')] class extends Component
                             <label class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest block mb-1">Harga Minimum</label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-gray-400 select-none">Rp</span>
-                                <input wire:model.live.debounce.600ms="minPrice" type="number" placeholder="Min" class="w-full pl-9 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-indigo-500 sm:text-xs">
+                                <input wire:model.live.debounce.600ms="minPrice" type="number" placeholder="Min" class="w-full pl-9 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-violet-500 sm:text-xs">
                             </div>
                         </div>
                         <div>
                             <label class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest block mb-1">Harga Maksimum</label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-gray-400 select-none">Rp</span>
-                                <input wire:model.live.debounce.600ms="maxPrice" type="number" placeholder="Maks" class="w-full pl-9 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-indigo-500 sm:text-xs">
+                                <input wire:model.live.debounce.600ms="maxPrice" type="number" placeholder="Maks" class="w-full pl-9 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-violet-500 sm:text-xs">
                             </div>
                         </div>
                     </div>
@@ -769,7 +769,7 @@ new #[Layout('layouts.app')] class extends Component
                 <!-- Sorting and Ordering -->
                 <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/80">
                     <h3 class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3">URUTKAN BY</h3>
-                    <select wire:model.live="sort" class="w-full border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-900 text-gray-950 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500/25 focus:border-indigo-600 sm:text-sm">
+                    <select wire:model.live="sort" class="w-full border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-900 text-gray-950 dark:text-gray-100 focus:ring-2 focus:ring-violet-500/25 focus:border-violet-600 sm:text-sm">
                         <option value="latest">Terbaru & Populer</option>
                         <option value="promo">Spesial Promo Raya</option>
                         <option value="discount">Diskon Terbesar</option>
@@ -816,7 +816,7 @@ new #[Layout('layouts.app')] class extends Component
                         <h3 class="text-xl font-extrabold text-gray-900 dark:text-gray-100 mb-1">Sepatu Tidak Ditemukan</h3>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Coba ganti filter pencarian atau range harga Anda.</p>
                         @if(!empty($search) || !is_null($category) || $sort !== 'latest' || !is_null($minPrice) || !is_null($maxPrice))
-                            <button wire:click="resetFilters" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-2xl transition shadow-md">
+                            <button wire:click="resetFilters" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-violet-600 hover:bg-violet-700 rounded-2xl transition shadow-md">
                                 Hapus Semua Filter
                             </button>
                         @endif
@@ -830,7 +830,7 @@ new #[Layout('layouts.app')] class extends Component
                                 $mockSalesCount = $prod->sales_count;
                                 $uniqueColors = $prod->variants->pluck('color')->unique()->values();
                             @endphp
-                            <div wire:key="product-{{ $prod->id }}" x-data="{ isLiked: false }" class="group bg-white dark:bg-gray-800 rounded-[28px] shadow-sm border border-gray-100 dark:border-gray-700/80 overflow-hidden hover:shadow-2xl hover:shadow-indigo-100/50 dark:hover:shadow-none transition duration-300 flex flex-col h-full transform hover:-translate-y-2 relative">
+                            <div wire:key="product-{{ $prod->id }}" x-data="{ isLiked: false }" class="group bg-white dark:bg-gray-800 rounded-[28px] shadow-sm border border-gray-100 dark:border-gray-700/80 overflow-hidden hover:shadow-2xl hover:shadow-violet-100/50 dark:hover:shadow-none transition duration-300 flex flex-col h-full transform hover:-translate-y-2 relative">
                                 
                                 <!-- Heart/Wishlist Button -->
                                 <button @click.stop="isLiked = !isLiked" class="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/90 dark:bg-gray-700/90 text-gray-500 hover:text-rose-600 shadow flex items-center justify-center transition hover:scale-110">
@@ -840,15 +840,15 @@ new #[Layout('layouts.app')] class extends Component
                                 </button>
 
                                 <!-- Product Image Container -->
-                                <div wire:click="openDetailModal({{ $prod->id }})" class="relative pt-[100%] bg-gradient-to-br from-indigo-50/50 via-purple-50/50 to-pink-50/50 dark:from-gray-800 dark:to-gray-900 overflow-hidden cursor-pointer">
+                                <div wire:click="openDetailModal({{ $prod->id }})" class="relative pt-[100%] bg-gradient-to-br from-violet-50/50 via-purple-50/50 to-pink-50/50 dark:from-gray-800 dark:to-gray-900 overflow-hidden cursor-pointer">
                                     @if($prod->image_path)
                                         <img src="{{ asset('storage/' . $prod->image_path) }}" alt="{{ $prod->name }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-500" loading="lazy">
                                     @else
                                         <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center select-none text-gray-400">
-                                            <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md group-hover:rotate-12 transition duration-300">
+                                            <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-violet-500 to-purple-600 flex items-center justify-center text-white shadow-md group-hover:rotate-12 transition duration-300">
                                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                                             </div>
-                                            <span class="mt-2 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">{{ $prod->category->name }}</span>
+                                            <span class="mt-2 text-[10px] font-bold text-violet-600 dark:text-violet-400 uppercase tracking-widest">{{ $prod->category->name }}</span>
                                         </div>
                                     @endif
 
@@ -889,7 +889,7 @@ new #[Layout('layouts.app')] class extends Component
                                                 $dynEmoji = $campaignEmojis[$prod->promo_tag] ?? null;
                                             @endphp
                                             @if($dynEmoji)
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-indigo-650/90 dark:bg-indigo-900/90 text-white dark:text-indigo-300 shadow backdrop-blur-sm border border-indigo-500/25">
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-violet-650/90 dark:bg-violet-900/90 text-white dark:text-violet-300 shadow backdrop-blur-sm border border-violet-500/25">
                                                     {{ $dynEmoji }} {{ $prod->promo_tag }}
                                                 </span>
                                             @elseif($prod->promo_tag === 'Idul Fitri' || $prod->promo_tag === 'Ramadhan')
@@ -905,7 +905,7 @@ new #[Layout('layouts.app')] class extends Component
                                                     🏮 {{ $prod->promo_tag }}
                                                 </span>
                                             @elseif($prod->promo_tag === 'Tahun Baru')
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-indigo-600/90 dark:bg-indigo-900/90 text-white dark:text-indigo-300 shadow backdrop-blur-sm border border-indigo-500/25">
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-violet-600/90 dark:bg-violet-900/90 text-white dark:text-violet-300 shadow backdrop-blur-sm border border-violet-500/25">
                                                     🎆 {{ $prod->promo_tag }}
                                                 </span>
                                             @elseif($prod->promo_tag === 'Flash Sale')
@@ -937,7 +937,7 @@ new #[Layout('layouts.app')] class extends Component
                                 <div class="p-4 sm:p-5 flex flex-col flex-1 bg-transparent">
                                     <div class="flex-1 bg-transparent">
                                         <div class="flex justify-between items-center mb-1.5 bg-transparent">
-                                            <span class="text-[10px] text-indigo-650 dark:text-indigo-400 font-extrabold uppercase tracking-wider block">
+                                            <span class="text-[10px] text-violet-650 dark:text-violet-400 font-extrabold uppercase tracking-wider block">
                                                 {{ $prod->category->name }}
                                             </span>
                                             <!-- Dynamic Color Variant Dots -->
@@ -961,7 +961,7 @@ new #[Layout('layouts.app')] class extends Component
                                                 </div>
                                             @endif
                                         </div>
-                                        <h2 wire:click="openDetailModal({{ $prod->id }})" class="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 group-hover:text-indigo-600 transition cursor-pointer line-clamp-2 mb-2 min-h-[40px] leading-tight">
+                                        <h2 wire:click="openDetailModal({{ $prod->id }})" class="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 group-hover:text-violet-600 transition cursor-pointer line-clamp-2 mb-2 min-h-[40px] leading-tight">
                                             {{ $prod->name }}
                                         </h2>
                                         
@@ -997,7 +997,7 @@ new #[Layout('layouts.app')] class extends Component
                                         <button 
                                             wire:click="addToCart({{ $prod->id }})" 
                                             {{ $prod->stock <= 0 ? 'disabled' : '' }} 
-                                            class="inline-flex items-center justify-center p-2.5 sm:p-3 rounded-xl transition duration-200 shrink-0 {{ $prod->stock > 0 ? 'bg-indigo-600 hover:bg-indigo-700 text-white hover:scale-105 shadow-md shadow-indigo-100 dark:shadow-none' : 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed' }}"
+                                            class="inline-flex items-center justify-center p-2.5 sm:p-3 rounded-xl transition duration-200 shrink-0 {{ $prod->stock > 0 ? 'bg-violet-600 hover:bg-violet-700 text-white hover:scale-105 shadow-md shadow-violet-100 dark:shadow-none' : 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed' }}"
                                             title="{{ $prod->variants->isNotEmpty() ? 'Pilih Varian' : 'Tambah Ke Keranjang' }}"
                                         >
                                             @if($prod->variants->isNotEmpty())
@@ -1065,14 +1065,14 @@ new #[Layout('layouts.app')] class extends Component
                 <!-- Upper Section: Columns -->
                 <div class="flex flex-col md:flex-row">
                     <!-- Left Column: Media Gallery -->
-                    <div class="w-full md:w-1/2 p-6 bg-gradient-to-br from-indigo-50/30 via-purple-50/30 to-pink-50/30 dark:from-gray-900 dark:to-gray-950 flex flex-col gap-4">
+                    <div class="w-full md:w-1/2 p-6 bg-gradient-to-br from-violet-50/30 via-purple-50/30 to-pink-50/30 dark:from-gray-900 dark:to-gray-950 flex flex-col gap-4">
                         <!-- Main Preview Image -->
                         <div class="relative pt-[100%] rounded-2xl overflow-hidden bg-white dark:bg-gray-755 shadow-inner border border-gray-100 dark:border-gray-700">
                             @if(count($gallery) > 0)
                                 <img src="{{ asset('storage/' . $gallery[$this->selectedImageIndex]) }}" alt="{{ $product->name }}" class="absolute inset-0 w-full h-full object-cover">
                             @else
                                 <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center select-none text-gray-400">
-                                    <svg class="w-14 h-14 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                                    <svg class="w-14 h-14 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                                 </div>
                             @endif
 
@@ -1090,7 +1090,7 @@ new #[Layout('layouts.app')] class extends Component
                         @if(count($gallery) > 1)
                             <div class="flex gap-2.5 mt-4 overflow-x-auto pb-2 scrollbar-thin">
                                 @foreach($gallery as $index => $imgPath)
-                                    <button wire:click="selectImage({{ $index }})" class="relative w-16 h-16 rounded-xl overflow-hidden bg-white dark:bg-gray-700 shadow-sm border-2 shrink-0 transition-all {{ $this->selectedImageIndex === $index ? 'border-indigo-650 scale-105 shadow-md' : 'border-transparent opacity-70 hover:opacity-100' }}">
+                                    <button wire:click="selectImage({{ $index }})" class="relative w-16 h-16 rounded-xl overflow-hidden bg-white dark:bg-gray-700 shadow-sm border-2 shrink-0 transition-all {{ $this->selectedImageIndex === $index ? 'border-violet-650 scale-105 shadow-md' : 'border-transparent opacity-70 hover:opacity-100' }}">
                                         <img src="{{ asset('storage/' . $imgPath) }}" alt="Thumbnail {{ $index }}" class="w-full h-full object-cover" loading="lazy">
                                     </button>
                                 @endforeach
@@ -1102,7 +1102,7 @@ new #[Layout('layouts.app')] class extends Component
                     <div class="w-full md:w-1/2 p-6 sm:p-8 flex flex-col justify-between bg-white dark:bg-gray-800">
                         <div>
                             <!-- Category name and breadcrumb link -->
-                            <span class="text-xs text-indigo-600 dark:text-indigo-400 font-extrabold uppercase tracking-widest block mb-1">
+                            <span class="text-xs text-violet-600 dark:text-violet-400 font-extrabold uppercase tracking-widest block mb-1">
                                 {{ $product->category->name }}
                             </span>
                             
@@ -1120,7 +1120,7 @@ new #[Layout('layouts.app')] class extends Component
                                 <span class="text-gray-300 dark:text-gray-600">·</span>
                                 <span class="text-gray-600 dark:text-gray-400 font-medium">{{ $product->reviews->count() }} Ulasan</span>
                                 <span class="text-gray-300 dark:text-gray-600">·</span>
-                                <span class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded font-extrabold">{{ $product->sales_count }}+ Terjual</span>
+                                <span class="bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 px-2 py-0.5 rounded font-extrabold">{{ $product->sales_count }}+ Terjual</span>
                             </div>
 
                             <!-- Special Tags Row (Bebas Ongkir, Cashback) -->
@@ -1220,7 +1220,7 @@ new #[Layout('layouts.app')] class extends Component
                                                 @endphp
                                                 <button 
                                                     wire:click="selectColor('{{ $color }}')"
-                                                    class="relative w-9 h-9 rounded-full border-2 transition duration-200 focus:outline-none hover:scale-110 flex items-center justify-center {{ $this->selectedColor === $color ? 'border-indigo-600 dark:border-indigo-400 ring-2 ring-indigo-500/20' : 'border-gray-200 dark:border-gray-700' }}"
+                                                    class="relative w-9 h-9 rounded-full border-2 transition duration-200 focus:outline-none hover:scale-110 flex items-center justify-center {{ $this->selectedColor === $color ? 'border-violet-600 dark:border-violet-400 ring-2 ring-violet-500/20' : 'border-gray-200 dark:border-gray-700' }}"
                                                     title="{{ $color }}"
                                                 >
                                                     @if($hexColor)
@@ -1229,7 +1229,7 @@ new #[Layout('layouts.app')] class extends Component
                                                         <span class="text-[9px] font-bold text-gray-500 dark:text-gray-400 uppercase">{{ substr($color, 0, 2) }}</span>
                                                     @endif
                                                     @if($this->selectedColor === $color)
-                                                        <span class="absolute -bottom-2.5 px-1 bg-indigo-600 dark:bg-indigo-500 text-white text-[7px] font-black rounded-md uppercase tracking-wider scale-90">Selected</span>
+                                                        <span class="absolute -bottom-2.5 px-1 bg-violet-600 dark:bg-violet-500 text-white text-[7px] font-black rounded-md uppercase tracking-wider scale-90">Selected</span>
                                                     @endif
                                                 </button>
                                             @endforeach
@@ -1247,7 +1247,7 @@ new #[Layout('layouts.app')] class extends Component
                                                 <button 
                                                     wire:click="selectSize('{{ $size }}')" 
                                                     {{ $vStock <= 0 ? 'disabled' : '' }}
-                                                    class="w-12 h-10 flex items-center justify-center text-xs font-black border-2 rounded-xl transition duration-250 relative {{ $this->selectedSize === $size ? 'bg-indigo-600 text-white border-indigo-600 shadow-md ring-2 ring-indigo-500/20' : ($vStock <= 0 ? 'bg-gray-50 dark:bg-gray-850 text-gray-300 dark:text-gray-605 border-gray-150 dark:border-gray-750/80 cursor-not-allowed opacity-50' : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-250 border-gray-200 dark:border-gray-600 hover:border-indigo-600 hover:scale-105') }}"
+                                                    class="w-12 h-10 flex items-center justify-center text-xs font-black border-2 rounded-xl transition duration-250 relative {{ $this->selectedSize === $size ? 'bg-violet-600 text-white border-violet-600 shadow-md ring-2 ring-violet-500/20' : ($vStock <= 0 ? 'bg-gray-50 dark:bg-gray-850 text-gray-300 dark:text-gray-605 border-gray-150 dark:border-gray-750/80 cursor-not-allowed opacity-50' : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-250 border-gray-200 dark:border-gray-600 hover:border-violet-600 hover:scale-105') }}"
                                                 >
                                                     {{ $size }}
                                                     @if($vStock <= 0)
@@ -1309,7 +1309,7 @@ new #[Layout('layouts.app')] class extends Component
                                 <button 
                                     wire:click="addToCart({{ $product->id }}, {{ $selectedV?->id }})" 
                                     {{ !$canAddToCart ? 'disabled' : '' }} 
-                                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold border-2 transition duration-150 {{ $canAddToCart ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-950/40 hover:scale-[1.01]' : 'border-gray-200 dark:border-gray-700 bg-gray-150 dark:bg-gray-700 text-gray-400 cursor-not-allowed' }}"
+                                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold border-2 transition duration-150 {{ $canAddToCart ? 'border-violet-600 bg-violet-50 dark:bg-violet-950/20 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-950/40 hover:scale-[1.01]' : 'border-gray-200 dark:border-gray-700 bg-gray-150 dark:bg-gray-700 text-gray-400 cursor-not-allowed' }}"
                                 >
                                     <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                                     <span>+ Keranjang</span>
@@ -1318,7 +1318,7 @@ new #[Layout('layouts.app')] class extends Component
                                 <button 
                                     wire:click="buyNow({{ $product->id }}, {{ $selectedV?->id }})" 
                                     {{ !$canAddToCart ? 'disabled' : '' }} 
-                                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition duration-150 {{ $canAddToCart ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 dark:shadow-none hover:scale-[1.01]' : 'bg-gray-150 dark:bg-gray-700 text-gray-400 cursor-not-allowed' }}"
+                                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition duration-150 {{ $canAddToCart ? 'bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-200 dark:shadow-none hover:scale-[1.01]' : 'bg-gray-150 dark:bg-gray-700 text-gray-400 cursor-not-allowed' }}"
                                 >
                                     <span>Beli Langsung</span>
                                 </button>
@@ -1330,7 +1330,7 @@ new #[Layout('layouts.app')] class extends Component
                 <!-- Bottom Section: Customer Reviews -->
                 <div class="border-t border-gray-100 dark:border-gray-700 p-6 sm:p-8 bg-gray-50/30 dark:bg-gray-900/40">
                     <h3 class="text-base sm:text-lg font-black text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                        💬 Ulasan Pembeli <span class="bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-xs px-2.5 py-0.5 rounded-full font-bold">{{ $product->reviews->count() }}</span>
+                        💬 Ulasan Pembeli <span class="bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 text-xs px-2.5 py-0.5 rounded-full font-bold">{{ $product->reviews->count() }}</span>
                     </h3>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -1361,7 +1361,7 @@ new #[Layout('layouts.app')] class extends Component
                                 <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm space-y-3 hover:shadow-md transition duration-200">
                                     <div class="flex items-center gap-3">
                                         <!-- User Avatar Bubble -->
-                                        <div class="w-9 h-9 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-extrabold text-xs uppercase border border-indigo-100 dark:border-indigo-900/50">
+                                        <div class="w-9 h-9 rounded-full bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 flex items-center justify-center font-extrabold text-xs uppercase border border-violet-100 dark:border-violet-900/50">
                                             {{ substr($rev->user->name, 0, 2) }}
                                         </div>
                                         <!-- User Name and Rating -->

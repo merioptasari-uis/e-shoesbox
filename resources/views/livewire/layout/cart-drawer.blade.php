@@ -133,11 +133,11 @@ new class extends Component
                                 @foreach($this->items as $item)
                                     <div class="flex items-center gap-4 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-700">
                                         <!-- Product Thumbnail -->
-                                        <div class="w-20 h-20 shrink-0 bg-gradient-to-br from-indigo-50 to-pink-50 dark:from-gray-700 dark:to-gray-800 rounded-xl overflow-hidden relative border border-gray-100 dark:border-gray-700">
+                                        <div class="w-20 h-20 shrink-0 bg-gradient-to-br from-violet-50 to-pink-50 dark:from-gray-700 dark:to-gray-800 rounded-xl overflow-hidden relative border border-gray-100 dark:border-gray-700">
                                             @if($item->product->image_path)
                                                 <img src="{{ asset('storage/' . $item->product->image_path) }}" alt="{{ $item->product->name }}" class="w-full h-full object-cover">
                                             @else
-                                                <div class="absolute inset-0 flex items-center justify-center text-indigo-500">
+                                                <div class="absolute inset-0 flex items-center justify-center text-violet-500">
                                                     <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                                                 </div>
                                             @endif
@@ -148,7 +148,7 @@ new class extends Component
                                             <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
                                                 {{ $item->product->name }}
                                             </h3>
-                                            <p class="text-[10px] text-indigo-600 dark:text-indigo-400 font-extrabold uppercase tracking-wider">
+                                            <p class="text-[10px] text-violet-600 dark:text-violet-400 font-extrabold uppercase tracking-wider">
                                                 {{ $item->product->category->name }}
                                             </p>
                                             @if($item->size || $item->color)
@@ -206,7 +206,7 @@ new class extends Component
                             <a 
                                 href="{{ url('/cart') }}" 
                                 @click="cartOpen = false"
-                                class="w-full flex items-center justify-center px-6 py-3.5 border border-transparent text-sm font-semibold rounded-2xl text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-lg shadow-indigo-100 dark:shadow-none"
+                                class="w-full flex items-center justify-center px-6 py-3.5 border border-transparent text-sm font-semibold rounded-2xl text-white bg-violet-600 hover:bg-violet-700 transition shadow-lg shadow-violet-100 dark:shadow-none"
                                 wire:navigate
                             >
                                 Lanjut ke Pembayaran
