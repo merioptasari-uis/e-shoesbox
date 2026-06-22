@@ -11,6 +11,9 @@ use Livewire\Attributes\Layout;
 new #[Layout('layouts.app')] class extends Component
 {
     public Order $order;
+    public int $rating = 5;
+    public string $comment = '';
+    public ?int $activeReviewProductId = null;
 
     public function mount(Order $order): void
     {
@@ -119,6 +122,46 @@ new #[Layout('layouts.app')] class extends Component
             $this->dispatch('notify', type: 'success', message: 'Pesanan telah diterima! Terima kasih telah berbelanja.');
         }
     }
+
+    public function submitReview(int $productId): void
+    {
+        if ($this->order->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if ($this->order->status !== 'completed') {
+            $this->dispatch('notify', type: 'error', message: 'Anda hanya dapat menulis ulasan setelah status pesanan selesai!');
+            return;
+        }
+
+        // Check if user has already reviewed this product for this order
+        $alreadyReviewed = \App\Models\Review::where('user_id', Auth::id())
+            ->where('order_id', $this->order->id)
+            ->where('product_id', $productId)
+            ->exists();
+
+        if ($alreadyReviewed) {
+            $this->dispatch('notify', type: 'error', message: 'Anda sudah menulis ulasan untuk produk ini!');
+            return;
+        }
+
+        $this->validate([
+            'rating' => ['required', 'integer', 'min:1', 'max:5'],
+            'comment' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        \App\Models\Review::create([
+            'user_id' => Auth::id(),
+            'product_id' => $productId,
+            'order_id' => $this->order->id,
+            'rating' => $this->rating,
+            'comment' => $this->comment !== '' ? $this->comment : null,
+        ]);
+
+        $this->reset(['rating', 'comment', 'activeReviewProductId']);
+        $this->order->load('items.product');
+        $this->dispatch('notify', type: 'success', message: 'Ulasan Anda berhasil dikirim!');
+    }
 };
 ?>
 
@@ -195,14 +238,86 @@ new #[Layout('layouts.app')] class extends Component
                 <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 mb-4">Produk yang Dipesan</h2>
                 <div class="space-y-4">
                     @foreach($order->items as $item)
-                        <div class="flex items-center gap-4 py-2 {{ !$loop->last ? 'border-b border-gray-50 dark:border-gray-700' : '' }}">
-                            <div class="flex-1">
-                                <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ $item->name }}</h4>
-                                <p class="text-xs text-gray-500 mt-0.5">Jumlah: {{ $item->quantity }} x Rp {{ number_format($item->price, 0, ',', '.') }}</p>
+                        <div class="py-3 {{ !$loop->last ? 'border-b border-gray-50 dark:border-gray-700' : '' }}">
+                            <div class="flex items-center gap-4">
+                                <div class="flex-1">
+                                    <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ $item->name }}</h4>
+                                    <p class="text-xs text-gray-500 mt-0.5">Jumlah: {{ $item->quantity }} x Rp {{ number_format($item->price, 0, ',', '.') }}</p>
+                                </div>
+                                <span class="text-sm font-extrabold text-gray-900 dark:text-gray-100">
+                                    Rp {{ number_format($item->price * $item->quantity, 0, ',', '.') }}
+                                </span>
                             </div>
-                            <span class="text-sm font-extrabold text-gray-900 dark:text-gray-100">
-                                Rp {{ number_format($item->price * $item->quantity, 0, ',', '.') }}
-                            </span>
+
+                            @if($order->status === 'completed' && $item->product_id)
+                                @php
+                                    $review = \App\Models\Review::where('user_id', Auth::id())
+                                        ->where('order_id', $order->id)
+                                        ->where('product_id', $item->product_id)
+                                        ->first();
+                                @endphp
+
+                                @if($review)
+                                    <!-- Display Review -->
+                                    <div class="mt-3 bg-gray-50 dark:bg-gray-900/30 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 text-xs space-y-1">
+                                        <div class="flex items-center text-amber-400 gap-1">
+                                            <span class="font-bold text-gray-700 dark:text-gray-300 mr-1">Ulasan Anda:</span>
+                                            @for($i = 1; $i <= 5; $i++)
+                                                <span>{{ $i <= $review->rating ? '★' : '☆' }}</span>
+                                            @endfor
+                                        </div>
+                                        @if($review->comment)
+                                            <p class="text-gray-600 dark:text-gray-400">{{ $review->comment }}</p>
+                                        @endif
+                                    </div>
+                                @else
+                                    <!-- Toggle Button -->
+                                    <div class="mt-2 text-right">
+                                        <button 
+                                            wire:click="$set('activeReviewProductId', {{ $activeReviewProductId === $item->product_id ? 'null' : $item->product_id }})"
+                                            class="inline-flex items-center px-3 py-1.5 border border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 text-[10px] font-bold rounded-lg text-indigo-600 dark:text-indigo-400 transition"
+                                        >
+                                            {{ $activeReviewProductId === $item->product_id ? 'Tutup Form' : 'Beri Ulasan' }}
+                                        </button>
+                                    </div>
+
+                                    @if($activeReviewProductId === $item->product_id)
+                                        <!-- Inline Review Form -->
+                                        <form wire:submit.prevent="submitReview({{ $item->product_id }})" class="mt-3 bg-gray-50/50 dark:bg-gray-900/20 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-900/30 space-y-3">
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Pilih Bintang:</label>
+                                                <div class="flex items-center gap-1">
+                                                    @for($r = 1; $r <= 5; $r++)
+                                                        <button 
+                                                            type="button" 
+                                                            wire:click="$set('rating', {{ $r }})" 
+                                                            class="text-xl transition hover:scale-110 focus:outline-none {{ $rating >= $r ? 'text-amber-400' : 'text-gray-300 dark:text-gray-600' }}"
+                                                        >
+                                                            ★
+                                                        </button>
+                                                    @endfor
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Komentar:</label>
+                                                <textarea 
+                                                    wire:model="comment" 
+                                                    rows="2" 
+                                                    placeholder="Bagikan pengalaman Anda menggunakan sepatu ini..." 
+                                                    class="w-full text-xs p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none"
+                                                ></textarea>
+                                                @error('comment') <span class="text-red-500 text-[10px] font-bold mt-1 block">{{ $message }}</span> @enderror
+                                            </div>
+                                            <button 
+                                                type="submit" 
+                                                class="w-full py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition"
+                                            >
+                                                Kirim Ulasan
+                                            </button>
+                                        </form>
+                                    @endif
+                                @endif
+                            @endif
                         </div>
                     @endforeach
                 </div>
