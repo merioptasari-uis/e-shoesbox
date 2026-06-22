@@ -302,144 +302,161 @@ $getCampaignsProperty = function () {
     <!-- Create/Edit Modal overlay -->
     @if($isModalOpen)
         <div class="fixed inset-0 bg-gray-500/75 dark:bg-gray-900/80 transition-opacity z-50 flex items-center justify-center p-4">
-            <div class="bg-white dark:bg-gray-800 rounded-3xl max-w-lg w-full p-6 shadow-xl border border-gray-100 dark:border-gray-700 relative flex flex-col max-h-[90vh]">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-50 dark:border-gray-700 pb-4">
+            <div class="bg-white dark:bg-gray-800 rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-xl border border-gray-100 dark:border-gray-700 relative flex flex-col max-h-[90vh]">
+                <h3 class="text-xl font-extrabold text-gray-900 dark:text-gray-100 border-b border-gray-50 dark:border-gray-700 pb-4">
                     {{ $editingCampaignId ? 'Edit Campaign Banner' : 'Buat Campaign Banner' }}
                 </h3>
 
                 <form wire:submit.prevent="saveCampaign" class="space-y-4 py-4 overflow-y-auto flex-1 pr-1 text-xs">
-                    <div class="border-b border-gray-100 dark:border-gray-700 pb-1 mb-3">
-                        <span class="text-[10px] font-black text-indigo-650 dark:text-indigo-400 uppercase tracking-widest">Informasi Utama</span>
-                    </div>
-                    <!-- Title -->
-                    <div>
-                        <x-input-label for="campaign_title" :value="__('Judul Campaign')" />
-                        <x-text-input wire:model="title" id="campaign_title" placeholder="contoh: Idul Fitri Mega Promo!" class="block mt-1 w-full" type="text" required />
-                        <x-input-error :messages="$errors->get('title')" class="mt-1" />
-                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Left Column: Informasi Utama & Lencana -->
+                        <div class="space-y-5">
+                            <div class="border-b border-gray-100 dark:border-gray-700 pb-2 flex items-center justify-between">
+                                <span class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Informasi Utama</span>
+                                <span class="text-[10px] text-gray-400 font-bold">Langkah 1 dari 2</span>
+                            </div>
+                            
+                            <!-- Title -->
+                            <div>
+                                <x-input-label for="campaign_title" :value="__('Judul Campaign')" />
+                                <x-text-input wire:model="title" id="campaign_title" placeholder="contoh: Idul Fitri Mega Promo!" class="block mt-1 w-full text-xs" type="text" required />
+                                <x-input-error :messages="$errors->get('title')" class="mt-1" />
+                            </div>
 
-                    <!-- Subtitle -->
-                    <div>
-                        <x-input-label for="campaign_subtitle" :value="__('Sub-judul')" />
-                        <x-text-input wire:model="subtitle" id="campaign_subtitle" placeholder="contoh: Diskon Hingga 70%" class="block mt-1 w-full" type="text" />
-                        <x-input-error :messages="$errors->get('subtitle')" class="mt-1" />
-                    </div>
+                            <!-- Subtitle -->
+                            <div>
+                                <x-input-label for="campaign_subtitle" :value="__('Sub-judul')" />
+                                <x-text-input wire:model="subtitle" id="campaign_subtitle" placeholder="contoh: Diskon Hingga 70%" class="block mt-1 w-full text-xs" type="text" />
+                                <x-input-error :messages="$errors->get('subtitle')" class="mt-1" />
+                            </div>
 
-                    <!-- Description -->
-                    <div>
-                        <x-input-label for="campaign_description" :value="__('Deskripsi')" />
-                        <textarea wire:model="description" id="campaign_description" placeholder="Deskripsi ringkas mengenai promo campaign ini..." rows="2" class="block mt-1 w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 text-sm"></textarea>
-                        <x-input-error :messages="$errors->get('description')" class="mt-1" />
-                    </div>
+                            <!-- Description -->
+                            <div>
+                                <x-input-label for="campaign_description" :value="__('Deskripsi')" />
+                                <textarea wire:model="description" id="campaign_description" placeholder="Deskripsi ringkas mengenai promo campaign ini..." rows="3" class="block mt-1 w-full border border-gray-300 dark:border-gray-650 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 text-xs p-3"></textarea>
+                                <x-input-error :messages="$errors->get('description')" class="mt-1" />
+                            </div>
 
-                    <div class="border-b border-gray-100 dark:border-gray-700 pb-1 mb-3 pt-2">
-                        <span class="text-[10px] font-black text-indigo-650 dark:text-indigo-400 uppercase tracking-widest">Lencana & Tagging</span>
-                    </div>
-                    <div class="grid grid-cols-3 gap-4">
-                        <!-- Badge Text -->
-                        <div>
-                            <x-input-label for="campaign_badge" :value="__('Teks Badge')" />
-                            <x-text-input wire:model="badge_text" id="campaign_badge" placeholder="contoh: FESTIVAL HARI RAYA" class="block mt-1 w-full" type="text" />
-                            <x-input-error :messages="$errors->get('badge_text')" class="mt-1" />
+                            <div class="border-b border-gray-100 dark:border-gray-700 pb-2 pt-2">
+                                <span class="text-[10px] font-black text-indigo-650 dark:text-indigo-400 uppercase tracking-widest">Lencana & Tagging</span>
+                            </div>
+                            
+                            <div class="grid grid-cols-3 gap-2">
+                                <!-- Badge Text -->
+                                <div>
+                                    <x-input-label for="campaign_badge" :value="__('Teks Badge')" />
+                                    <x-text-input wire:model="badge_text" id="campaign_badge" placeholder="FESTIVAL" class="block mt-1 w-full text-xs" type="text" />
+                                    <x-input-error :messages="$errors->get('badge_text')" class="mt-1" />
+                                </div>
+
+                                <!-- Promo Tag -->
+                                <div>
+                                    <x-input-label for="campaign_tag" :value="__('Promo Tag')" />
+                                    <select wire:model="promo_tag" id="campaign_tag" class="block mt-1 w-full border border-gray-350 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 text-xs py-2 px-3">
+                                        <option value="">Tanpa Tag</option>
+                                        <option value="Flash Sale">Flash Sale</option>
+                                        <option value="Cashback">Cashback</option>
+                                        <option value="Diskon Besar">Diskon Besar</option>
+                                        <option value="New Arrival">New Arrival</option>
+                                        <option value="Idul Fitri">Idul Fitri</option>
+                                        <option value="Ramadhan">Ramadhan</option>
+                                        <option value="Natal">Natal</option>
+                                        <option value="Imlek">Imlek</option>
+                                        <option value="Tahun Baru">Tahun Baru</option>
+                                    </select>
+                                    <x-input-error :messages="$errors->get('promo_tag')" class="mt-1" />
+                                </div>
+
+                                <!-- Custom Emoji -->
+                                <div>
+                                    <x-input-label for="campaign_emoji" :value="__('Emoji Tag')" />
+                                    <x-text-input wire:model="emoji" id="campaign_emoji" placeholder="⚡ atau 🎒" class="block mt-1 w-full text-xs" type="text" />
+                                    <x-input-error :messages="$errors->get('emoji')" class="mt-1" />
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Promo Tag -->
-                        <div>
-                            <x-input-label for="campaign_tag" :value="__('Pilih Promo Tag (Opsional)')" />
-                            <select wire:model="promo_tag" id="campaign_tag" class="block mt-1 w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-950 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                <option value="">Tanpa Tag</option>
-                                <option value="Flash Sale">Flash Sale</option>
-                                <option value="Cashback">Cashback</option>
-                                <option value="Diskon Besar">Diskon Besar</option>
-                                <option value="New Arrival">New Arrival</option>
-                                <option value="Idul Fitri">Idul Fitri</option>
-                                <option value="Ramadhan">Ramadhan</option>
-                                <option value="Natal">Natal</option>
-                                <option value="Imlek">Imlek</option>
-                                <option value="Tahun Baru">Tahun Baru</option>
-                            </select>
-                            <x-input-error :messages="$errors->get('promo_tag')" class="mt-1" />
-                        </div>
+                        <!-- Right Column: Aksi, Gaya Latar, & Penjadwalan -->
+                        <div class="space-y-5 bg-transparent">
+                            <div class="border-b border-gray-100 dark:border-gray-700 pb-2 flex items-center justify-between">
+                                <span class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Aksi & Gaya Latar</span>
+                                <span class="text-[10px] text-gray-400 font-bold">Langkah 2 dari 2</span>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <!-- Button Text -->
+                                <div>
+                                    <x-input-label for="btn_text" :value="__('Teks Tombol')" />
+                                    <x-text-input wire:model="button_text" id="btn_text" class="block mt-1 w-full text-xs" type="text" required />
+                                    <x-input-error :messages="$errors->get('button_text')" class="mt-1" />
+                                </div>
 
-                        <!-- Custom Emoji -->
-                        <div>
-                            <x-input-label for="campaign_emoji" :value="__('Emoji Tag (Opsional)')" />
-                            <x-text-input wire:model="emoji" id="campaign_emoji" placeholder="misal: ⚡ atau 🎒" class="block mt-1 w-full" type="text" />
-                            <x-input-error :messages="$errors->get('emoji')" class="mt-1" />
-                        </div>
-                    </div>
+                                <!-- Button Link -->
+                                <div>
+                                    <x-input-label for="btn_link" :value="__('Link Tombol')" />
+                                    <x-text-input wire:model="button_link" id="btn_link" class="block mt-1 w-full text-xs" type="text" required />
+                                    <x-input-error :messages="$errors->get('button_link')" class="mt-1" />
+                                </div>
+                            </div>
 
-                    <div class="border-b border-gray-100 dark:border-gray-700 pb-1 mb-3 pt-2">
-                        <span class="text-[10px] font-black text-indigo-650 dark:text-indigo-400 uppercase tracking-widest">Aksi & Gaya Latar</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <!-- Button Text -->
-                        <div>
-                            <x-input-label for="btn_text" :value="__('Teks Tombol')" />
-                            <x-text-input wire:model="button_text" id="btn_text" class="block mt-1 w-full" type="text" required />
-                            <x-input-error :messages="$errors->get('button_text')" class="mt-1" />
-                        </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <!-- Background Gradient Selection -->
+                                <div>
+                                    <x-input-label for="bg_grad" :value="__('Warna Gradasi (Preset)')" />
+                                    <select wire:model="bg_gradient" id="bg_grad" class="block mt-1 w-full border border-gray-350 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-900 text-gray-905 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 text-xs py-2 px-3">
+                                        <option value="indigo">Indigo (Ungu-Pink)</option>
+                                        <option value="emerald">Emerald (Hijau-Biru)</option>
+                                        <option value="rose">Rose (Merah-Orange)</option>
+                                        <option value="amber">Amber (Kuning-Oranye)</option>
+                                        <option value="purple">Purple (Ungu-Merah)</option>
+                                    </select>
+                                    <x-input-error :messages="$errors->get('bg_gradient')" class="mt-1" />
+                                </div>
 
-                        <!-- Button Link -->
-                        <div>
-                            <x-input-label for="btn_link" :value="__('Link Tombol')" />
-                            <x-text-input wire:model="button_link" id="btn_link" class="block mt-1 w-full" type="text" required />
-                            <x-input-error :messages="$errors->get('button_link')" class="mt-1" />
-                        </div>
-                    </div>
+                                <!-- Custom Background CSS -->
+                                <div>
+                                    <x-input-label for="custom_bg" :value="__('Custom Background CSS')" />
+                                    <x-text-input wire:model="custom_bg" id="custom_bg" placeholder="misal: linear-gradient(to right, #ff007f, #7f00ff)" class="block mt-1 w-full text-[10px]" type="text" />
+                                    <x-input-error :messages="$errors->get('custom_bg')" class="mt-1" />
+                                </div>
+                            </div>
+                            <span class="text-[9px] text-gray-400 dark:text-gray-500 block leading-tight">Gradient preset akan diabaikan jika Anda menggunakan Custom Background CSS.</span>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <!-- Background Gradient Selection -->
-                        <div>
-                            <x-input-label for="bg_grad" :value="__('Warna Gradasi (Preset)')" />
-                            <select wire:model="bg_gradient" id="bg_grad" class="block mt-1 w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-950 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                <option value="indigo">Indigo (Ungu-Pink)</option>
-                                <option value="emerald">Emerald (Hijau-Biru)</option>
-                                <option value="rose">Rose (Merah-Orange)</option>
-                                <option value="amber">Amber (Kuning-Oranye)</option>
-                                <option value="purple">Purple (Ungu-Merah)</option>
-                            </select>
-                            <x-input-error :messages="$errors->get('bg_gradient')" class="mt-1" />
-                        </div>
+                            <div class="border-b border-gray-100 dark:border-gray-700 pb-2 pt-2">
+                                <span class="text-[10px] font-black text-indigo-650 dark:text-indigo-400 uppercase tracking-widest">Penjadwalan & Status</span>
+                            </div>
 
-                        <!-- Custom Background CSS -->
-                        <div>
-                            <x-input-label for="custom_bg" :value="__('Custom Background CSS/Gradient')" />
-                            <x-text-input wire:model="custom_bg" id="custom_bg" placeholder="misal: linear-gradient(to right, #ff007f, #7f00ff)" class="block mt-1 w-full text-xs" type="text" />
-                            <span class="text-[10px] text-gray-500 dark:text-gray-400 block mt-0.5">Opsional. Menimpa gradasi preset di samping.</span>
-                            <x-input-error :messages="$errors->get('custom_bg')" class="mt-1" />
-                        </div>
-                    </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <!-- Start Date -->
+                                <div>
+                                    <x-input-label for="start_dt" :value="__('Tanggal Mulai')" />
+                                    <input wire:model="start_date" id="start_dt" type="datetime-local" class="block mt-1 w-full border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 text-xs py-2 px-3" />
+                                    <x-input-error :messages="$errors->get('start_date')" class="mt-1" />
+                                </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <!-- Start Date -->
-                        <div>
-                            <x-input-label for="start_dt" :value="__('Tanggal Mulai')" />
-                            <input wire:model="start_date" id="start_dt" type="datetime-local" class="block mt-1 w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-950 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
-                            <x-input-error :messages="$errors->get('start_date')" class="mt-1" />
-                        </div>
+                                <!-- End Date -->
+                                <div>
+                                    <x-input-label for="end_dt" :value="__('Tanggal Berakhir')" />
+                                    <input wire:model="end_date" id="end_dt" type="datetime-local" class="block mt-1 w-full border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 text-xs py-2 px-3" />
+                                    <x-input-error :messages="$errors->get('end_date')" class="mt-1" />
+                                </div>
+                            </div>
 
-                        <!-- End Date -->
-                        <div>
-                            <x-input-label for="end_dt" :value="__('Tanggal Berakhir')" />
-                            <input wire:model="end_date" id="end_dt" type="datetime-local" class="block mt-1 w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-950 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
-                            <x-input-error :messages="$errors->get('end_date')" class="mt-1" />
+                            <!-- Active state checkbox -->
+                            <div class="flex items-center gap-2 pt-2">
+                                <input wire:model="is_active" id="active_camp" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" />
+                                <x-input-label for="active_camp" :value="__('Aktifkan Banner')" class="font-bold text-gray-900 dark:text-gray-100" />
+                            </div>
                         </div>
-                    </div>
-
-                    <!-- Active state checkbox -->
-                    <div class="flex items-center gap-2 mt-2">
-                        <input wire:model="is_active" id="active_camp" type="checkbox" class="rounded border-gray-300 text-indigo-650 shadow-sm focus:ring-indigo-500" />
-                        <x-input-label for="active_camp" :value="__('Aktifkan Banner')" />
                     </div>
                 </form>
 
-                <div class="flex justify-end gap-3 border-t border-gray-50 dark:border-gray-700 pt-4 mt-2">
-                    <button wire:click="$set('isModalOpen', false)" class="px-4 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                <div class="flex justify-end gap-3 border-t border-gray-100 dark:border-gray-700 pt-4 mt-2">
+                    <button wire:click="$set('isModalOpen', false)" class="px-4 py-2 text-sm font-semibold rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-750 transition cursor-pointer">
                         Batal
                     </button>
-                    <button wire:click="saveCampaign" class="px-4 py-2 text-sm font-semibold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 shadow transition">
-                        Simpan
+                    <button wire:click="saveCampaign" class="px-5 py-2 text-sm font-semibold rounded-xl text-white bg-indigo-650 hover:bg-indigo-700 shadow transition cursor-pointer">
+                        Simpan Campaign
                     </button>
                 </div>
             </div>

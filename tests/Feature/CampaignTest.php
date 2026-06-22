@@ -98,13 +98,15 @@ test('admin can toggle active status and delete a campaign', function () {
     expect(Campaign::find($campaign->id))->toBeNull();
 });
 
-test('storefront displays active campaigns and falls back to default slides when none active', function () {
-    // 1. Storefront with no campaigns - should display fallback slides
+test('storefront displays active campaigns and hides slideshow when none active', function () {
+    // 1. Storefront with no campaigns - should hide slideshow and show static promo cards
     $this->get('/')
         ->assertStatus(200)
-        ->assertSee('Idul Fitri Mega Promo! Diskon Hingga 70%')
-        ->assertSee('Mid-Year Sneaker Festival')
-        ->assertSee('Ekstra Cashback 10% Hingga Rp 50.000');
+        ->assertDontSee('Idul Fitri Mega Promo! Diskon Hingga 70%')
+        ->assertDontSee('Mid-Year Sneaker Festival')
+        ->assertDontSee('Ekstra Cashback 10% Hingga Rp 50.000')
+        ->assertSee('Promo Khusus Pengguna Baru')
+        ->assertSee('Promo Bebas Ongkir Toko');
 
     // 2. Create active campaign
     $campaign = Campaign::create([
@@ -129,7 +131,7 @@ test('storefront displays active campaigns and falls back to default slides when
     $this->get('/')
         ->assertStatus(200)
         ->assertDontSee('Custom Storefront Promo 999')
-        ->assertSee('Idul Fitri Mega Promo! Diskon Hingga 70%');
+        ->assertDontSee('Idul Fitri Mega Promo! Diskon Hingga 70%');
 
     // 4. Active but expired campaign
     Campaign::create([
@@ -145,7 +147,7 @@ test('storefront displays active campaigns and falls back to default slides when
     $this->get('/')
         ->assertStatus(200)
         ->assertDontSee('Expired Promo 888')
-        ->assertSee('Idul Fitri Mega Promo! Diskon Hingga 70%');
+        ->assertDontSee('Idul Fitri Mega Promo! Diskon Hingga 70%');
 
     // 5. Active and not-yet-started campaign
     Campaign::create([
@@ -161,5 +163,5 @@ test('storefront displays active campaigns and falls back to default slides when
     $this->get('/')
         ->assertStatus(200)
         ->assertDontSee('Future Promo 777')
-        ->assertSee('Idul Fitri Mega Promo! Diskon Hingga 70%');
+        ->assertDontSee('Idul Fitri Mega Promo! Diskon Hingga 70%');
 });
