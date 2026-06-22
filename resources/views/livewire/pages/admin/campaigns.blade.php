@@ -316,6 +316,10 @@ $getCampaignsProperty = function () {
                             <x-input-label for="campaign_tag" :value="__('Pilih Promo Tag (Opsional)')" />
                             <select wire:model="promo_tag" id="campaign_tag" class="block mt-1 w-full border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-950 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 <option value="">Tanpa Tag</option>
+                                <option value="Flash Sale">Flash Sale</option>
+                                <option value="Cashback">Cashback</option>
+                                <option value="Diskon Besar">Diskon Besar</option>
+                                <option value="New Arrival">New Arrival</option>
                                 <option value="Idul Fitri">Idul Fitri</option>
                                 <option value="Ramadhan">Ramadhan</option>
                                 <option value="Natal">Natal</option>
