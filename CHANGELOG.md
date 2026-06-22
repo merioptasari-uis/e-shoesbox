@@ -48,6 +48,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronized brand logo component rendering to target custom public/logo.png brand asset across layout files.
 
 ### Fixed
+- Fixed product detail sold count (`sales_count` attribute) to display actual paid, processing, and completed order items, removing mock fallback counts.
+- Fixed Midtrans checkout Snap modal failing to open when navigated dynamically with `wire:navigate` by refactoring `cart.blade.php` to listen to `pay-order` via Alpine.js window event.
+- Refactored `order-details.blade.php` to trigger the Midtrans Snap modal dynamically via an Alpine.js `@click` handler on the "Bayar Sekarang" button, eliminating DOMContentLoaded reload dependencies.
 - Fixed PHPStan type warnings regarding `number_format` parameter types and relationship return type annotations in `Product`, `ProductVariant`, and `Review` models.
 - Fixed product details modal failing to open after catalog updates by upgrading computed property getters to Livewire v3 `#[Computed]` attributes and adding unique `wire:key` attributes on loop elements.
 - Fixed catalog layout and grid alignment on the main shop catalog page by correcting malformed HTML tags.
