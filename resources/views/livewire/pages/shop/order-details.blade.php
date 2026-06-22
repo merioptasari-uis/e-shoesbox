@@ -37,9 +37,10 @@ new #[Layout('layouts.app')] class extends Component
 
         try {
             $isProd = (bool) config('services.midtrans.is_production', false);
+            $orderId = str_replace('/', '-', $this->order->order_number);
             $url = $isProd
-                ? "https://api.midtrans.com/v2/{$this->order->order_number}/status"
-                : "https://api.sandbox.midtrans.com/v2/{$this->order->order_number}/status";
+                ? "https://api.midtrans.com/v2/{$orderId}/status"
+                : "https://api.sandbox.midtrans.com/v2/{$orderId}/status";
 
             $response = Http::withHeaders([
                 'Accept' => 'application/json',
@@ -165,8 +166,8 @@ new #[Layout('layouts.app')] class extends Component
             <div class="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/30 rounded-3xl p-6 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block mb-1">Alat Sandbox Developer</span>
-                    <h3 class="text-sm font-bold text-gray-905 dark:text-gray-100">Simulasikan Penyelesaian Pembayaran</h3>
-                    <p class="text-xs text-gray-505 dark:text-gray-400 mt-0.5">Gunakan simulator untuk mensimulasikan berbagai metode pembayaran sandbox.</p>
+                    <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100">Simulasikan Penyelesaian Pembayaran</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Gunakan simulator untuk mensimulasikan berbagai metode pembayaran sandbox.</p>
                 </div>
                 <button @click="showMockModal = true" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-xs font-semibold rounded-xl text-white bg-indigo-650 hover:bg-indigo-700 transition shadow">
                     Buka Simulator Pembayaran
@@ -179,8 +180,8 @@ new #[Layout('layouts.app')] class extends Component
             <div class="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/30 rounded-3xl p-6 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block mb-1">Konfirmasi Pesanan Diterima</span>
-                    <h3 class="text-sm font-bold text-gray-905 dark:text-gray-100">Apakah produk Anda sudah sampai?</h3>
-                    <p class="text-xs text-gray-505 dark:text-gray-400 mt-0.5">Jika Anda telah menerima produk dengan baik, klik tombol di bawah untuk menyelesaikan pesanan.</p>
+                    <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100">Apakah produk Anda sudah sampai?</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Jika Anda telah menerima produk dengan baik, klik tombol di bawah untuk menyelesaikan pesanan.</p>
                 </div>
                 <button wire:click="confirmReceived" class="inline-flex items-center justify-center px-5 py-2.5 border border-transparent text-xs font-extrabold rounded-xl text-white bg-emerald-600 hover:bg-emerald-700 transition shadow-md hover:scale-[1.02]">
                     Pesanan Diterima
@@ -256,7 +257,7 @@ new #[Layout('layouts.app')] class extends Component
                     @endif
                     <div class="flex justify-between text-sm text-gray-500">
                         <span>Biaya Pengiriman</span>
-                        <span class="font-semibold text-gray-900 dark:text-gray-105">Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</span>
+                        <span class="font-semibold text-gray-900 dark:text-gray-100">Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</span>
                     </div>
                     @if($order->shipping_discount_amount > 0)
                         <div class="flex justify-between text-sm text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -316,7 +317,7 @@ new #[Layout('layouts.app')] class extends Component
                                     }
                                 });
                             "
-                            class="w-full flex items-center justify-center px-6 py-4 border border-transparent text-sm font-semibold rounded-2xl text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-lg shadow-indigo-150 dark:shadow-none"
+                            class="w-full flex items-center justify-center px-6 py-4 border border-transparent text-sm font-semibold rounded-2xl text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-lg shadow-indigo-100 dark:shadow-none"
                         >
                             Bayar Sekarang
                         </button>
@@ -507,7 +508,7 @@ new #[Layout('layouts.app')] class extends Component
             </div>
 
             <!-- Footer -->
-            <div class="bg-gray-50 dark:bg-gray-905/50 p-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+            <div class="bg-gray-50 dark:bg-gray-900/50 p-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
                 <button 
                     @click="closeModal()" 
                     class="text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition"

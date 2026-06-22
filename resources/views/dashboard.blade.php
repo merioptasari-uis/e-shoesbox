@@ -181,15 +181,15 @@
                                                 @php
                                                     $statusClasses = [
                                                         'pending' => 'bg-amber-50 text-amber-800 dark:bg-amber-950/30 dark:text-amber-400 border-amber-100 dark:border-amber-900/50',
-                                                        'paid' => 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/50',
-                                                        'shipped' => 'bg-indigo-50 text-indigo-800 dark:bg-indigo-950/30 dark:text-indigo-400 border-indigo-100 dark:border-indigo-900/50',
+                                                        'processing' => 'bg-blue-50 text-blue-800 dark:bg-blue-950/30 dark:text-blue-400 border-blue-100 dark:border-blue-900/50',
+                                                        'shipping' => 'bg-indigo-50 text-indigo-800 dark:bg-indigo-950/30 dark:text-indigo-400 border-indigo-100 dark:border-indigo-900/50',
                                                         'completed' => 'bg-teal-50 text-teal-800 dark:bg-teal-950/30 dark:text-teal-400 border-teal-100 dark:border-teal-900/50',
                                                         'cancelled' => 'bg-rose-50 text-rose-800 dark:bg-rose-950/30 dark:text-rose-400 border-rose-100 dark:border-rose-900/50',
                                                     ];
                                                     $statusLabel = [
                                                         'pending' => 'Menunggu Pembayaran',
-                                                        'paid' => 'Sudah Dibayar',
-                                                        'shipped' => 'Dalam Pengiriman',
+                                                        'processing' => 'Diproses',
+                                                        'shipping' => 'Dalam Pengiriman',
                                                         'completed' => 'Selesai',
                                                         'cancelled' => 'Dibatalkan',
                                                     ];

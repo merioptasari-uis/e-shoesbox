@@ -38,13 +38,19 @@ class MidtransService
         }
 
         try {
+            $name = trim($customerDetails['name'] ?? '');
+            $nameParts = explode(' ', $name, 2);
+            $firstName = $nameParts[0];
+            $lastName = $nameParts[1] ?? '';
+
             $payload = [
                 'transaction_details' => [
                     'order_id' => $orderNumber,
                     'gross_amount' => (int) $amount,
                 ],
                 'customer_details' => [
-                    'first_name' => $customerDetails['name'] ?? '',
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
                     'email' => $customerDetails['email'] ?? '',
                     'phone' => $customerDetails['phone'] ?? '',
                 ],
@@ -56,6 +62,13 @@ class MidtransService
                     'unit' => 'hours',
                 ],
             ];
+
+            if (isset($customerDetails['billing_address'])) {
+                $payload['customer_details']['billing_address'] = $customerDetails['billing_address'];
+            }
+            if (isset($customerDetails['shipping_address'])) {
+                $payload['customer_details']['shipping_address'] = $customerDetails['shipping_address'];
+            }
 
             if (! empty($itemDetails)) {
                 $payload['item_details'] = $itemDetails;

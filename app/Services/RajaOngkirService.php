@@ -13,7 +13,7 @@ class RajaOngkirService
 
     protected string $baseUrl;
 
-    protected int $originCityId = 151; // Jakarta Barat
+    protected int $originCityId = 48; // Batam
 
     public function __construct()
     {
@@ -95,12 +95,13 @@ class RajaOngkirService
         };
 
         // If it's a further destination, add a multiplier
-        // 151 (Jakarta Barat) is close to Jabodetabek, DI Yogyakarta (501), Bandung (23), Surabaya (444)
+        // 48 (Batam) is close to Kepulauan Riau, other islands are further
         $distanceFactor = match ($cityId) {
-            151 => 1.0, // Jakarta Barat (same city)
-            23 => 1.5,  // Bandung
-            501 => 2.0, // Yogyakarta
-            444 => 2.5, // Surabaya
+            48 => 1.0,  // Batam (same city)
+            151 => 2.5, // Jakarta Barat
+            23 => 2.7,  // Bandung
+            501 => 3.0, // Yogyakarta
+            444 => 3.2, // Surabaya
             default => 3.5, // Outer Java/Remote
         };
 

@@ -393,14 +393,39 @@ new #[Layout('layouts.app')] class extends Component
                     ];
                 }
 
+                $recipientName = trim($this->recipientName);
+                $nameParts = explode(' ', $recipientName, 2);
+                $firstName = $nameParts[0] ?? '';
+                $lastName = $nameParts[1] ?? '';
+
                 // Fetch Midtrans Snap Token
                 $snapToken = $midtransService->getSnapToken(
-                    $order->order_number,
+                    str_replace('/', '-', $order->order_number),
                     $order->total_amount,
                     [
                         'name' => $this->recipientName,
                         'email' => Auth::user()->email,
                         'phone' => $this->phoneNumber,
+                        'billing_address' => [
+                            'first_name' => $firstName,
+                            'last_name' => $lastName,
+                            'email' => Auth::user()->email,
+                            'phone' => $this->phoneNumber,
+                            'address' => $this->addressLine,
+                            'city' => $city->name,
+                            'postal_code' => $city->postal_code,
+                            'country_code' => 'IDN',
+                        ],
+                        'shipping_address' => [
+                            'first_name' => $firstName,
+                            'last_name' => $lastName,
+                            'email' => Auth::user()->email,
+                            'phone' => $this->phoneNumber,
+                            'address' => $this->addressLine,
+                            'city' => $city->name,
+                            'postal_code' => $city->postal_code,
+                            'country_code' => 'IDN',
+                        ],
                     ],
                     $midtransItems
                 );

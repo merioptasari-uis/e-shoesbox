@@ -20,6 +20,9 @@ class MidtransWebhookController extends Controller
         Log::info('Midtrans Webhook Received', $payload);
 
         $orderNumber = $payload['order_id'] ?? null;
+        if ($orderNumber) {
+            $orderNumber = str_replace('-', '/', $orderNumber);
+        }
         $transactionStatus = $payload['transaction_status'] ?? null;
         $paymentType = $payload['payment_type'] ?? null;
         $transactionId = $payload['transaction_id'] ?? null;
