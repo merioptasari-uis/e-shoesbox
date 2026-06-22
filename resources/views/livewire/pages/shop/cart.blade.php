@@ -33,6 +33,8 @@ new #[Layout('layouts.app')] class extends Component
     public ?int $buyNowProductId = null;
     public ?int $buyNowVariantId = null;
     public int $buyNowQty = 1;
+    public ?int $selectedProductVoucherId = null;
+    public ?int $selectedShippingVoucherId = null;
 
     protected $listeners = ['cart-updated' => '$refresh'];
 
@@ -128,33 +130,67 @@ new #[Layout('layouts.app')] class extends Component
         $this->selectedService = null;
         $this->shippingServices = [];
         $this->shippingCost = 0;
-        $this->revalidateAppliedVouchers();
-    }
-
-    public function updatedCourier(): void
-    {
-        $this->selectedService = null;
-        $this->shippingCost = 0;
         $this->fetchShippingRates();
         $this->revalidateAppliedVouchers();
     }
 
     public function fetchShippingRates(): void
     {
-        if (!$this->cityId || !$this->courier || $this->items->isEmpty()) {
+        if (!$this->cityId || $this->items->isEmpty()) {
+            $this->shippingServices = [];
             return;
         }
 
         $rajaOngkir = new RajaOngkirService();
-        $this->shippingServices = $rajaOngkir->calculateCost(
-            $this->cityId,
-            $this->totalWeight,
-            $this->courier
-        );
+        $couriers = ['jne', 'pos', 'tiki'];
+        $mergedRates = [];
+
+        foreach ($couriers as $c) {
+            $rates = $rajaOngkir->calculateCost(
+                $this->cityId,
+                $this->totalWeight,
+                $c
+            );
+
+            foreach ($rates as $r) {
+                $mergedRates[] = [
+                    'courier' => $c,
+                    'service' => $r['service'],
+                    'description' => $r['description'],
+                    'cost' => (float)$r['cost'],
+                    'etd' => $r['etd'],
+                ];
+            }
+        }
+
+        // Sort by cost ascending
+        usort($mergedRates, function ($a, $b) {
+            return $a['cost'] <=> $b['cost'];
+        });
+
+        $this->shippingServices = $mergedRates;
+
+        // Try to restore previous selection with updated price
+        $restored = false;
+        if ($this->selectedService && $this->courier) {
+            foreach ($mergedRates as $r) {
+                if ($r['courier'] === $this->courier && $r['service'] === $this->selectedService) {
+                    $this->shippingCost = $r['cost'];
+                    $restored = true;
+                    break;
+                }
+            }
+        }
+        if (!$restored) {
+            $this->courier = null;
+            $this->selectedService = null;
+            $this->shippingCost = 0;
+        }
     }
 
-    public function selectService(string $serviceCode, float $cost): void
+    public function selectService(string $courier, string $serviceCode, float $cost): void
     {
+        $this->courier = $courier;
         $this->selectedService = $serviceCode;
         $this->shippingCost = $cost;
         $this->revalidateAppliedVouchers();
@@ -481,9 +517,11 @@ new #[Layout('layouts.app')] class extends Component
         $voucher = $validation['voucher'];
 
         if ($voucher->type === 'shipping') {
+            $this->selectedShippingVoucherId = $voucher->id;
             $this->appliedShippingVoucher = $voucher;
             $this->dispatch('notify', type: 'success', message: 'Voucher gratis ongkir berhasil digunakan!');
         } else {
+            $this->selectedProductVoucherId = $voucher->id;
             $this->appliedProductVoucher = $voucher;
             $this->dispatch('notify', type: 'success', message: 'Voucher diskon produk berhasil digunakan!');
         }
@@ -495,9 +533,11 @@ new #[Layout('layouts.app')] class extends Component
     public function removeVoucher(string $type): void
     {
         if ($type === 'shipping') {
+            $this->selectedShippingVoucherId = -1; // explicitly none
             $this->appliedShippingVoucher = null;
             $this->dispatch('notify', type: 'info', message: 'Voucher gratis ongkir dihapus.');
         } elseif ($type === 'product') {
+            $this->selectedProductVoucherId = -1; // explicitly none
             $this->appliedProductVoucher = null;
             $this->dispatch('notify', type: 'info', message: 'Voucher diskon dihapus.');
         }
@@ -508,21 +548,90 @@ new #[Layout('layouts.app')] class extends Component
     {
         $voucherService = new \App\Services\VoucherService();
         $subtotal = $this->subtotal;
+        $shippingCost = $this->shippingCost;
 
-        if ($this->appliedProductVoucher) {
-            $validation = $voucherService->validate($this->appliedProductVoucher->code, $subtotal, Auth::id());
-            if (!$validation['isValid']) {
+        // Fetch all active and valid vouchers
+        $allVouchers = \App\Models\Voucher::where('is_active', true)
+            ->where(function ($q) {
+                $q->whereNull('expires_at')
+                  ->orWhere('expires_at', '>', now());
+            })
+            ->get();
+
+        // 1. PRODUCT VOUCHER REVALIDATION & AUTO-APPLY
+        if ($this->selectedProductVoucherId === -1) {
+            $this->appliedProductVoucher = null;
+        } elseif ($this->selectedProductVoucherId > 0) {
+            $voucher = $allVouchers->firstWhere('id', $this->selectedProductVoucherId);
+            if ($voucher) {
+                $validation = $voucherService->validate($voucher->code, $subtotal, Auth::id());
+                if ($validation['isValid']) {
+                    $this->appliedProductVoucher = $voucher;
+                } else {
+                    $this->appliedProductVoucher = null;
+                    $this->selectedProductVoucherId = null; // reset to auto
+                }
+            } else {
                 $this->appliedProductVoucher = null;
-                $this->dispatch('notify', type: 'warning', message: "Voucher {$validation['voucher']?->code} dihapus: {$validation['message']}");
+                $this->selectedProductVoucherId = null;
             }
         }
 
-        if ($this->appliedShippingVoucher) {
-            $validation = $voucherService->validate($this->appliedShippingVoucher->code, $subtotal, Auth::id());
-            if (!$validation['isValid']) {
-                $this->appliedShippingVoucher = null;
-                $this->dispatch('notify', type: 'warning', message: "Voucher {$validation['voucher']?->code} dihapus: {$validation['message']}");
+        if ($this->selectedProductVoucherId === null) {
+            $bestVoucher = null;
+            $bestDiscount = 0.0;
+
+            foreach ($allVouchers as $v) {
+                if ($v->type !== 'shipping') {
+                    $validation = $voucherService->validate($v->code, $subtotal, Auth::id());
+                    if ($validation['isValid']) {
+                        $discount = $voucherService->calculateProductDiscount($v, $subtotal);
+                        if ($discount > $bestDiscount) {
+                            $bestDiscount = $discount;
+                            $bestVoucher = $v;
+                        }
+                    }
+                }
             }
+            $this->appliedProductVoucher = $bestVoucher;
+        }
+
+        // 2. SHIPPING VOUCHER REVALIDATION & AUTO-APPLY
+        if ($this->selectedShippingVoucherId === -1) {
+            $this->appliedShippingVoucher = null;
+        } elseif ($this->selectedShippingVoucherId > 0) {
+            $voucher = $allVouchers->firstWhere('id', $this->selectedShippingVoucherId);
+            if ($voucher) {
+                $validation = $voucherService->validate($voucher->code, $subtotal, Auth::id());
+                if ($validation['isValid']) {
+                    $this->appliedShippingVoucher = $voucher;
+                } else {
+                    $this->appliedShippingVoucher = null;
+                    $this->selectedShippingVoucherId = null; // reset to auto
+                }
+            } else {
+                $this->appliedShippingVoucher = null;
+                $this->selectedShippingVoucherId = null;
+            }
+        }
+
+        if ($this->selectedShippingVoucherId === null) {
+            $bestVoucher = null;
+            $bestDiscount = 0.0;
+
+            foreach ($allVouchers as $v) {
+                if ($v->type === 'shipping') {
+                    $validation = $voucherService->validate($v->code, $subtotal, Auth::id());
+                    if ($validation['isValid']) {
+                        $discount = $voucherService->calculateShippingDiscount($v, $shippingCost);
+                        if ($discount > $bestDiscount) {
+                            $bestDiscount = $discount;
+                            $bestVoucher = $v;
+                        }
+                    }
+                }
+            }
+            $this->appliedShippingVoucher = $bestVoucher;
         }
     }
 
@@ -538,6 +647,14 @@ new #[Layout('layouts.app')] class extends Component
 
     public function applyVoucherCode(string $code): void
     {
+        $voucher = \App\Models\Voucher::where('code', $code)->first();
+        if ($voucher) {
+            if ($voucher->type === 'shipping') {
+                $this->selectedShippingVoucherId = $voucher->id;
+            } else {
+                $this->selectedProductVoucherId = $voucher->id;
+            }
+        }
         $this->voucherCode = $code;
         $this->applyVoucher();
     }
@@ -726,45 +843,10 @@ new #[Layout('layouts.app')] class extends Component
                             </div>
                         </div>
 
-                        <!-- Courier Selection Card Grid -->
-                        <div x-data="{ selected: @entangle('courier') }">
-                            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Pilih Kurir</label>
-                            <div class="grid grid-cols-3 gap-4">
-                                <!-- JNE -->
-                                <div 
-                                    @click="if({{ $cityId ? 'true' : 'false' }}) { selected = 'jne'; $wire.set('courier', 'jne') }"
-                                    :class="selected === 'jne' ? 'border-violet-600 ring-2 ring-violet-600/20 bg-violet-50/50 dark:bg-violet-950/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'"
-                                    class="border p-4 rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer transition {{ !$cityId ? 'opacity-50 cursor-not-allowed' : '' }}"
-                                >
-                                    <span class="text-sm font-bold text-gray-900 dark:text-gray-100">JNE</span>
-                                    <span class="text-xxs text-gray-500 mt-1">Jalur Nugraha Ekakurir</span>
-                                </div>
-                                <!-- POS -->
-                                <div 
-                                    @click="if({{ $cityId ? 'true' : 'false' }}) { selected = 'pos'; $wire.set('courier', 'pos') }"
-                                    :class="selected === 'pos' ? 'border-violet-600 ring-2 ring-violet-600/20 bg-violet-50/50 dark:bg-violet-950/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'"
-                                    class="border p-4 rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer transition {{ !$cityId ? 'opacity-50 cursor-not-allowed' : '' }}"
-                                >
-                                    <span class="text-sm font-bold text-gray-900 dark:text-gray-100">POS</span>
-                                    <span class="text-xxs text-gray-500 mt-1">Pos Indonesia</span>
-                                </div>
-                                <!-- TIKI -->
-                                <div 
-                                    @click="if({{ $cityId ? 'true' : 'false' }}) { selected = 'tiki'; $wire.set('courier', 'tiki') }"
-                                    :class="selected === 'tiki' ? 'border-violet-600 ring-2 ring-violet-600/20 bg-violet-50/50 dark:bg-violet-950/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'"
-                                    class="border p-4 rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer transition {{ !$cityId ? 'opacity-50 cursor-not-allowed' : '' }}"
-                                >
-                                    <span class="text-sm font-bold text-gray-900 dark:text-gray-100">TIKI</span>
-                                    <span class="text-xxs text-gray-500 mt-1">Titipan Kilat</span>
-                                </div>
-                            </div>
-                            @error('courier') <span class="text-rose-500 text-xs mt-2 block">{{ $message }}</span> @enderror
-                        </div>
-
                         <!-- Shipping Service Choices Loading & Content -->
                         <div class="relative">
                             <!-- Loading Indicator -->
-                            <div wire:loading wire:target="courier, provinceId, cityId, fetchShippingRates" class="w-full">
+                            <div wire:loading wire:target="provinceId, cityId, fetchShippingRates" class="w-full">
                                 <div class="flex items-center justify-center p-6 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 animate-pulse">
                                     <svg class="animate-spin h-5 w-5 text-violet-600 dark:text-violet-400 mr-3" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -775,18 +857,23 @@ new #[Layout('layouts.app')] class extends Component
                             </div>
 
                             <!-- Content to hide when loading -->
-                            <div wire:loading.remove wire:target="courier, provinceId, cityId, fetchShippingRates">
+                            <div wire:loading.remove wire:target="provinceId, cityId, fetchShippingRates">
                                 @if(!empty($shippingServices))
                                     <div>
-                                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Layanan Tersedia</label>
+                                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Pilihan Layanan Pengiriman</label>
                                         <div class="space-y-2">
                                             @foreach($shippingServices as $srv)
                                                 <div 
-                                                    wire:click="selectService('{{ $srv['service'] }}', {{ $srv['cost'] }})"
-                                                    class="flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition {{ $selectedService === $srv['service'] ? 'border-violet-600 bg-violet-50/50 dark:bg-violet-900/20 ring-2 ring-violet-600/20' : 'border-gray-100 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700/30' }}"
+                                                    wire:click="selectService('{{ $srv['courier'] }}', '{{ $srv['service'] }}', {{ $srv['cost'] }})"
+                                                    class="flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition {{ ($selectedService === $srv['service'] && $courier === $srv['courier']) ? 'border-violet-600 bg-violet-50/50 dark:bg-violet-900/20 ring-2 ring-violet-600/20' : 'border-gray-100 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700/30' }}"
                                                 >
                                                     <div>
-                                                        <span class="text-sm font-extrabold text-gray-900 dark:text-gray-100 uppercase">{{ $srv['service'] }}</span>
+                                                        <div class="flex items-center gap-2 mb-1">
+                                                            <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase rounded bg-violet-100 dark:bg-violet-900/50 text-violet-750 dark:text-violet-300 tracking-wider">
+                                                                {{ strtoupper($srv['courier']) }}
+                                                            </span>
+                                                            <span class="text-sm font-extrabold text-gray-900 dark:text-gray-100 uppercase">{{ $srv['service'] }}</span>
+                                                        </div>
                                                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $srv['description'] }} - {{ $srv['etd'] }} hari</p>
                                                     </div>
                                                     <span class="text-sm font-bold text-gray-900 dark:text-gray-100">
@@ -797,9 +884,15 @@ new #[Layout('layouts.app')] class extends Component
                                         </div>
                                         @error('selectedService') <span class="text-rose-500 text-xs mt-2 block">{{ $message }}</span> @enderror
                                     </div>
-                                @elseif($courier && empty($shippingServices))
+                                @elseif($cityId && empty($shippingServices))
                                     <div class="p-4 bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300 rounded-2xl text-xs font-medium border border-amber-100 dark:border-amber-900/30">
-                                        Memuat layanan pengiriman... Pastikan Kota/Kabupaten tujuan telah terpilih.
+                                        Layanan pengiriman tidak tersedia untuk kota tujuan ini.
+                                    </div>
+                                @endif
+
+                                @if(!$cityId)
+                                    <div class="p-4 bg-gray-50 dark:bg-gray-800/30 text-gray-500 dark:text-gray-400 rounded-2xl text-xs font-medium border border-dashed border-gray-200 dark:border-gray-700 text-center">
+                                        Silakan pilih Provinsi dan Kota/Kabupaten tujuan terlebih dahulu untuk melihat pilihan pengiriman.
                                     </div>
                                 @endif
                             </div>
@@ -808,45 +901,34 @@ new #[Layout('layouts.app')] class extends Component
                 </div>
 
                 <!-- Sticky Summary Receipt -->
-                <div class="lg:col-span-1 mt-8 lg:mt-0">
-                    <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 sticky top-6 space-y-6">
-                        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-50 dark:border-gray-700 pb-4">Ringkasan Pesanan</h2>
-
-                        <!-- Applied Vouchers Badge List -->
-                        @if($appliedProductVoucher || $appliedShippingVoucher)
-                            <div class="space-y-2">
-                                <span class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Voucher Diterapkan</span>
-                                <div class="flex flex-col gap-2">
-                                    @if($appliedProductVoucher)
-                                        <div class="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 px-3 py-2 rounded-xl text-xs font-semibold border border-emerald-100 dark:border-emerald-900/30">
-                                            <div class="flex items-center gap-1.5 bg-transparent">
-                                                <svg class="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                                                <span>{{ $appliedProductVoucher->code }}</span>
-                                            </div>
-                                            <button wire:click="removeVoucher('product')" class="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 font-bold transition ml-2">
-                                                ✕
-                                            </button>
-                                        </div>
-                                    @endif
-                                    @if($appliedShippingVoucher)
-                                        <div class="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 px-3 py-2 rounded-xl text-xs font-semibold border border-emerald-100 dark:border-emerald-900/30">
-                                            <div class="flex items-center gap-1.5 bg-transparent">
-                                                <svg class="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                                <span>{{ $appliedShippingVoucher->code }} (Bebas Ongkir)</span>
-                                            </div>
-                                            <button wire:click="removeVoucher('shipping')" class="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 font-bold transition ml-2">
-                                                ✕
-                                            </button>
-                                        </div>
-                                    @endif
+                <div class="lg:col-span-1 mt-8 lg:mt-0 space-y-4">
+                    <!-- Voucher Hemat untuk Anda -->
+                    @if($this->availableVouchers->isNotEmpty())
+                        <div x-data="{ open: false }" class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+                            <button @click="open = !open" class="w-full flex items-center justify-between font-bold text-gray-900 dark:text-gray-100 transition-colors duration-200">
+                                <span class="flex items-center gap-2">
+                                    <svg class="h-5 w-5 text-violet-600 dark:text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/>
+                                    </svg>
+                                    Voucher Hemat untuk Anda
+                                </span>
+                                <svg :class="open ? 'rotate-180' : ''" class="h-5 w-5 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                            
+                            <div x-show="open" x-collapse x-cloak class="mt-4 space-y-4">
+                                <!-- Voucher Promo Input Form -->
+                                <div class="space-y-2 border-b border-gray-150 dark:border-gray-700 pb-4">
+                                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Masukkan Kode Voucher</label>
+                                    <div class="flex gap-2">
+                                        <input wire:model="voucherCode" type="text" placeholder="Masukkan kode promo..." class="flex-1 border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-violet-500 focus:border-violet-500 text-sm py-2 px-3 uppercase placeholder:normal-case">
+                                        <button wire:click="applyVoucher" class="px-4 py-2 text-xs font-semibold rounded-xl text-white bg-violet-600 hover:bg-violet-700 transition">Gunakan</button>
+                                    </div>
+                                    @error('voucherCode') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                                 </div>
-                            </div>
-                        @endif
 
-                        <!-- Voucher Recommendations Section -->
-                        @if($this->availableVouchers->isNotEmpty())
-                            <div class="space-y-3 pb-4 border-b border-gray-100 dark:border-gray-700">
-                                <span class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Voucher Tersedia Untukmu</span>
+                                <!-- List of Available Vouchers -->
                                 <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
                                     @foreach($this->availableVouchers as $voucher)
                                         @php
@@ -857,7 +939,7 @@ new #[Layout('layouts.app')] class extends Component
 
                                         <div class="p-3 rounded-2xl border transition-all duration-300 flex items-center justify-between gap-3 relative overflow-hidden
                                             {{ $isApplied 
-                                                ? 'bg-emerald-50/60 dark:bg-emerald-950/25 border-emerald-500/50' 
+                                                ? 'bg-emerald-55/60 dark:bg-emerald-950/25 border-emerald-500/50' 
                                                 : ($isEligible 
                                                     ? 'bg-gray-50 dark:bg-gray-800/40 border-gray-150 dark:border-gray-700 hover:border-violet-300 dark:hover:border-violet-900/50' 
                                                     : 'bg-gray-50/50 dark:bg-gray-800/20 border-gray-100 dark:border-gray-800 opacity-75') }}
@@ -869,16 +951,16 @@ new #[Layout('layouts.app')] class extends Component
                                                     : 'from-violet-400 to-purple-500' }}
                                             "></div>
 
-                                            <div class="flex-1 min-w-0 pl-1.5">
+                                            <div class="flex-1 min-w-0 pl-1.5 bg-transparent">
                                                 <div class="flex items-center gap-1.5 mb-1 bg-transparent">
                                                     <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide
                                                         {{ $voucher->type === 'shipping' 
-                                                            ? 'bg-teal-55 dark:bg-teal-950/40 text-teal-700 dark:text-teal-400' 
+                                                            ? 'bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-400' 
                                                             : 'bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400' }}
                                                     ">
                                                         {{ $voucher->type === 'shipping' ? 'Gratis Ongkir' : ($voucher->type === 'percentage' ? 'Diskon ' . number_format($voucher->value) . '%' : 'Diskon Rp ' . number_format($voucher->value, 0, ',', '.')) }}
                                                     </span>
-                                                    <span class="text-[10px] font-extrabold text-gray-550 dark:text-gray-400 font-mono tracking-wider">{{ $voucher->code }}</span>
+                                                    <span class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 font-mono tracking-wider">{{ $voucher->code }}</span>
                                                 </div>
                                                 
                                                 <p class="text-[11px] text-gray-900 dark:text-gray-100 font-bold truncate bg-transparent">
@@ -895,7 +977,7 @@ new #[Layout('layouts.app')] class extends Component
                                                         Belanja kurang <span class="font-extrabold">Rp {{ number_format($missingSpend, 0, ',', '.') }}</span>
                                                     </p>
                                                 @else
-                                                    <p class="text-[10px] text-gray-450 dark:text-gray-500 mt-0.5 bg-transparent">
+                                                    <p class="text-[10px] text-gray-550 dark:text-gray-400 mt-0.5 bg-transparent">
                                                         Min. belanja Rp {{ number_format($voucher->min_spend, 0, ',', '.') }}
                                                     </p>
                                                 @endif
@@ -929,17 +1011,43 @@ new #[Layout('layouts.app')] class extends Component
                                     @endforeach
                                 </div>
                             </div>
-                        @endif
-
-                        <!-- Voucher Promo Input Form -->
-                        <div class="space-y-2 border-b border-gray-50 dark:border-gray-700 pb-4">
-                            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Kode Voucher / Promo</label>
-                            <div class="flex gap-2">
-                                <input wire:model="voucherCode" type="text" placeholder="Masukkan kode promo..." class="flex-1 border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-violet-500 focus:border-violet-500 text-sm py-2 px-3">
-                                <button wire:click="applyVoucher" class="px-4 py-2 text-xs font-semibold rounded-xl text-white bg-violet-600 hover:bg-violet-700 transition">Gunakan</button>
-                            </div>
-                            @error('voucherCode') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
+                    @endif
+
+                    <!-- Sticky Summary Receipt Card -->
+                    <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 sticky top-6 space-y-6">
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-50 dark:border-gray-700 pb-4">Ringkasan Pesanan</h2>
+
+                        <!-- Applied Vouchers Badge List -->
+                        @if($appliedProductVoucher || $appliedShippingVoucher)
+                            <div class="space-y-2">
+                                <span class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Voucher Diterapkan</span>
+                                <div class="flex flex-col gap-2">
+                                    @if($appliedProductVoucher)
+                                        <div class="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 px-3 py-2 rounded-xl text-xs font-semibold border border-emerald-100 dark:border-emerald-900/30">
+                                            <div class="flex items-center gap-1.5 bg-transparent">
+                                                <svg class="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                                                <span>{{ $appliedProductVoucher->code }}</span>
+                                            </div>
+                                            <button wire:click="removeVoucher('product')" class="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 font-bold transition ml-2">
+                                                ✕
+                                            </button>
+                                        </div>
+                                    @endif
+                                    @if($appliedShippingVoucher)
+                                        <div class="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 px-3 py-2 rounded-xl text-xs font-semibold border border-emerald-100 dark:border-emerald-900/30">
+                                            <div class="flex items-center gap-1.5 bg-transparent">
+                                                <svg class="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                <span>{{ $appliedShippingVoucher->code }} (Bebas Ongkir)</span>
+                                            </div>
+                                            <button wire:click="removeVoucher('shipping')" class="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 font-bold transition ml-2">
+                                                ✕
+                                            </button>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
 
                         <div class="space-y-3">
                             <div class="flex justify-between text-sm text-gray-500">

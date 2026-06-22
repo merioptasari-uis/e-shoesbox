@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added multi-status sandbox simulation options (Settlement/Success, Pending, and Expired/Failed) inside the mock payment overlay on the order details page.
+- Implemented a collapsible 'Voucher Hemat untuk Anda' visual coupon cards panel above the checkout summary on the cart page.
 - Added persistent light/dark mode toggle button to navigation layouts (desktop and mobile responsive) defaulting to light mode.
 - Integrated pagination support for admin products, campaigns, orders, and vouchers list panels to manage high volumes of items efficiently.
 - Refined edit/create product and campaign modals with grouped layout cards and section headers ("Informasi Utama", "Harga, Stok & Foto", etc.) for a cleaner, structured admin UX.
@@ -19,7 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Integrated general promo tags (`Flash Sale`, `Cashback`, `Diskon Besar`, `New Arrival`) into admin campaigns and products forms.
 
 ### Changed
-- Migrated storefront primary branding color palette from Indigo to Violet (main action buttons/borders) & Emerald (success and accents) across index catalog, cart checkout, and order detail pages, ensuring robust input contrast and transitions.
+- Refactored checkout courier selection to fetch JNE, POS, and TIKI shipping rates simultaneously, merging them into a unified list sorted by cost ascending.
+- Updated coupon recommendation cards layout on checkout page to display with discount values, eligibility indicator, and auto-selection of the best eligible vouchers by default.
+- Migrated storefront primary branding color palette from Indigo to Violet (main action borders/buttons) & Emerald (success and accents) across index catalog, cart checkout, and order detail pages, ensuring robust input contrast and transitions.
 - Updated storefront shopping carousel and catalog card swatch loops to prioritize dynamic DB colors and campaign slide gradients/emojis dynamically, utilizing automated fallback schemes.
 
 ### Changed

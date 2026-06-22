@@ -93,20 +93,68 @@ new #[Layout('layouts.app')] class extends Component
 
     public function simulateSettlement(): void
     {
+        $this->simulatePaymentStatus('settlement');
+    }
+
+    public function simulatePaymentStatus(string $status): void
+    {
         $payment = $this->order->payment;
-        if ($payment && $payment->status !== 'settlement') {
-            $payment->update([
-                'status' => 'settlement',
-                'payment_type' => 'bank_transfer',
-                'transaction_id' => 'simulated-tx-' . uniqid(),
-            ]);
+        if (!$payment) {
+            $this->dispatch('notify', type: 'error', message: 'Data pembayaran tidak ditemukan.');
+            return;
+        }
 
-            if ($this->order->status === 'pending') {
-                $this->order->update(['status' => 'processing']);
-            }
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($payment, $status) {
+                $mappedStatus = match ($status) {
+                    'settlement' => 'settlement',
+                    'pending' => 'pending',
+                    'expire', 'cancel' => 'expire',
+                    default => $payment->status,
+                };
 
-            $this->order->load('payment');
-            $this->dispatch('notify', type: 'success', message: 'Simulasi penyelesaian pembayaran berhasil!');
+                // Check if transitioning to cancelled/expire from pending
+                if ($mappedStatus === 'expire' && $this->order->status === 'pending') {
+                    // Restore stock
+                    foreach ($this->order->items as $item) {
+                        if ($item->product_variant_id && $item->productVariant) {
+                            $item->productVariant->increment('stock', $item->quantity);
+                        } elseif ($item->product) {
+                            $item->product->increment('stock', $item->quantity);
+                        }
+                    }
+                    // Restore voucher usage
+                    foreach ($this->order->vouchers as $voucher) {
+                        $voucher->decrement('used_count');
+                    }
+                    $this->order->update(['status' => 'cancelled']);
+                }
+
+                if ($mappedStatus === 'settlement' && $this->order->status === 'pending') {
+                    $this->order->update(['status' => 'processing']);
+                }
+
+                $payment->update([
+                    'status' => $mappedStatus,
+                    'payment_type' => $payment->payment_type ?: 'bank_transfer',
+                    'transaction_id' => $payment->transaction_id ?: 'simulated-tx-' . uniqid(),
+                ]);
+            });
+
+            $this->order->load(['payment', 'items.product', 'items.productVariant', 'vouchers']);
+
+            $msg = match ($status) {
+                'settlement' => 'Simulasi status Settlement (Pembayaran Sukses) berhasil!',
+                'pending' => 'Simulasi status Pending (Menunggu Pembayaran) berhasil!',
+                'expire' => 'Simulasi status Expired (Pembayaran Gagal/Kadaluarsa) berhasil!',
+                default => 'Simulasi status pembayaran berhasil diperbarui.',
+            };
+            $notifyType = $status === 'expire' ? 'warning' : ($status === 'pending' ? 'info' : 'success');
+
+            $this->dispatch('notify', type: $notifyType, message: $msg);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Payment simulation failed: ' . $e->getMessage());
+            $this->dispatch('notify', type: 'error', message: 'Gagal melakukan simulasi pembayaran.');
         }
     }
 
@@ -686,12 +734,26 @@ new #[Layout('layouts.app')] class extends Component
                         <p class="text-xl font-mono font-black text-violet-600 dark:text-violet-400 mt-1">988776655443321</p>
                         <p class="text-[10px] text-gray-500 mt-2">Gunakan tombol di bawah untuk mensimulasikan pembayaran transfer bank berhasil.</p>
                     </div>
-                    <button 
-                        @click="paymentSimulated = true; $wire.simulateSettlement(); closeModal()"
-                        class="w-full py-3.5 rounded-2xl text-xs font-bold text-white bg-violet-600 hover:bg-violet-700 transition shadow-lg shadow-violet-100 dark:shadow-none"
-                    >
-                        Simulasikan Pembayaran Sukses
-                    </button>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button 
+                            @click="paymentSimulated = true; $wire.simulatePaymentStatus('settlement'); closeModal()"
+                            class="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition shadow-md"
+                        >
+                            Simulasikan Sukses (Settlement)
+                        </button>
+                        <button 
+                            @click="paymentSimulated = true; $wire.simulatePaymentStatus('pending'); closeModal()"
+                            class="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 transition shadow-sm"
+                        >
+                            Simulasikan Pending
+                        </button>
+                        <button 
+                            @click="paymentSimulated = true; $wire.simulatePaymentStatus('expire'); closeModal()"
+                            class="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 transition shadow-sm"
+                        >
+                            Simulasikan Gagal (Expired)
+                        </button>
+                    </div>
                 </div>
 
                 <!-- GoPay Screen -->
@@ -712,12 +774,26 @@ new #[Layout('layouts.app')] class extends Component
                         </div>
                         <p class="text-xs text-gray-500 dark:text-gray-400">Pindai kode QR tiruan di atas untuk menyelesaikan pesanan.</p>
                     </div>
-                    <button 
-                        @click="paymentSimulated = true; $wire.simulateSettlement(); closeModal()"
-                        class="w-full py-3.5 rounded-2xl text-xs font-bold text-white bg-violet-600 hover:bg-violet-700 transition shadow-lg shadow-violet-100 dark:shadow-none"
-                    >
-                        Simulasikan Pembayaran Sukses
-                    </button>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button 
+                            @click="paymentSimulated = true; $wire.simulatePaymentStatus('settlement'); closeModal()"
+                            class="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition shadow-md"
+                        >
+                            Simulasikan Sukses (Settlement)
+                        </button>
+                        <button 
+                            @click="paymentSimulated = true; $wire.simulatePaymentStatus('pending'); closeModal()"
+                            class="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 transition shadow-sm"
+                        >
+                            Simulasikan Pending
+                        </button>
+                        <button 
+                            @click="paymentSimulated = true; $wire.simulatePaymentStatus('expire'); closeModal()"
+                            class="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 transition shadow-sm"
+                        >
+                            Simulasikan Gagal (Expired)
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Credit Card Screen -->
@@ -743,12 +819,26 @@ new #[Layout('layouts.app')] class extends Component
                         </div>
                     </div>
                     
-                    <button 
-                        @click="paymentSimulated = true; $wire.simulateSettlement(); closeModal()"
-                        class="w-full py-3.5 rounded-2xl text-xs font-bold text-white bg-violet-600 hover:bg-violet-700 transition shadow-lg shadow-violet-100 dark:shadow-none"
-                    >
-                        Simulasikan Pembayaran Sukses
-                    </button>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button 
+                            @click="paymentSimulated = true; $wire.simulatePaymentStatus('settlement'); closeModal()"
+                            class="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition shadow-md"
+                        >
+                            Simulasikan Sukses (Settlement)
+                        </button>
+                        <button 
+                            @click="paymentSimulated = true; $wire.simulatePaymentStatus('pending'); closeModal()"
+                            class="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 transition shadow-sm"
+                        >
+                            Simulasikan Pending
+                        </button>
+                        <button 
+                            @click="paymentSimulated = true; $wire.simulatePaymentStatus('expire'); closeModal()"
+                            class="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 transition shadow-sm"
+                        >
+                            Simulasikan Gagal (Expired)
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -777,10 +867,12 @@ new #[Layout('layouts.app')] class extends Component
                  x-transition:leave="transition ease-in duration-200"
                  x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                  x-transition:leave-end="opacity-0 translate-y-2 scale-95"
-                 :class="n.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'"
+                 :class="n.type === 'success' ? 'bg-emerald-600 text-white' : (n.type === 'info' ? 'bg-blue-600 text-white' : (n.type === 'warning' ? 'bg-amber-500 text-white' : 'bg-rose-600 text-white'))"
                  class="px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2 border border-white/10 backdrop-blur-md font-semibold text-sm">
                  <svg x-show="n.type === 'success'" class="h-5 w-5 shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                 <svg x-show="n.type !== 'success'" class="h-5 w-5 shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                 <svg x-show="n.type === 'info'" class="h-5 w-5 shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                 <svg x-show="n.type === 'warning'" class="h-5 w-5 shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                 <svg x-show="!['success', 'info', 'warning'].includes(n.type)" class="h-5 w-5 shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                  <span x-text="n.message"></span>
             </div>
         </template>
