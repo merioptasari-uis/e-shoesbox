@@ -30,6 +30,8 @@ state([
     'additional_images' => [],
     'current_additional_images' => [],
     'promo_tag' => '',
+    'flash_sale_start' => '',
+    'flash_sale_end' => '',
 
     // Variant fields
     'variants' => [],
@@ -49,11 +51,13 @@ rules([
     'additional_images' => ['nullable', 'array'],
     'additional_images.*' => ['nullable', 'image', 'max:2048'],
     'promo_tag' => ['nullable', 'string', 'max:255'],
+    'flash_sale_start' => ['nullable', 'date'],
+    'flash_sale_end' => ['nullable', 'date', 'after_or_equal:flash_sale_start'],
 ]);
 
 $openCreateModal = function () {
     $this->resetErrorBag();
-    $this->reset(['editingProductId', 'category_id', 'name', 'description', 'price', 'discount_price', 'stock', 'weight', 'current_image_path', 'additional_images', 'current_additional_images', 'promo_tag', 'variants', 'new_size', 'new_color', 'new_stock']);
+    $this->reset(['editingProductId', 'category_id', 'name', 'description', 'price', 'discount_price', 'stock', 'weight', 'current_image_path', 'additional_images', 'current_additional_images', 'promo_tag', 'flash_sale_start', 'flash_sale_end', 'variants', 'new_size', 'new_color', 'new_stock']);
     // Set default category if exists
     $firstCategory = Category::first();
     if ($firstCategory) {
@@ -79,6 +83,8 @@ $openEditModal = function ($id) {
     $this->additional_images = [];
     $this->current_additional_images = $product->images;
     $this->promo_tag = $product->promo_tag ?? '';
+    $this->flash_sale_start = $product->flash_sale_start ? $product->flash_sale_start->format('Y-m-d\TH:i') : '';
+    $this->flash_sale_end = $product->flash_sale_end ? $product->flash_sale_end->format('Y-m-d\TH:i') : '';
     
     $this->variants = $product->variants->toArray();
     $this->new_size = '';
@@ -181,6 +187,14 @@ $saveProduct = function () {
     $validated['discount_price'] = $this->discount_price !== '' && $this->discount_price !== null ? $this->discount_price : null;
     $validated['promo_tag'] = $this->promo_tag !== '' ? $this->promo_tag : null;
     $validated['slug'] = Str::slug($this->name);
+
+    if ($validated['promo_tag'] !== 'Flash Sale') {
+        $validated['flash_sale_start'] = null;
+        $validated['flash_sale_end'] = null;
+    } else {
+        $validated['flash_sale_start'] = $this->flash_sale_start !== '' && $this->flash_sale_start !== null ? $this->flash_sale_start : null;
+        $validated['flash_sale_end'] = $this->flash_sale_end !== '' && $this->flash_sale_end !== null ? $this->flash_sale_end : null;
+    }
     
     // Copy the additional images array so we can shift files
     $uploadedFiles = $this->additional_images;
@@ -493,7 +507,7 @@ $getCategories = function () {
                                     <!-- Promo Tag Selection -->
                                     <div>
                                         <x-input-label for="form_promo_tag" :value="__('Label Promo / Hari Raya')" />
-                                        <select wire:model="promo_tag" id="form_promo_tag" class="mt-1 block w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                                        <select wire:model.live="promo_tag" id="form_promo_tag" class="mt-1 block w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
                                             <option value="">- Tanpa Promo -</option>
                                             <option value="Flash Sale">⚡ Flash Sale</option>
                                             <option value="Idul Fitri">Idul Fitri</option>
@@ -506,6 +520,21 @@ $getCategories = function () {
                                         </select>
                                         <x-input-error :messages="$errors->get('promo_tag')" class="mt-1" />
                                     </div>
+
+                                    @if($promo_tag === 'Flash Sale')
+                                        <div class="grid grid-cols-2 gap-4 mt-2">
+                                            <div>
+                                                <x-input-label for="form_flash_sale_start" :value="__('Mulai Flash Sale')" />
+                                                <x-text-input wire:model="flash_sale_start" id="form_flash_sale_start" class="block mt-1 w-full" type="datetime-local" />
+                                                <x-input-error :messages="$errors->get('flash_sale_start')" class="mt-1" />
+                                            </div>
+                                            <div>
+                                                <x-input-label for="form_flash_sale_end" :value="__('Selesai Flash Sale')" />
+                                                <x-text-input wire:model="flash_sale_end" id="form_flash_sale_end" class="block mt-1 w-full" type="datetime-local" />
+                                                <x-input-error :messages="$errors->get('flash_sale_end')" class="mt-1" />
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
 
                                 <!-- Right Column: Prices, Stock, Weight, & Photos -->

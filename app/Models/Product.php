@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['category_id', 'name', 'slug', 'description', 'price', 'discount_price', 'stock', 'weight', 'image_path', 'is_active', 'promo_tag'])]
+#[Fillable(['category_id', 'name', 'slug', 'description', 'price', 'discount_price', 'stock', 'weight', 'image_path', 'is_active', 'promo_tag', 'flash_sale_start', 'flash_sale_end'])]
 class Product extends Model
 {
     /**
@@ -23,6 +23,8 @@ class Product extends Model
             'stock' => 'integer',
             'weight' => 'integer',
             'is_active' => 'boolean',
+            'flash_sale_start' => 'datetime',
+            'flash_sale_end' => 'datetime',
         ];
     }
 
@@ -56,6 +58,23 @@ class Product extends Model
         }
 
         return (int) round((($this->price - $this->discount_price) / $this->price) * 100);
+    }
+
+    /**
+     * Determine if the product has an active flash sale.
+     */
+    public function getIsActiveFlashSaleAttribute(): bool
+    {
+        if ($this->promo_tag !== 'Flash Sale') {
+            return false;
+        }
+
+        $now = now();
+
+        return $this->flash_sale_start !== null
+            && $this->flash_sale_end !== null
+            && $now->gte($this->flash_sale_start)
+            && $now->lte($this->flash_sale_end);
     }
 
     /**
