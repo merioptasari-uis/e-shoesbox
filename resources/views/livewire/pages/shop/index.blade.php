@@ -25,8 +25,6 @@ new #[Layout('layouts.app')] class extends Component
 
     public ?string $selectedColor = null;
     public ?string $selectedSize = null;
-    public int $reviewRating = 5;
-    public string $reviewComment = '';
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -85,7 +83,6 @@ new #[Layout('layouts.app')] class extends Component
             $this->selectedSize = null;
         }
 
-        $this->reset(['reviewRating', 'reviewComment']);
         $this->isDetailModalOpen = true;
     }
 
@@ -95,7 +92,6 @@ new #[Layout('layouts.app')] class extends Component
         $this->selectedProductId = null;
         $this->selectedColor = null;
         $this->selectedSize = null;
-        $this->reset(['reviewRating', 'reviewComment']);
     }
 
     public function selectImage(int $index): void
@@ -118,21 +114,6 @@ new #[Layout('layouts.app')] class extends Component
     public function selectSize(string $size): void
     {
         $this->selectedSize = $size;
-    }
-
-    #[Computed]
-    public function canUserReview(): bool
-    {
-        if (!Auth::check()) {
-            return false;
-        }
-
-        return \App\Models\Order::where('user_id', Auth::id())
-            ->where('status', 'completed')
-            ->whereHas('items', function ($query) {
-                $query->where('product_id', $this->selectedProductId);
-            })
-            ->exists();
     }
 
     #[Computed]
@@ -175,35 +156,6 @@ new #[Layout('layouts.app')] class extends Component
         }
 
         return $gallery;
-    }
-
-    public function submitReview(): void
-    {
-        if (!Auth::check()) {
-            $this->dispatch('notify', type: 'error', message: 'Anda harus login untuk menulis ulasan!');
-            return;
-        }
-
-        if (!$this->canUserReview) {
-            $this->dispatch('notify', type: 'error', message: 'Anda hanya dapat menulis ulasan setelah membeli produk ini dan pesanan Anda selesai!');
-            return;
-        }
-
-        $this->validate([
-            'reviewRating' => ['required', 'integer', 'min:1', 'max:5'],
-            'reviewComment' => ['nullable', 'string', 'max:1000'],
-        ]);
-
-        \App\Models\Review::create([
-            'user_id' => Auth::id(),
-            'product_id' => $this->selectedProductId,
-            'rating' => $this->reviewRating,
-            'comment' => $this->reviewComment !== '' ? $this->reviewComment : null,
-        ]);
-
-        $this->reset(['reviewRating', 'reviewComment']);
-        unset($this->selectedProduct);
-        $this->dispatch('notify', type: 'success', message: 'Ulasan Anda berhasil dikirim!');
     }
 
     public function with(): array
@@ -1232,60 +1184,7 @@ new #[Layout('layouts.app')] class extends Component
                                 </div>
                             </div>
 
-                            <!-- Write a Review Form -->
-                            <div class="bg-white dark:bg-gray-800 p-5 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                                <h4 class="text-sm font-bold text-gray-900 dark:text-white mb-3">Tulis Ulasan Anda</h4>
-                                @auth
-                                    @if($this->canUserReview)
-                                        <form wire:submit.prevent="submitReview" class="space-y-4">
-                                            <!-- Rating Selector -->
-                                            <div>
-                                                <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Beri Bintang:</label>
-                                                <div class="flex items-center gap-2">
-                                                    @for($r = 1; $r <= 5; $r++)
-                                                        <button 
-                                                            type="button" 
-                                                            wire:click="$set('reviewRating', {{ $r }})" 
-                                                            class="text-2xl transition hover:scale-110 focus:outline-none {{ $this->reviewRating >= $r ? 'text-amber-400' : 'text-gray-300 dark:text-gray-600' }}"
-                                                        >
-                                                            ★
-                                                        </button>
-                                                    @endfor
-                                                </div>
-                                            </div>
 
-                                            <!-- Comment textarea -->
-                                            <div>
-                                                <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Komentar:</label>
-                                                <textarea 
-                                                    wire:model="reviewComment" 
-                                                    rows="3" 
-                                                    placeholder="Bagikan pengalaman Anda menggunakan sepatu ini..." 
-                                                    class="w-full text-xs p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none"
-                                                ></textarea>
-                                                @error('reviewComment') <span class="text-red-500 text-[10px] font-bold mt-1 block">{{ $message }}</span> @enderror
-                                            </div>
-
-                                            <button 
-                                                type="submit" 
-                                                class="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition"
-                                            >
-                                                Kirim Ulasan
-                                            </button>
-                                        </form>
-                                    @else
-                                        <div class="text-center py-4 bg-gray-50/50 dark:bg-gray-900/20 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
-                                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1 font-semibold">Ulasan Terkunci</p>
-                                            <p class="text-[10px] text-gray-500 dark:text-gray-400 px-2 leading-relaxed">Anda hanya dapat menulis ulasan setelah membeli produk ini dan status pesanan Anda telah 'Selesai'.</p>
-                                        </div>
-                                    @endif
-                                @else
-                                    <div class="text-center py-4 bg-gray-50/50 dark:bg-gray-900/20 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Silakan login untuk mengirimkan ulasan.</p>
-                                        <a href="{{ route('login') }}" class="inline-flex text-xs font-bold text-indigo-600 hover:underline" wire:navigate>Masuk Sekarang ➜</a>
-                                    </div>
-                                @endauth
-                            </div>
                         </div>
                         
                         <!-- Right Columns: Reviews List -->

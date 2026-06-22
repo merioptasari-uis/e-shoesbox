@@ -137,17 +137,19 @@ test('logged in user can submit a review and select variants in detail modal', f
         'quantity' => 1,
     ]);
 
+    // Test variant selectors on catalog detail modal
     Volt::test('pages.shop.index')
         ->call('openDetailModal', $product->id)
         ->assertSee('Shoe Test')
-        // Test variant selectors
         ->call('selectColor', 'Biru')
         ->assertSet('selectedColor', 'Biru')
-        ->assertSet('selectedSize', '42') // automatically selected
-        // Test review form submission
-        ->set('reviewRating', 5)
-        ->set('reviewComment', 'Bagus sekali sepatunya!')
-        ->call('submitReview')
+        ->assertSet('selectedSize', '42'); // automatically selected
+
+    // Test review form submission on order details page
+    Volt::test('pages.shop.order-details', ['order' => $order])
+        ->set('rating', 5)
+        ->set('comment', 'Bagus sekali sepatunya!')
+        ->call('submitReview', $product->id)
         ->assertHasNoErrors();
 
     // Verify review saved
