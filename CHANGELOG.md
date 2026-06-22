@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added persistent light/dark mode toggle button to navigation layouts (desktop and mobile responsive) defaulting to light mode.
 - Integrated pagination support for admin products, campaigns, orders, and vouchers list panels to manage high volumes of items efficiently.
 - Refined edit/create product and campaign modals with grouped layout cards and section headers ("Informasi Utama", "Harga, Stok & Foto", etc.) for a cleaner, structured admin UX.
 - Set up automatic page reset hooks inside admin search/filters filters to prevent users getting stuck on empty pages during query updates.
@@ -18,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Integrated general promo tags (`Flash Sale`, `Cashback`, `Diskon Besar`, `New Arrival`) into admin campaigns and products forms.
 
 ### Changed
+- Migrated storefront primary branding color palette from Indigo to Violet (main action buttons/borders) & Emerald (success and accents) across index catalog, cart checkout, and order detail pages, ensuring robust input contrast and transitions.
 - Updated storefront shopping carousel and catalog card swatch loops to prioritize dynamic DB colors and campaign slide gradients/emojis dynamically, utilizing automated fallback schemes.
 
 ### Changed

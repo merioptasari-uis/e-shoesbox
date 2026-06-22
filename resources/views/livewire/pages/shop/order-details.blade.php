@@ -194,7 +194,7 @@ new #[Layout('layouts.app')] class extends Component
         <!-- Order Header -->
         <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest block mb-1">Detail Faktur</span>
+                <span class="text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-widest block mb-1">Detail Faktur</span>
                 <h1 class="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">
                     {{ $order->order_number }}
                 </h1>
@@ -207,7 +207,7 @@ new #[Layout('layouts.app')] class extends Component
                     {{ $order->status === 'completed' ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-900/30' : '' }}
                     {{ $order->status === 'pending' ? 'bg-amber-50 text-amber-800 dark:bg-amber-950/20 dark:text-amber-300 border border-amber-100 dark:border-amber-900/30' : '' }}
                     {{ $order->status === 'processing' ? 'bg-blue-50 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border border-blue-100 dark:border-blue-900/30' : '' }}
-                    {{ $order->status === 'shipping' ? 'bg-indigo-50 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900/30' : '' }}
+                    {{ $order->status === 'shipping' ? 'bg-violet-50 text-violet-800 dark:bg-violet-950 dark:text-violet-300 border border-violet-100 dark:border-violet-900/30' : '' }}
                     {{ $order->status === 'cancelled' ? 'bg-rose-50 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border border-rose-100 dark:border-rose-900/30' : '' }}
                 ">
                     {{ match ($order->status) { 'pending' => 'Menunggu Pembayaran', 'processing' => 'Diproses', 'shipping' => 'Dalam Pengiriman', 'completed' => 'Selesai', 'cancelled' => 'Dibatalkan', default => $order->status } }}
@@ -242,7 +242,7 @@ new #[Layout('layouts.app')] class extends Component
                 <!-- Line background for Desktop (Horizontal) -->
                 <div class="hidden md:block absolute left-0 right-0 top-1/2 -translate-y-1/2 h-0.5 bg-gray-150 dark:bg-gray-700 -z-10 rounded-full">
                     <!-- Progress bar line -->
-                    <div class="h-full bg-indigo-650 dark:bg-indigo-500 rounded-full transition-all duration-500" 
+                    <div class="h-full bg-violet-650 dark:bg-violet-500 rounded-full transition-all duration-500" 
                          style="width: {{ $order->status === 'completed' ? '100%' : ($order->status === 'shipping' ? '75%' : ($order->status === 'processing' ? '50%' : ($order->status === 'pending' && $order->payment?->status === 'settlement' ? '50%' : ($order->status === 'pending' ? '25%' : '0%')))) }}">
                     </div>
                 </div>
@@ -298,7 +298,7 @@ new #[Layout('layouts.app')] class extends Component
                         <!-- Step Circle Icon -->
                         <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 border-2 transition-all duration-300 z-10
                             {{ $isCompleted 
-                                ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-600 text-indigo-600 dark:text-indigo-400 font-extrabold shadow-sm' 
+                                ? 'bg-violet-50 dark:bg-violet-950/40 border-violet-600 text-violet-600 dark:text-violet-400 font-extrabold shadow-sm' 
                                 : ($isActive 
                                     ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-500 text-amber-500 font-extrabold animate-pulse' 
                                     : ($isCancelled 
@@ -321,7 +321,7 @@ new #[Layout('layouts.app')] class extends Component
                         <!-- Labels -->
                         <div class="text-left md:text-center">
                             <p class="text-xs font-extrabold 
-                                {{ $isCompleted ? 'text-indigo-900 dark:text-indigo-200 font-bold' : ($isActive ? 'text-amber-700 dark:text-amber-400 font-bold' : ($isCancelled ? 'text-rose-500' : 'text-gray-500 dark:text-gray-400')) }}
+                                {{ $isCompleted ? 'text-violet-900 dark:text-violet-200 font-bold' : ($isActive ? 'text-amber-700 dark:text-amber-400 font-bold' : ($isCancelled ? 'text-rose-500' : 'text-gray-500 dark:text-gray-400')) }}
                             ">
                                 {{ $step['label'] }}
                             </p>
@@ -336,13 +336,13 @@ new #[Layout('layouts.app')] class extends Component
 
         <!-- Simulation Banner for Local Developers -->
         @if($order->status === 'pending')
-            <div class="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/30 rounded-3xl p-6 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="bg-violet-50 dark:bg-violet-950/30 border border-violet-100 dark:border-violet-900/30 rounded-3xl p-6 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block mb-1">Alat Sandbox Developer</span>
+                    <span class="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider block mb-1">Alat Sandbox Developer</span>
                     <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100">Simulasikan Penyelesaian Pembayaran</h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Gunakan simulator untuk mensimulasikan berbagai metode pembayaran sandbox.</p>
                 </div>
-                <button @click="showMockModal = true" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-xs font-semibold rounded-xl text-white bg-indigo-650 hover:bg-indigo-700 transition shadow">
+                <button @click="showMockModal = true" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-xs font-semibold rounded-xl text-white bg-violet-650 hover:bg-violet-700 transition shadow">
                     Buka Simulator Pembayaran
                 </button>
             </div>
@@ -405,7 +405,7 @@ new #[Layout('layouts.app')] class extends Component
                                     <div class="mt-2 text-right">
                                         <button 
                                             wire:click="$set('activeReviewProductId', {{ $activeReviewProductId === $item->product_id ? 'null' : $item->product_id }})"
-                                            class="inline-flex items-center px-3 py-1.5 border border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 text-[10px] font-bold rounded-lg text-indigo-600 dark:text-indigo-400 transition"
+                                            class="inline-flex items-center px-3 py-1.5 border border-violet-600 hover:bg-violet-50 dark:hover:bg-violet-950/30 text-[10px] font-bold rounded-lg text-violet-600 dark:text-violet-400 transition"
                                         >
                                             {{ $activeReviewProductId === $item->product_id ? 'Tutup Form' : 'Beri Ulasan' }}
                                         </button>
@@ -413,7 +413,7 @@ new #[Layout('layouts.app')] class extends Component
 
                                     @if($activeReviewProductId === $item->product_id)
                                         <!-- Inline Review Form -->
-                                        <form wire:submit.prevent="submitReview({{ $item->product_id }})" class="mt-3 bg-gray-50/50 dark:bg-gray-900/20 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-900/30 space-y-3">
+                                        <form wire:submit.prevent="submitReview({{ $item->product_id }})" class="mt-3 bg-gray-50/50 dark:bg-gray-900/20 p-4 rounded-2xl border border-violet-100 dark:border-violet-900/30 space-y-3">
                                             <div>
                                                 <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Pilih Bintang:</label>
                                                 <div class="flex items-center gap-1">
@@ -434,13 +434,13 @@ new #[Layout('layouts.app')] class extends Component
                                                     wire:model="comment" 
                                                     rows="2" 
                                                     placeholder="Bagikan pengalaman Anda menggunakan sepatu ini..." 
-                                                    class="w-full text-xs p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none"
+                                                    class="w-full text-xs p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-violet-500 focus:border-violet-500 focus:outline-none"
                                                 ></textarea>
                                                 @error('comment') <span class="text-red-500 text-[10px] font-bold mt-1 block">{{ $message }}</span> @enderror
                                             </div>
                                             <button 
                                                 type="submit" 
-                                                class="w-full py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition"
+                                                class="w-full py-2 rounded-xl text-xs font-bold text-white bg-violet-600 hover:bg-violet-700 transition"
                                             >
                                                 Kirim Ulasan
                                             </button>
@@ -477,7 +477,7 @@ new #[Layout('layouts.app')] class extends Component
                     <div>
                         <span class="text-xs text-gray-400 block mb-1">Nomor Resi / Pelacakan</span>
                         @if($order->tracking_number)
-                            <p class="font-extrabold text-indigo-600 dark:text-indigo-400 uppercase">{{ $order->tracking_number }}</p>
+                            <p class="font-extrabold text-violet-600 dark:text-violet-400 uppercase">{{ $order->tracking_number }}</p>
                         @else
                             <p class="text-gray-400 italic">Belum dikirim</p>
                         @endif
@@ -562,7 +562,7 @@ new #[Layout('layouts.app')] class extends Component
                                     }
                                 });
                             "
-                            class="w-full flex items-center justify-center px-6 py-4 border border-transparent text-sm font-semibold rounded-2xl text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-lg shadow-indigo-100 dark:shadow-none"
+                            class="w-full flex items-center justify-center px-6 py-4 border border-transparent text-sm font-semibold rounded-2xl text-white bg-violet-600 hover:bg-violet-700 transition shadow-lg shadow-violet-100 dark:shadow-none"
                         >
                             Bayar Sekarang
                         </button>
@@ -601,16 +601,16 @@ new #[Layout('layouts.app')] class extends Component
             @click.away="closeModal()"
         >
             <!-- Header -->
-            <div class="bg-indigo-600 dark:bg-indigo-950 p-5 text-white flex items-center justify-between border-b border-indigo-700 dark:border-indigo-900">
+            <div class="bg-violet-600 dark:bg-violet-950 p-5 text-white flex items-center justify-between border-b border-violet-700 dark:border-violet-900">
                 <div class="flex items-center gap-2">
-                    <span class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-black text-sm text-indigo-100 font-sans">S</span>
+                    <span class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-black text-sm text-violet-100 font-sans">S</span>
                     <div>
                         <h4 class="text-sm font-extrabold tracking-tight">Midtrans Simulator</h4>
-                        <p class="text-xxs text-indigo-200 uppercase tracking-widest font-bold">Sandbox Mode</p>
+                        <p class="text-xxs text-violet-200 uppercase tracking-widest font-bold">Sandbox Mode</p>
                     </div>
                 </div>
                 <div class="text-right">
-                    <span class="text-xs text-indigo-200 block">Total Bayar</span>
+                    <span class="text-xs text-violet-200 block">Total Bayar</span>
                     <span class="text-base font-black">Rp {{ number_format($order->total_amount, 0, ',', '.') }}</span>
                 </div>
             </div>
@@ -632,10 +632,10 @@ new #[Layout('layouts.app')] class extends Component
                         <!-- Virtual Account -->
                         <button 
                             @click="selectedMockMethod = 'va'" 
-                            class="w-full flex items-center justify-between p-4 rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/20 hover:border-indigo-600 dark:hover:border-indigo-400 transition text-left"
+                            class="w-full flex items-center justify-between p-4 rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 hover:bg-violet-50/40 dark:hover:bg-violet-950/20 hover:border-violet-600 dark:hover:border-violet-400 transition text-left"
                         >
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-extrabold text-xs">VA</div>
+                                <div class="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950 flex items-center justify-center text-violet-600 dark:text-violet-400 font-extrabold text-xs">VA</div>
                                 <div>
                                     <span class="text-xs font-bold text-gray-900 dark:text-white block">Transfer Virtual Account</span>
                                     <span class="text-xxs text-gray-500">BCA, Mandiri, BNI, BRI</span>
@@ -647,7 +647,7 @@ new #[Layout('layouts.app')] class extends Component
                         <!-- GoPay -->
                         <button 
                             @click="selectedMockMethod = 'gopay'" 
-                            class="w-full flex items-center justify-between p-4 rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/20 hover:border-indigo-600 dark:hover:border-indigo-400 transition text-left"
+                            class="w-full flex items-center justify-between p-4 rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 hover:bg-violet-50/40 dark:hover:bg-violet-950/20 hover:border-violet-600 dark:hover:border-violet-400 transition text-left"
                         >
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-extrabold text-xs">QR</div>
@@ -662,7 +662,7 @@ new #[Layout('layouts.app')] class extends Component
                         <!-- Credit Card -->
                         <button 
                             @click="selectedMockMethod = 'cc'" 
-                            class="w-full flex items-center justify-between p-4 rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/20 hover:border-indigo-600 dark:hover:border-indigo-400 transition text-left"
+                            class="w-full flex items-center justify-between p-4 rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 hover:bg-violet-50/40 dark:hover:bg-violet-950/20 hover:border-violet-600 dark:hover:border-violet-400 transition text-left"
                         >
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/40 flex items-center justify-center text-purple-600 dark:text-purple-400 font-extrabold text-xs">CC</div>
@@ -683,12 +683,12 @@ new #[Layout('layouts.app')] class extends Component
                     </button>
                     <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 text-center">
                         <p class="text-xs text-gray-450 dark:text-gray-400 uppercase tracking-widest font-bold">Nomor Virtual Account</p>
-                        <p class="text-xl font-mono font-black text-indigo-600 dark:text-indigo-400 mt-1">988776655443321</p>
+                        <p class="text-xl font-mono font-black text-violet-600 dark:text-violet-400 mt-1">988776655443321</p>
                         <p class="text-[10px] text-gray-500 mt-2">Gunakan tombol di bawah untuk mensimulasikan pembayaran transfer bank berhasil.</p>
                     </div>
                     <button 
                         @click="paymentSimulated = true; $wire.simulateSettlement(); closeModal()"
-                        class="w-full py-3.5 rounded-2xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-lg shadow-indigo-100 dark:shadow-none"
+                        class="w-full py-3.5 rounded-2xl text-xs font-bold text-white bg-violet-600 hover:bg-violet-700 transition shadow-lg shadow-violet-100 dark:shadow-none"
                     >
                         Simulasikan Pembayaran Sukses
                     </button>
@@ -706,7 +706,7 @@ new #[Layout('layouts.app')] class extends Component
                                     <div class="w-3 h-3 bg-gray-900"></div>
                                 @endfor
                             </div>
-                            <div class="absolute inset-0 bg-white/95 border-4 border-indigo-650 rounded-xl m-1 flex items-center justify-center font-extrabold text-[10px] text-indigo-650 tracking-wider">
+                            <div class="absolute inset-0 bg-white/95 border-4 border-violet-650 rounded-xl m-1 flex items-center justify-center font-extrabold text-[10px] text-violet-650 tracking-wider">
                                 MOCK QRIS
                             </div>
                         </div>
@@ -714,7 +714,7 @@ new #[Layout('layouts.app')] class extends Component
                     </div>
                     <button 
                         @click="paymentSimulated = true; $wire.simulateSettlement(); closeModal()"
-                        class="w-full py-3.5 rounded-2xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-lg shadow-indigo-100 dark:shadow-none"
+                        class="w-full py-3.5 rounded-2xl text-xs font-bold text-white bg-violet-600 hover:bg-violet-700 transition shadow-lg shadow-violet-100 dark:shadow-none"
                     >
                         Simulasikan Pembayaran Sukses
                     </button>
@@ -745,7 +745,7 @@ new #[Layout('layouts.app')] class extends Component
                     
                     <button 
                         @click="paymentSimulated = true; $wire.simulateSettlement(); closeModal()"
-                        class="w-full py-3.5 rounded-2xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-lg shadow-indigo-100 dark:shadow-none"
+                        class="w-full py-3.5 rounded-2xl text-xs font-bold text-white bg-violet-600 hover:bg-violet-700 transition shadow-lg shadow-violet-100 dark:shadow-none"
                     >
                         Simulasikan Pembayaran Sukses
                     </button>
