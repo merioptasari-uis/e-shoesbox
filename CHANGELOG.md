@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Created a new database migration adding `shipped_at` and `completed_at` columns to the `orders` table.
+- Implemented model boot event listeners in `Order.php` to auto-populate `shipped_at` and `completed_at` timestamps upon status transitions.
+- Added bulk auto-completion utility button "Selesaikan Otomatis (+14 Hari)" on the Admin Order Management panel, enabling bulk transitions of orders shipped >= 14 days ago to "completed".
+- Added a Pest feature test verifying bulk auto-completion of shipping orders.
 - Created a Pest feature test verifying checkout pessimistic locking and variant-aware stock restoration.
 - Documented default pre-seeded admin and customer testing credentials in `README.md`.
 - Created a root-level `.htaccess` file directing Apache traffic to the `/public` folder for custom local subdirectory deployments.

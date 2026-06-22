@@ -28,9 +28,25 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'shipping_province',
     'shipping_city',
     'shipping_postal_code',
+    'shipped_at',
+    'completed_at',
 ])]
 class Order extends Model
 {
+    protected static function booted(): void
+    {
+        static::updating(function (Order $order) {
+            if ($order->isDirty('status')) {
+                if ($order->status === 'shipping' && ! $order->shipped_at) {
+                    $order->shipped_at = now();
+                }
+                if ($order->status === 'completed' && ! $order->completed_at) {
+                    $order->completed_at = now();
+                }
+            }
+        });
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -44,6 +60,8 @@ class Order extends Model
             'discount_amount' => 'decimal:2',
             'shipping_discount_amount' => 'decimal:2',
             'total_amount' => 'decimal:2',
+            'shipped_at' => 'datetime',
+            'completed_at' => 'datetime',
         ];
     }
 
