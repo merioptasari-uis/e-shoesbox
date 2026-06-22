@@ -473,7 +473,7 @@ $getCategories = function () {
                                 <!-- Category Selection -->
                                 <div>
                                     <x-input-label for="form_category" :value="__('Kategori')" />
-                                    <select wire:model="category_id" id="form_category" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <select wire:model="category_id" id="form_category" class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                         @foreach ($this->getCategories() as $category)
                                             <option value="{{ $category->id }}">{{ $category->name }}</option>
                                         @endforeach
@@ -517,14 +517,14 @@ $getCategories = function () {
                                 <!-- Description -->
                                 <div>
                                     <x-input-label for="form_description" :value="__('Deskripsi')" />
-                                    <textarea wire:model="description" id="form_description" rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-350 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                                    <textarea wire:model="description" id="form_description" rows="3" class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
                                     <x-input-error :messages="$errors->get('description')" class="mt-1" />
                                 </div>
 
                                 <!-- Promo Tag Selection -->
                                 <div>
                                     <x-input-label for="form_promo_tag" :value="__('Label Promo / Hari Raya')" />
-                                    <select wire:model="promo_tag" id="form_promo_tag" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <select wire:model="promo_tag" id="form_promo_tag" class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                         <option value="">- Tanpa Promo -</option>
                                         <option value="Idul Fitri">Idul Fitri</option>
                                         <option value="Natal">Natal</option>
@@ -563,7 +563,7 @@ $getCategories = function () {
                                                                 <input type="number" 
                                                                     wire:change="updateVariantStock({{ $index }}, $event.target.value)" 
                                                                     value="{{ $variant['stock'] }}" 
-                                                                    class="w-20 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-150 focus:ring-indigo-500 focus:border-indigo-500" 
+                                                                    class="w-20 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500" 
                                                                     min="0"
                                                                 />
                                                             </td>
@@ -586,19 +586,19 @@ $getCategories = function () {
                                     <div class="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-gray-200 dark:border-gray-700 space-y-3">
                                         <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider block">Tambah Varian Baru:</span>
                                         <div class="grid grid-cols-3 gap-2">
-                                            <div>
-                                                <input type="text" wire:model="new_size" placeholder="Ukuran (misal: 42)" class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500" />
-                                                @error('new_size') <span class="text-rose-500 text-[10px] block mt-1">{{ $message }}</span> @enderror
-                                            </div>
-                                            <div>
-                                                <input type="text" wire:model="new_color" placeholder="Warna (misal: Hitam)" class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500" />
-                                                @error('new_color') <span class="text-rose-500 text-[10px] block mt-1">{{ $message }}</span> @enderror
-                                            </div>
-                                            <div>
-                                                <input type="number" wire:model="new_stock" placeholder="Stok" min="0" class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500" />
-                                                @error('new_stock') <span class="text-rose-500 text-[10px] block mt-1">{{ $message }}</span> @enderror
-                                            </div>
-                                        </div>
+                                                                            <div>
+                                                                                <input type="text" wire:model="new_size" placeholder="Ukuran (misal: 42)" class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500" />
+                                                                                @error('new_size') <span class="text-rose-500 text-[10px] block mt-1">{{ $message }}</span> @enderror
+                                                                            </div>
+                                                                            <div>
+                                                                                <input type="text" wire:model="new_color" placeholder="Warna (misal: Hitam)" class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500" />
+                                                                                @error('new_color') <span class="text-rose-500 text-[10px] block mt-1">{{ $message }}</span> @enderror
+                                                                            </div>
+                                                                            <div>
+                                                                                <input type="number" wire:model="new_stock" placeholder="Stok" min="0" class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500" />
+                                                                                @error('new_stock') <span class="text-rose-500 text-[10px] block mt-1">{{ $message }}</span> @enderror
+                                                                            </div>
+                                                                        </div>
                                         <button type="button" wire:click="addVariant" class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-xl shadow-sm text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-750 transition cursor-pointer">
                                             ＋ Tambah Varian
                                         </button>

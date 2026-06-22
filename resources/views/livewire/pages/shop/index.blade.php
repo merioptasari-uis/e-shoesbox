@@ -1029,7 +1029,7 @@ new #[Layout('layouts.app')] class extends Component
                                     <span class="ml-1 font-bold text-gray-800 dark:text-gray-200">{{ $product->average_rating }}</span>
                                 </div>
                                 <span class="text-gray-300 dark:text-gray-600">·</span>
-                                <span class="text-gray-550 dark:text-gray-400 font-medium">{{ $product->reviews->count() }} Ulasan</span>
+                                <span class="text-gray-600 dark:text-gray-400 font-medium">{{ $product->reviews->count() }} Ulasan</span>
                                 <span class="text-gray-300 dark:text-gray-600">·</span>
                                 <span class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded font-extrabold">{{ $product->sales_count }}+ Terjual</span>
                             </div>
@@ -1183,7 +1183,7 @@ new #[Layout('layouts.app')] class extends Component
                                             <span class="text-lg">{{ $i <= round($product->average_rating) ? '★' : '☆' }}</span>
                                         @endfor
                                     </div>
-                                    <p class="text-xs text-gray-550 dark:text-gray-450 font-medium">95% pembeli sangat puas dengan kenyamanan produk ini.</p>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 font-medium">95% pembeli sangat puas dengan kenyamanan produk ini.</p>
                                 </div>
                             </div>
 
@@ -1265,7 +1265,7 @@ new #[Layout('layouts.app')] class extends Component
                                                         <span>{{ $i <= $rev->rating ? '★' : '☆' }}</span>
                                                     @endfor
                                                 </div>
-                                                <span class="text-[10px] text-emerald-605 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shrink-0">
+                                                <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shrink-0">
                                                     <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                                                     Pembeli Terverifikasi
                                                 </span>
