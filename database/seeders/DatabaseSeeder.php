@@ -444,5 +444,8 @@ class DatabaseSeeder extends Seeder
             'end_date' => now()->addDays(20),
             'is_active' => true,
         ]);
+
+        // 8. Seed Vouchers
+        $this->call(VoucherSeeder::class);
     }
 }
