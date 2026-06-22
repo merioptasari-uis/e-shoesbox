@@ -45,7 +45,7 @@ new #[Layout('layouts.app')] class extends Component
             return;
         }
 
-        $order = Order::findOrFail($this->selectedOrderId);
+        $order = Order::with(['items.product', 'items.productVariant', 'payment'])->findOrFail($this->selectedOrderId);
         
         $oldStatus = $order->status;
         $newStatus = $this->orderStatus;
@@ -69,7 +69,9 @@ new #[Layout('layouts.app')] class extends Component
             }
             // Restore stock
             foreach ($order->items as $item) {
-                if ($item->product) {
+                if ($item->product_variant_id && $item->productVariant) {
+                    $item->productVariant->increment('stock', $item->quantity);
+                } elseif ($item->product) {
                     $item->product->increment('stock', $item->quantity);
                 }
             }

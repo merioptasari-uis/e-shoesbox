@@ -31,7 +31,7 @@ class MidtransWebhookController extends Controller
             return response()->json(['message' => 'Invalid payload: missing order_id'], 400);
         }
 
-        $order = Order::with(['payment', 'items.product'])->where('order_number', $orderNumber)->first();
+        $order = Order::with(['payment', 'items.product', 'items.productVariant'])->where('order_number', $orderNumber)->first();
 
         if (! $order) {
             return response()->json(['message' => 'Order not found'], 404);
@@ -56,7 +56,9 @@ class MidtransWebhookController extends Controller
                 if (in_array($mappedStatus, ['cancel', 'expire']) && $order->status === 'pending') {
                     // Restore stock
                     foreach ($order->items as $item) {
-                        if ($item->product) {
+                        if ($item->product_variant_id && $item->productVariant) {
+                            $item->productVariant->increment('stock', $item->quantity);
+                        } elseif ($item->product) {
                             $item->product->increment('stock', $item->quantity);
                         }
                     }
