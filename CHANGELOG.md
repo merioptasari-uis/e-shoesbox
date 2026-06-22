@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a "Pesanan Diterima" (Confirm Order Received) button on the order details view when status is "Dalam Pengiriman", allowing buyers to mark order status as "Selesai" (completed) and unlock product review capabilities.
 
 ### Fixed
+- Included detailed product items, quantities, shipping costs, and voucher discounts in the Midtrans Snap request payload to display them on the payment page and dashboard.
 - Added a visual loading spinner and pulse skeleton loader on the checkout page (`cart.blade.php`) while fetching RajaOngkir shipping rates to improve user feedback.
 - Redesigned the customer reviews card list and write-review form in `index.blade.php` to use premium, consistent typography and standard Tailwind CSS colors, resolving the white text on white background readability issue in the input area.
 - Enforced backend and frontend constraints restricting product reviews to verified customers who have a completed order for that specific product.
