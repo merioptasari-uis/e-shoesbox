@@ -1124,14 +1124,32 @@ new #[Layout('layouts.app')] class extends Component
                                 <div class="space-y-4 mb-5">
                                     <!-- Color Picker -->
                                     <div>
-                                        <h4 class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">PILIH WARNA: <span class="text-gray-800 dark:text-white font-bold">{{ $this->selectedColor }}</span></h4>
-                                        <div class="flex items-center gap-2 flex-wrap">
+                                        <h4 class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">PILIH WARNA: <span class="text-gray-800 dark:text-white font-extrabold">{{ $this->selectedColor }}</span></h4>
+                                        <div class="flex items-center gap-2 flex-wrap bg-transparent">
                                             @foreach($colors as $color)
+                                                @php
+                                                    $hexColor = match(strtolower(trim($color))) {
+                                                        'hitam', 'black' => '#1a1a1a',
+                                                        'putih', 'white' => '#ffffff',
+                                                        'merah', 'red' => '#ef4444',
+                                                        'biru', 'blue' => '#3b82f6',
+                                                        'hijau', 'green' => '#10b981',
+                                                        'kuning', 'yellow' => '#f59e0b',
+                                                        'abu-abu', 'abu', 'gray', 'grey' => '#9ca3af',
+                                                        'cokelat', 'coklat', 'brown' => '#78350f',
+                                                        'navy' => '#1e3a8a',
+                                                        'pink', 'merah muda' => '#ec4899',
+                                                        default => null
+                                                    };
+                                                @endphp
                                                 <button 
                                                     wire:click="selectColor('{{ $color }}')"
-                                                    class="px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition duration-150 {{ $this->selectedColor === $color ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-indigo-600' }}"
+                                                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition duration-150 {{ $this->selectedColor === $color ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100 dark:shadow-none' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-indigo-600 hover:scale-[1.02]' }}"
                                                 >
-                                                    {{ $color }}
+                                                    @if($hexColor)
+                                                        <span class="w-3 h-3 rounded-full border border-gray-200 dark:border-gray-650 shadow-inner block" style="background-color: {{ $hexColor }};"></span>
+                                                    @endif
+                                                    <span>{{ $color }}</span>
                                                 </button>
                                             @endforeach
                                         </div>
@@ -1139,8 +1157,8 @@ new #[Layout('layouts.app')] class extends Component
 
                                     <!-- Sizing buttons selector -->
                                     <div>
-                                        <h4 class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">PILIH UKURAN (EU): <span class="text-gray-800 dark:text-white font-bold">{{ $this->selectedSize }}</span></h4>
-                                        <div class="flex flex-wrap gap-2">
+                                        <h4 class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">PILIH UKURAN (EU): <span class="text-gray-800 dark:text-white font-extrabold">{{ $this->selectedSize }}</span></h4>
+                                        <div class="flex flex-wrap gap-2 bg-transparent">
                                             @foreach($sizes as $size)
                                                 @php
                                                     $vStock = $product->variants->where('color', $this->selectedColor)->where('size', $size)->first()?->stock ?? 0;
@@ -1148,7 +1166,7 @@ new #[Layout('layouts.app')] class extends Component
                                                 <button 
                                                     wire:click="selectSize('{{ $size }}')" 
                                                     {{ $vStock <= 0 ? 'disabled' : '' }}
-                                                    class="px-3 py-2 text-xs font-bold border-2 rounded-xl transition duration-150 relative {{ $this->selectedSize === $size ? 'bg-indigo-600 text-white border-indigo-600' : ($vStock <= 0 ? 'bg-gray-50 dark:bg-gray-800 text-gray-400 border-gray-200 dark:border-gray-700 cursor-not-allowed opacity-50' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-indigo-600') }}"
+                                                    class="px-3.5 py-2 text-xs font-bold border-2 rounded-xl transition duration-150 relative {{ $this->selectedSize === $size ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100 dark:shadow-none scale-105' : ($vStock <= 0 ? 'bg-gray-50 dark:bg-gray-850 text-gray-400 border-gray-250 dark:border-gray-750 cursor-not-allowed opacity-50' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-indigo-600') }}"
                                                 >
                                                     {{ $size }}
                                                     @if($vStock <= 0)
@@ -1160,15 +1178,24 @@ new #[Layout('layouts.app')] class extends Component
                                     </div>
 
                                     <!-- Dynamic stock count for variant -->
-                                    <div class="text-xs">
+                                    <div class="text-xs bg-transparent pt-1">
                                         @if($currentVariant)
                                             @if($variantStock > 0)
-                                                <span class="text-emerald-600 dark:text-emerald-400 font-extrabold">✓ Stok Tersedia: {{ $variantStock }} unit</span>
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20 dark:text-emerald-400 font-extrabold">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                    ✓ Stok Tersedia: {{ $variantStock }} unit
+                                                </span>
                                             @else
-                                                <span class="text-rose-600 dark:text-rose-450 font-extrabold">✗ Stok Varian Habis!</span>
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-rose-800 bg-rose-50/50 dark:bg-rose-950/20 dark:text-rose-450 font-extrabold">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
+                                                    ✗ Stok Varian Habis!
+                                                </span>
                                             @endif
                                         @else
-                                            <span class="text-amber-600 dark:text-amber-400 font-bold">Silakan pilih kombinasi warna dan ukuran.</span>
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-amber-800 bg-amber-50/50 dark:bg-amber-950/20 dark:text-amber-400 font-extrabold">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce"></span>
+                                                Silakan pilih kombinasi warna dan ukuran.
+                                            </span>
                                         @endif
                                     </div>
                                 </div>
