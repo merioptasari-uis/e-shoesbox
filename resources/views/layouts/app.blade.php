@@ -20,11 +20,15 @@
 
         <!-- Theme Script -->
         <script>
-            if (localStorage.getItem('theme') === 'dark') {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
+            function applyTheme() {
+                if (localStorage.getItem('theme') === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
             }
+            applyTheme();
+            document.addEventListener('livewire:navigated', applyTheme);
         </script>
 
         <!-- Scripts -->
