@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Refined admin navigation menu (desktop and mobile responsive view) to hide the duplicate customer dashboard link and display the reports analytics 'Laporan' link exclusively.
+- Redesigned storefront product catalog cards on Belanja page with a premium glassmorphic feel, subtle hover translate/glow animations, dynamic color variant dots, aligned name container heights, and interactive variant action icons.
+
 ### Added
 - Implemented print-friendly invoice export functionality for customer order-details page.
 - Added print-friendly warehouse shipping label printing for administrators in the orders management sidebar.

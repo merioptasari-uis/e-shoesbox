@@ -160,7 +160,7 @@ new #[Layout('layouts.app')] class extends Component
 
     public function with(): array
     {
-        $query = Product::query()->with('category')->where('is_active', true);
+        $query = Product::query()->with(['category', 'variants'])->where('is_active', true);
 
         if (!empty($this->search)) {
             $query->where(function ($q) {
@@ -795,8 +795,9 @@ new #[Layout('layouts.app')] class extends Component
                                 $ratingVal = $prod->average_rating;
                                 $mockReviewsCount = $prod->reviews_count;
                                 $mockSalesCount = $prod->sales_count;
+                                $uniqueColors = $prod->variants->pluck('color')->unique()->values();
                             @endphp
-                            <div wire:key="product-{{ $prod->id }}" x-data="{ isLiked: false }" class="group bg-white dark:bg-gray-800 rounded-[28px] shadow-sm border border-gray-100 dark:border-gray-700/80 overflow-hidden hover:shadow-2xl transition duration-300 flex flex-col h-full transform hover:-translate-y-2 relative">
+                            <div wire:key="product-{{ $prod->id }}" x-data="{ isLiked: false }" class="group bg-white dark:bg-gray-800 rounded-[28px] shadow-sm border border-gray-100 dark:border-gray-700/80 overflow-hidden hover:shadow-2xl hover:shadow-indigo-100/50 dark:hover:shadow-none transition duration-300 flex flex-col h-full transform hover:-translate-y-2 relative">
                                 
                                 <!-- Heart/Wishlist Button -->
                                 <button @click.stop="isLiked = !isLiked" class="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/90 dark:bg-gray-700/90 text-gray-500 hover:text-rose-600 shadow flex items-center justify-center transition hover:scale-110">
@@ -817,6 +818,14 @@ new #[Layout('layouts.app')] class extends Component
                                             <span class="mt-2 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">{{ $prod->category->name }}</span>
                                         </div>
                                     @endif
+
+                                    <!-- Elegant Hover Overlay -->
+                                    <div class="absolute inset-0 bg-black/10 dark:bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[1px] z-10">
+                                        <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-gray-900 bg-white/95 dark:bg-gray-900/95 dark:text-white shadow-lg transform translate-y-2 group-hover:translate-y-0 transition duration-300">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                            Lihat Detail
+                                        </span>
+                                    </div>
 
                                     <!-- Stock Badge (Top-left) -->
                                     <div class="absolute top-3 left-3 z-10">
@@ -869,45 +878,73 @@ new #[Layout('layouts.app')] class extends Component
                                 </div>
 
                                 <!-- Card Contents -->
-                                <div class="p-4 sm:p-5 flex flex-col flex-1">
-                                    <div class="flex-1">
-                                        <div class="flex justify-between items-center mb-1">
-                                            <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-extrabold uppercase tracking-wider block">
+                                <div class="p-4 sm:p-5 flex flex-col flex-1 bg-transparent">
+                                    <div class="flex-1 bg-transparent">
+                                        <div class="flex justify-between items-center mb-1.5 bg-transparent">
+                                            <span class="text-[10px] text-indigo-650 dark:text-indigo-400 font-extrabold uppercase tracking-wider block">
                                                 {{ $prod->category->name }}
                                             </span>
-                                            <!-- Color Variant Dots representation -->
-                                            <div class="flex items-center gap-1">
-                                                <span class="w-2 h-2 rounded-full bg-black"></span>
-                                                <span class="w-2 h-2 rounded-full bg-gray-300"></span>
-                                                <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
-                                            </div>
+                                            <!-- Dynamic Color Variant Dots -->
+                                            @if($uniqueColors->isNotEmpty())
+                                                <div class="flex items-center gap-1 bg-transparent">
+                                                    @foreach($uniqueColors->take(3) as $color)
+                                                        @php
+                                                            $hexColor = match(strtolower(trim($color))) {
+                                                                'hitam', 'black' => '#1a1a1a',
+                                                                'putih', 'white' => '#f3f4f6',
+                                                                'merah', 'red' => '#ef4444',
+                                                                'biru', 'blue' => '#3b82f6',
+                                                                'hijau', 'green' => '#10b981',
+                                                                'kuning', 'yellow' => '#f59e0b',
+                                                                'abu-abu', 'abu', 'gray', 'grey' => '#9ca3af',
+                                                                'cokelat', 'coklat', 'brown' => '#78350f',
+                                                                'navy' => '#1e3a8a',
+                                                                'pink', 'merah muda' => '#ec4899',
+                                                                default => null
+                                                            };
+                                                        @endphp
+                                                        @if($hexColor)
+                                                            <span class="w-2.5 h-2.5 rounded-full border border-gray-200 dark:border-gray-600 block shadow-sm ring-1 ring-black/5" style="background-color: {{ $hexColor }};" title="{{ $color }}"></span>
+                                                        @else
+                                                            <span class="w-3.5 h-3.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-[8px] font-black flex items-center justify-center border border-gray-200 dark:border-gray-600 uppercase block" title="{{ $color }}">
+                                                                {{ substr($color, 0, 1) }}
+                                                            </span>
+                                                        @endif
+                                                    @endforeach
+                                                    @if($uniqueColors->count() > 3)
+                                                        <span class="text-[9px] font-bold text-gray-400 dark:text-gray-500">+{{ $uniqueColors->count() - 3 }}</span>
+                                                    @endif
+                                                </div>
+                                            @endif
                                         </div>
-                                        <h2 wire:click="openDetailModal({{ $prod->id }})" class="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 group-hover:text-indigo-600 transition cursor-pointer line-clamp-1 mb-1.5">
+                                        <h2 wire:click="openDetailModal({{ $prod->id }})" class="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 group-hover:text-indigo-600 transition cursor-pointer line-clamp-2 mb-2 min-h-[40px] leading-tight">
                                             {{ $prod->name }}
                                         </h2>
                                         
                                         <!-- Star Ratings and Sold Mockups -->
-                                        <div class="flex items-center gap-1 text-[11px] text-gray-500 dark:text-gray-400 mb-3">
-                                            <span class="text-amber-400">★</span>
-                                            <span class="font-extrabold text-gray-900 dark:text-gray-100">{{ $ratingVal }}</span>
-                                            <span class="text-gray-300 dark:text-gray-700">({{ $mockReviewsCount }})</span>
-                                            <span class="text-gray-300 dark:text-gray-700">·</span>
-                                            <span class="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-[9px] font-bold text-gray-600 dark:text-gray-300">{{ $mockSalesCount }}+ terjual</span>
+                                        <div class="flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-gray-400 mb-3 bg-transparent">
+                                            <div class="flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 font-extrabold text-[10px]">
+                                                <span>★</span>
+                                                <span>{{ number_format($ratingVal, 1) }}</span>
+                                            </div>
+                                            <span class="text-gray-400 dark:text-gray-600 font-medium">({{ $mockReviewsCount }})</span>
+                                            <span class="text-gray-300 dark:text-gray-750">•</span>
+                                            <span class="text-gray-600 dark:text-gray-300 font-bold bg-gray-50 dark:bg-gray-700/40 px-1.5 py-0.5 rounded-lg text-[9px]">{{ $mockSalesCount }}+ terjual</span>
                                         </div>
                                     </div>
 
                                     <!-- Price & Cart Actions footer -->
-                                    <div class="mt-2 pt-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between gap-2">
-                                        <div class="min-w-0">
+                                    <div class="mt-2 pt-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between gap-2 bg-transparent">
+                                        <div class="min-w-0 bg-transparent">
                                             @if($prod->has_discount)
-                                                <div class="flex flex-col">
+                                                <div class="flex flex-col bg-transparent">
                                                     <span class="text-[10px] text-rose-500 line-through leading-none font-medium">Rp {{ number_format($prod->price, 0, ',', '.') }}</span>
-                                                    <span class="text-sm sm:text-base font-black text-rose-600 dark:text-rose-400 mt-0.5 leading-none">
+                                                    <span class="text-sm sm:text-base font-black text-rose-600 dark:text-rose-400 mt-1 leading-none">
                                                         Rp {{ number_format($prod->selling_price, 0, ',', '.') }}
                                                     </span>
                                                 </div>
                                             @else
-                                                <span class="text-sm sm:text-base font-black text-gray-950 dark:text-gray-100 mt-1 block leading-none">
+                                                <span class="text-sm sm:text-base font-black text-gray-950 dark:text-gray-100 mt-1.5 block leading-none bg-transparent">
                                                     Rp {{ number_format($prod->price, 0, ',', '.') }}
                                                 </span>
                                             @endif
@@ -916,10 +953,14 @@ new #[Layout('layouts.app')] class extends Component
                                         <button 
                                             wire:click="addToCart({{ $prod->id }})" 
                                             {{ $prod->stock <= 0 ? 'disabled' : '' }} 
-                                            class="inline-flex items-center justify-center p-2 sm:p-2.5 rounded-xl transition duration-150 shrink-0 {{ $prod->stock > 0 ? 'bg-indigo-600 hover:bg-indigo-700 text-white hover:scale-105 shadow-md shadow-indigo-150 dark:shadow-none' : 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed' }}"
-                                            title="Beli"
+                                            class="inline-flex items-center justify-center p-2.5 sm:p-3 rounded-xl transition duration-200 shrink-0 {{ $prod->stock > 0 ? 'bg-indigo-600 hover:bg-indigo-700 text-white hover:scale-105 shadow-md shadow-indigo-100 dark:shadow-none' : 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed' }}"
+                                            title="{{ $prod->variants->isNotEmpty() ? 'Pilih Varian' : 'Tambah Ke Keranjang' }}"
                                         >
-                                            <svg class="h-4.5 w-4.5 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                            @if($prod->variants->isNotEmpty())
+                                                <svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>
+                                            @else
+                                                <svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
+                                            @endif
                                         </button>
                                     </div>
                                 </div>
