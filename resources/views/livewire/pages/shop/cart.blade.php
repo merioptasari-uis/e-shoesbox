@@ -315,10 +315,18 @@ new #[Layout('layouts.app')] class extends Component
 
                 // Create order items & decrement stock
                 foreach ($cartItems as $item) {
-                    if ($item->productVariant) {
-                        $item->productVariant->decrement('stock', $item->quantity);
+                    if ($item->product_variant_id) {
+                        $variant = \App\Models\ProductVariant::lockForUpdate()->find($item->product_variant_id);
+                        if (!$variant || $variant->stock < $item->quantity) {
+                            throw new \Exception("Stok tidak mencukupi untuk {$item->product->name}!");
+                        }
+                        $variant->decrement('stock', $item->quantity);
                     } else {
-                        $item->product->decrement('stock', $item->quantity);
+                        $product = \App\Models\Product::lockForUpdate()->find($item->product_id);
+                        if (!$product || $product->stock < $item->quantity) {
+                            throw new \Exception("Stok tidak mencukupi untuk {$item->product->name}!");
+                        }
+                        $product->decrement('stock', $item->quantity);
                     }
 
                     OrderItem::create([

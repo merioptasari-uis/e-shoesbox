@@ -8,12 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Created a Pest feature test verifying checkout pessimistic locking and variant-aware stock restoration.
 - Documented default pre-seeded admin and customer testing credentials in `README.md`.
 - Created a root-level `.htaccess` file directing Apache traffic to the `/public` folder for custom local subdirectory deployments.
 - Created a comprehensive `README.md` containing local Laragon deployment documentation, stack descriptions, virtual hosts mappings, integration guides, and security constraints.
 - Created `VoucherSeeder` class to seed default sandbox vouchers (`COBAINBARU`, `FREEONGKIR` for Bebas Ongkir with minimum spend Rp 150.000, and `DISKONHEBOH`).
 - Added dynamic Flash Sale scheduling columns `flash_sale_start` and `flash_sale_end` to the `products` table, model casts, and fillable attributes.
 - Implemented datetime-local input fields in the admin products edit form for precise scheduling of flash sale start and end times.
+
+### Fixed
+- Fixed checkout race conditions under high concurrency by introducing pessimistic row locking (`lockForUpdate`) on product and variant records during order placement.
+- Fixed incomplete stock restoration where order cancellation/expiry only recovered parent product stock, now correctly restoring specific variant stock levels in both the Midtrans webhook and Admin panel.
 
 ### Changed
 - Refactored storefront Flash Sale section to display products dynamically using active scheduler dates (`flash_sale_start` <= now <= `flash_sale_end`).
