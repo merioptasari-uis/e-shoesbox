@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Improved storefront product details modal with visual color swatches and status badges with pulse/bounce animations.
+- Refactored admin product edit modal to a wider 2-column grid layout (max-w-4xl) separating general information on the left and price/stock/weight/photos on the right to eliminate vertical scrolling.
 - Refined admin navigation menu (desktop and mobile responsive view) to hide the duplicate customer dashboard link and display the reports analytics 'Laporan' link exclusively.
 - Redesigned storefront product catalog cards on Belanja page with a premium glassmorphic feel, subtle hover translate/glow animations, dynamic color variant dots, aligned name container heights, and interactive variant action icons.
 
