@@ -544,6 +544,17 @@ new #[Layout('layouts.app')] class extends Component
 };
 ?>
 
+@push('meta')
+    <meta name="description" content="Penyelesaian belanja di e-shoesbox. Amankan transaksi sepatu premium impian Anda dengan pembayaran instan Midtrans dan kurir JNE/POS/TIKI terbaik.">
+    <meta name="keywords" content="checkout, keranjang e-shoesbox, pembayaran sepatu, midtrans sandbox">
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:title" content="e-shoesbox - Penyelesaian Pesanan">
+    <meta property="og:description" content="Penyelesaian belanja di e-shoesbox. Amankan transaksi sepatu premium impian Anda.">
+    <meta property="og:image" content="{{ asset('favicon.svg') }}">
+@endpush
+
 <div class="py-12 bg-gray-50 dark:bg-gray-900 min-h-screen"
      x-data
      @pay-order.window="
@@ -597,7 +608,7 @@ new #[Layout('layouts.app')] class extends Component
                                     <!-- Thumbnail -->
                                     <div class="w-20 h-20 shrink-0 bg-gradient-to-br from-indigo-50 to-pink-50 dark:from-gray-700 dark:to-gray-800 rounded-2xl overflow-hidden relative border border-gray-100 dark:border-gray-700">
                                         @if($item->product->image_path)
-                                            <img src="{{ asset('storage/' . $item->product->image_path) }}" alt="{{ $item->product->name }}" class="w-full h-full object-cover">
+                                            <img src="{{ asset('storage/' . $item->product->image_path) }}" alt="{{ $item->product->name }}" class="w-full h-full object-cover" loading="lazy">
                                         @else
                                             <div class="absolute inset-0 flex items-center justify-center text-indigo-500">
                                                 <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
