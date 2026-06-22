@@ -486,7 +486,6 @@ $getCategories = function () {
                     {{ $this->getProducts()->links() }}
                 </div>
             </div>
-            </div>
         </div>
     </div>
 
@@ -778,7 +777,7 @@ $getCategories = function () {
                             </button>
                         </div>
                     </form>
-                </div>            </div>
+                </div>
             </div>
         </div>
     @endif

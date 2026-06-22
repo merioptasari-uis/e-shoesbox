@@ -36,6 +36,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implemented datetime-local input fields in the admin products edit form for precise scheduling of flash sale start and end times.
 
 ### Fixed
+- Fixed products admin modal not opening due to premature closing of the component root element in products.blade.php.
+- Fixed campaigns admin modal layout being too small/narrow by widening it to max-w-3xl and arranging form fields into a two-column grid.
+- Fixed campaign slideshow sync on the homepage, hiding the Left Banner Slider entirely when no campaigns are active, and adjusting the static Promo Cards to stretch side-by-side to fill the container width.
 - Fixed checkout race conditions under high concurrency by introducing pessimistic row locking (`lockForUpdate`) on product and variant records during order placement.
 - Fixed incomplete stock restoration where order cancellation/expiry only recovered parent product stock, now correctly restoring specific variant stock levels in both the Midtrans webhook and Admin panel.
 - Fixed the large vertical gap between the main product image and thumbnails in the shop product detail modal by replacing 'justify-between' with a standard 'gap-4' flex layout.
