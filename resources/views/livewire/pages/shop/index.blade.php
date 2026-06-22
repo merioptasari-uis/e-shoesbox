@@ -1189,16 +1189,16 @@ new #[Layout('layouts.app')] class extends Component
                                 <button 
                                     wire:click="addToCart({{ $product->id }}, {{ $selectedV?->id }})" 
                                     {{ !$canAddToCart ? 'disabled' : '' }} 
-                                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold border-2 transition duration-150 {{ $canAddToCart ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-950/40 hover:scale-[1.01]' : 'border-gray-200 dark:border-gray-700 bg-gray-150 dark:bg-gray-700 text-gray-400 cursor-not-allowed' }}"
+                                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold border-2 transition duration-150 {{ $canAddToCart ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-950/40 hover:scale-[1.01]' : 'border-gray-200 dark:border-gray-700 bg-gray-150 dark:bg-gray-700 text-gray-400 cursor-not-allowed' }}"
                                 >
-                                    <svg class="h-4.5 w-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                    <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                                     <span>+ Keranjang</span>
                                 </button>
                                 
                                 <button 
                                     wire:click="buyNow({{ $product->id }}, {{ $selectedV?->id }})" 
                                     {{ !$canAddToCart ? 'disabled' : '' }} 
-                                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-xs sm:text-sm font-black transition duration-150 {{ $canAddToCart ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 dark:shadow-none hover:scale-[1.01]' : 'bg-gray-150 dark:bg-gray-700 text-gray-400 cursor-not-allowed' }}"
+                                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition duration-150 {{ $canAddToCart ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 dark:shadow-none hover:scale-[1.01]' : 'bg-gray-150 dark:bg-gray-700 text-gray-400 cursor-not-allowed' }}"
                                 >
                                     <span>Beli Langsung</span>
                                 </button>

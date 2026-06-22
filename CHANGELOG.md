@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a "Pesanan Diterima" (Confirm Order Received) button on the order details view when status is "Dalam Pengiriman", allowing buyers to mark order status as "Selesai" (completed) and unlock product review capabilities.
 
 ### Fixed
+- Refined UI/UX of "+ Keranjang" (Add to Cart) and "Beli Langsung" (Buy Now) buttons in the product details modal, resolving the oversized layout and shopping cart SVG icon overflow.
 - Fixed variant selection warning notification popup appearing immediately when opening the product details modal from the catalog page instead of only when trying to add/buy.
 - Included detailed product items, quantities, shipping costs, and voucher discounts in the Midtrans Snap request payload to display them on the payment page and dashboard.
 - Added a visual loading spinner and pulse skeleton loader on the checkout page (`cart.blade.php`) while fetching RajaOngkir shipping rates to improve user feedback.
