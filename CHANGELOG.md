@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a "Pesanan Diterima" (Confirm Order Received) button on the order details view when status is "Dalam Pengiriman", allowing buyers to mark order status as "Selesai" (completed) and unlock product review capabilities.
 - Implemented a responsive visual order progress timeline stepper at the top of the Customer Order Details page, dynamically tracking created, paid, processing, shipping, and completed milestones with custom indicators.
 - Added a visual automatic voucher recommendations section in the checkout sidebar, allowing users to apply eligible shipping or product vouchers in one click, and providing dynamic spending reminders to encourage cart value increases.
+- Refactored the dashboard route to a Livewire Volt component and built a visual analytics sales reports dashboard for the admin using Chart.js, featuring 7-day revenue trends, product category distribution donut charts, and top 5 best selling products progress charts.
 
 ### Fixed
 - Refined UI/UX of "+ Keranjang" (Add to Cart) and "Beli Langsung" (Buy Now) buttons in the product details modal, resolving the oversized layout and shopping cart SVG icon overflow.

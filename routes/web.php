@@ -9,7 +9,7 @@ Volt::route('cart', 'pages.shop.cart')->middleware(['auth'])->name('cart');
 Volt::route('order/{order}', 'pages.shop.order-details')->middleware(['auth'])->name('order.details');
 Route::post('api/midtrans/notification', [MidtransWebhookController::class, 'handle'])->name('midtrans.webhook');
 
-Route::view('dashboard', 'dashboard')
+Volt::route('dashboard', 'pages.dashboard')
     ->middleware(['auth'])
     ->name('dashboard');
 
