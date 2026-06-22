@@ -11,6 +11,7 @@ class ProductVariant extends Model
         'product_id',
         'size',
         'color',
+        'hex_color',
         'stock',
     ];
 

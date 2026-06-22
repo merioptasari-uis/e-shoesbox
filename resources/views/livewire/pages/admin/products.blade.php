@@ -37,6 +37,7 @@ state([
     'variants' => [],
     'new_size' => '',
     'new_color' => '',
+    'new_hex_color' => '',
     'new_stock' => 0,
 ]);
 
@@ -57,7 +58,7 @@ rules([
 
 $openCreateModal = function () {
     $this->resetErrorBag();
-    $this->reset(['editingProductId', 'category_id', 'name', 'description', 'price', 'discount_price', 'stock', 'weight', 'current_image_path', 'additional_images', 'current_additional_images', 'promo_tag', 'flash_sale_start', 'flash_sale_end', 'variants', 'new_size', 'new_color', 'new_stock']);
+    $this->reset(['editingProductId', 'category_id', 'name', 'description', 'price', 'discount_price', 'stock', 'weight', 'current_image_path', 'additional_images', 'current_additional_images', 'promo_tag', 'flash_sale_start', 'flash_sale_end', 'variants', 'new_size', 'new_color', 'new_hex_color', 'new_stock']);
     // Set default category if exists
     $firstCategory = Category::first();
     if ($firstCategory) {
@@ -89,6 +90,7 @@ $openEditModal = function ($id) {
     $this->variants = $product->variants->toArray();
     $this->new_size = '';
     $this->new_color = '';
+    $this->new_hex_color = '';
     $this->new_stock = 0;
     
     $this->isModalOpen = true;
@@ -98,15 +100,25 @@ $addVariant = function () {
     $this->validate([
         'new_size' => 'required|string|max:50',
         'new_color' => 'required|string|max:50',
+        'new_hex_color' => ['nullable', 'string', 'regex:/^#?([A-Fa-f0-9]{6})$/'],
         'new_stock' => 'required|integer|min:0',
     ], [
         'new_size.required' => 'Ukuran wajib diisi.',
         'new_color.required' => 'Warna wajib diisi.',
+        'new_hex_color.regex' => 'Format HEX salah (misal: #800000).',
         'new_stock.required' => 'Stok wajib diisi.',
     ]);
 
     $size = trim($this->new_size);
     $color = trim($this->new_color);
+    $hexColor = trim($this->new_hex_color);
+    if ($hexColor !== '') {
+        if (!str_starts_with($hexColor, '#')) {
+            $hexColor = '#' . $hexColor;
+        }
+    } else {
+        $hexColor = null;
+    }
     $stock = (int) $this->new_stock;
 
     // Check duplicate
@@ -122,6 +134,7 @@ $addVariant = function () {
             'product_id' => $this->editingProductId,
             'size' => $size,
             'color' => $color,
+            'hex_color' => $hexColor,
             'stock' => $stock,
         ]);
         $this->variants[] = $variant->toArray();
@@ -131,6 +144,7 @@ $addVariant = function () {
             'id' => null,
             'size' => $size,
             'color' => $color,
+            'hex_color' => $hexColor,
             'stock' => $stock,
         ];
         $this->stock = array_sum(array_column($this->variants, 'stock'));
@@ -138,6 +152,7 @@ $addVariant = function () {
 
     $this->new_size = '';
     $this->new_color = '';
+    $this->new_hex_color = '';
     $this->new_stock = 0;
 };
 
@@ -228,6 +243,7 @@ $saveProduct = function () {
                     'product_id' => $product->id,
                     'size' => $variantData['size'],
                     'color' => $variantData['color'],
+                    'hex_color' => $variantData['hex_color'] ?? null,
                     'stock' => $variantData['stock'],
                 ]);
             }
@@ -667,7 +683,18 @@ $getCategories = function () {
                                                 @foreach ($variants as $index => $variant)
                                                     <tr wire:key="variant-{{ $index }}">
                                                         <td class="px-3 py-2 text-gray-900 dark:text-gray-100 font-medium">EU {{ $variant['size'] }}</td>
-                                                        <td class="px-3 py-2 text-gray-900 dark:text-gray-100">{{ $variant['color'] }}</td>
+                                                        <td class="px-3 py-2 text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
+                                                            @php
+                                                                $hex = $variant['hex_color'] ?? \App\Models\ProductVariant::getHexColor($variant['color']);
+                                                            @endphp
+                                                            @if($hex)
+                                                                <span class="w-3 h-3 rounded-full border border-gray-300 shadow-sm block shrink-0" style="background-color: {{ $hex }};"></span>
+                                                            @endif
+                                                            <span>{{ $variant['color'] }}</span>
+                                                            @if(!empty($variant['hex_color']))
+                                                                <span class="text-[10px] text-gray-400">({{ $variant['hex_color'] }})</span>
+                                                            @endif
+                                                        </td>
                                                         <td class="px-3 py-2">
                                                             <input type="number" 
                                                                 wire:change="updateVariantStock({{ $index }}, $event.target.value)" 
@@ -694,14 +721,21 @@ $getCategories = function () {
                                 <!-- Add New Variant Inputs -->
                                 <div class="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-gray-200 dark:border-gray-700 space-y-3">
                                     <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider block">Tambah Varian Baru:</span>
-                                    <div class="grid grid-cols-3 gap-2 bg-transparent">
+                                    <div class="grid grid-cols-4 gap-2 bg-transparent">
                                         <div>
                                             <input type="text" wire:model="new_size" placeholder="Ukuran (misal: 42)" class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500" />
                                             @error('new_size') <span class="text-rose-500 text-[10px] block mt-1">{{ $message }}</span> @enderror
                                         </div>
                                         <div>
-                                            <input type="text" wire:model="new_color" placeholder="Warna (misal: Hitam)" class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500" />
+                                            <input type="text" wire:model="new_color" placeholder="Warna (misal: Maroon)" class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500" />
                                             @error('new_color') <span class="text-rose-500 text-[10px] block mt-1">{{ $message }}</span> @enderror
+                                        </div>
+                                        <div>
+                                            <div class="flex items-center gap-1.5">
+                                                <input type="color" wire:model.live="new_hex_color" class="w-8 h-8 p-0.5 border border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer bg-transparent shrink-0" title="Pilih Kode Warna" />
+                                                <input type="text" wire:model="new_hex_color" placeholder="HEX (contoh: #800000)" class="w-full px-2 py-2 text-[10px] border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500" />
+                                            </div>
+                                            @error('new_hex_color') <span class="text-rose-500 text-[10px] block mt-1">{{ $message }}</span> @enderror
                                         </div>
                                         <div>
                                             <input type="number" wire:model="new_stock" placeholder="Stok" min="0" class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-indigo-500 focus:border-indigo-500" />

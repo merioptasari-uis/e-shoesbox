@@ -237,6 +237,11 @@ new #[Layout('layouts.app')] class extends Component
             'products' => $query->paginate(12),
             'categories' => Category::all(),
             'campaigns' => App\Models\Campaign::active()->get(),
+            'campaignEmojis' => App\Models\Campaign::active()
+                ->whereNotNull('promo_tag')
+                ->whereNotNull('emoji')
+                ->pluck('emoji', 'promo_tag')
+                ->toArray(),
         ];
     }
 
@@ -403,7 +408,7 @@ new #[Layout('layouts.app')] class extends Component
                                 default => 'from-indigo-600 via-purple-600 to-pink-500',
                             };
                             
-                            $promoEmoji = match($camp->promo_tag) {
+                            $promoEmoji = $camp->emoji ?: match($camp->promo_tag) {
                                 'Idul Fitri', 'Ramadhan' => '🕌',
                                 'Natal' => '🎄',
                                 'Imlek' => '🏮',
@@ -415,7 +420,7 @@ new #[Layout('layouts.app')] class extends Component
                                 default => '✨',
                             };
                         @endphp
-                        <div x-show="activeSlide === {{ $index }}" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="absolute inset-0 bg-gradient-to-r {{ $gradientClasses }} flex items-center p-8 sm:p-12" style="{{ $index === 0 ? '' : 'display: none;' }}">
+                        <div x-show="activeSlide === {{ $index }}" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="absolute inset-0 {{ $camp->custom_bg ? '' : 'bg-gradient-to-r ' . $gradientClasses }} flex items-center p-8 sm:p-12" style="{{ $camp->custom_bg ? 'background: ' . $camp->custom_bg . ';' : '' }} {{ $index === 0 ? '' : 'display: none;' }}">
                             <div class="relative z-10 max-w-md">
                                 @if($camp->badge_text)
                                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-black bg-white/20 text-white mb-4 backdrop-blur-md">
@@ -899,7 +904,14 @@ new #[Layout('layouts.app')] class extends Component
                                     <!-- Promo Holiday Tag (Bottom-left of image) -->
                                     @if($prod->promo_tag)
                                         <div class="absolute bottom-3 left-3 z-10">
-                                            @if($prod->promo_tag === 'Idul Fitri' || $prod->promo_tag === 'Ramadhan')
+                                            @php
+                                                $dynEmoji = $campaignEmojis[$prod->promo_tag] ?? null;
+                                            @endphp
+                                            @if($dynEmoji)
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-indigo-650/90 dark:bg-indigo-900/90 text-white dark:text-indigo-300 shadow backdrop-blur-sm border border-indigo-500/25">
+                                                    {{ $dynEmoji }} {{ $prod->promo_tag }}
+                                                </span>
+                                            @elseif($prod->promo_tag === 'Idul Fitri' || $prod->promo_tag === 'Ramadhan')
                                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-emerald-600/90 dark:bg-emerald-900/90 text-white dark:text-emerald-300 shadow backdrop-blur-sm border border-emerald-500/25">
                                                     🕌 {{ $prod->promo_tag }}
                                                 </span>
@@ -952,7 +964,7 @@ new #[Layout('layouts.app')] class extends Component
                                                 <div class="flex items-center gap-1 bg-transparent">
                                                     @foreach($uniqueColors->take(3) as $color)
                                                         @php
-                                                            $hexColor = \App\Models\ProductVariant::getHexColor($color);
+                                                            $hexColor = $prod->variants->firstWhere('color', $color)?->hex_color ?? \App\Models\ProductVariant::getHexColor($color);
                                                         @endphp
                                                         @if($hexColor)
                                                             <span class="w-2.5 h-2.5 rounded-full border border-gray-200 dark:border-gray-600 block shadow-sm ring-1 ring-black/5" style="background-color: {{ $hexColor }};" title="{{ $color }}"></span>
@@ -1223,7 +1235,7 @@ new #[Layout('layouts.app')] class extends Component
                                         <div class="flex items-center gap-3.5 flex-wrap bg-transparent">
                                             @foreach($colors as $color)
                                                 @php
-                                                    $hexColor = \App\Models\ProductVariant::getHexColor($color);
+                                                    $hexColor = $product->variants->firstWhere('color', $color)?->hex_color ?? \App\Models\ProductVariant::getHexColor($color);
                                                 @endphp
                                                 <button 
                                                     wire:click="selectColor('{{ $color }}')"
