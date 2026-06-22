@@ -7,6 +7,9 @@
 
         <title>{{ config('app.name', 'e-shoesbox') }}</title>
 
+        <!-- SEO Meta Tags Stack -->
+        @stack('meta')
+
         <!-- Favicon -->
         <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
         <link rel="alternate icon" type="image/png" href="{{ asset('favicon.ico') }}">

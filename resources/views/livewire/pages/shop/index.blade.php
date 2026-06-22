@@ -160,7 +160,7 @@ new #[Layout('layouts.app')] class extends Component
 
     public function with(): array
     {
-        $query = Product::query()->where('is_active', true);
+        $query = Product::query()->with('category')->where('is_active', true);
 
         if (!empty($this->search)) {
             $query->where(function ($q) {
@@ -325,6 +325,23 @@ new #[Layout('layouts.app')] class extends Component
     }
 };
 ?>
+
+@push('meta')
+    <meta name="description" content="Temukan koleksi sepatu premium terlengkap dengan harga diskon dan promo menarik di e-shoesbox. Belanja aman dengan sistem pembayaran Midtrans dan estimasi ongkir RajaOngkir.">
+    <meta name="keywords" content="e-shoesbox, sepatu premium, beli sepatu, diskon sepatu, toko sepatu online, rajaongkir, midtrans">
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:title" content="e-shoesbox - Toko Sepatu Premium & Flash Sale">
+    <meta property="og:description" content="Temukan koleksi sepatu premium terlengkap dengan harga diskon dan promo menarik di e-shoesbox.">
+    <meta property="og:image" content="{{ asset('favicon.svg') }}">
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ url()->current() }}">
+    <meta property="twitter:title" content="e-shoesbox - Toko Sepatu Premium & Flash Sale">
+    <meta property="twitter:description" content="Temukan koleksi sepatu premium terlengkap dengan harga diskon dan promo menarik di e-shoesbox.">
+    <meta property="twitter:image" content="{{ asset('favicon.svg') }}">
+@endpush
 
 @php
     $slidesCount = $campaigns->isEmpty() ? 3 : $campaigns->count();
@@ -566,7 +583,7 @@ new #[Layout('layouts.app')] class extends Component
                             <!-- Image Card -->
                             <div wire:click="openDetailModal({{ $prod->id }})" class="relative pt-[100%] bg-gradient-to-br from-red-50 to-orange-50 dark:from-gray-700 dark:to-gray-800 overflow-hidden cursor-pointer">
                                 @if($prod->image_path)
-                                    <img src="{{ asset('storage/' . $prod->image_path) }}" alt="{{ $prod->name }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                                    <img src="{{ asset('storage/' . $prod->image_path) }}" alt="{{ $prod->name }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-500" loading="lazy">
                                 @else
                                     <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center select-none text-gray-400">
                                         <svg class="w-12 h-12 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
@@ -791,7 +808,7 @@ new #[Layout('layouts.app')] class extends Component
                                 <!-- Product Image Container -->
                                 <div wire:click="openDetailModal({{ $prod->id }})" class="relative pt-[100%] bg-gradient-to-br from-indigo-50/50 via-purple-50/50 to-pink-50/50 dark:from-gray-800 dark:to-gray-900 overflow-hidden cursor-pointer">
                                     @if($prod->image_path)
-                                        <img src="{{ asset('storage/' . $prod->image_path) }}" alt="{{ $prod->name }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                                        <img src="{{ asset('storage/' . $prod->image_path) }}" alt="{{ $prod->name }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-500" loading="lazy">
                                     @else
                                         <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center select-none text-gray-400">
                                             <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md group-hover:rotate-12 transition duration-300">
@@ -989,7 +1006,7 @@ new #[Layout('layouts.app')] class extends Component
                             <div class="flex gap-2.5 mt-4 overflow-x-auto pb-2 scrollbar-thin">
                                 @foreach($gallery as $index => $imgPath)
                                     <button wire:click="selectImage({{ $index }})" class="relative w-16 h-16 rounded-xl overflow-hidden bg-white dark:bg-gray-700 shadow-sm border-2 shrink-0 transition-all {{ $this->selectedImageIndex === $index ? 'border-indigo-650 scale-105 shadow-md' : 'border-transparent opacity-70 hover:opacity-100' }}">
-                                        <img src="{{ asset('storage/' . $imgPath) }}" alt="Thumbnail {{ $index }}" class="w-full h-full object-cover">
+                                        <img src="{{ asset('storage/' . $imgPath) }}" alt="Thumbnail {{ $index }}" class="w-full h-full object-cover" loading="lazy">
                                     </button>
                                 @endforeach
                             </div>

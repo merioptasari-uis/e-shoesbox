@@ -165,6 +165,17 @@ new #[Layout('layouts.app')] class extends Component
 };
 ?>
 
+@push('meta')
+    <meta name="description" content="Lacak status detail pembayaran, pengemasan, pengiriman, dan konfirmasi barang pesanan Anda di e-shoesbox.">
+    <meta name="keywords" content="lacak pesanan, status pengiriman, detail faktur e-shoesbox">
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:title" content="e-shoesbox - Detail Pesanan #{{ $order->order_number }}">
+    <meta property="og:description" content="Lacak status detail pembayaran, pengemasan, pengiriman, dan konfirmasi barang pesanan Anda.">
+    <meta property="og:image" content="{{ asset('favicon.svg') }}">
+@endpush
+
 <div class="py-12 bg-gray-50 dark:bg-gray-900 min-h-screen" 
      wire:poll.5s="checkPaymentStatus"
      x-data="{ 
