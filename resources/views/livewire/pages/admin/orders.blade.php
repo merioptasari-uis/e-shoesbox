@@ -4,9 +4,11 @@ use Livewire\Volt\Component;
 use Livewire\Attributes\Layout;
 use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
+use Livewire\WithPagination;
 
 new #[Layout('layouts.app')] class extends Component
 {
+    use WithPagination;
     public ?int $selectedOrderId = null;
     public string $trackingNumber = '';
     public string $orderStatus = '';
@@ -16,6 +18,26 @@ new #[Layout('layouts.app')] class extends Component
     public string $statusFilter = '';
     public string $paymentStatusFilter = '';
     public string $courierFilter = '';
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPaymentStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCourierFilter(): void
+    {
+        $this->resetPage();
+    }
 
     public function mount(): void
     {
@@ -125,7 +147,7 @@ new #[Layout('layouts.app')] class extends Component
             $query->where('shipping_courier', $this->courierFilter);
         }
 
-        return $query->orderBy('created_at', 'desc')->get();
+        return $query->orderBy('created_at', 'desc')->paginate(10);
     }
 
     public function getEligibleForAutoCompletionCountProperty(): int
@@ -329,6 +351,11 @@ new #[Layout('layouts.app')] class extends Component
                                 @endif
                             </tbody>
                         </table>
+                    </div>
+                    
+                    <!-- Pagination Links -->
+                    <div class="px-6 py-4 border-t border-gray-150 dark:border-gray-700/80 bg-gray-50/50 dark:bg-gray-900/10">
+                        {{ $this->orders->links() }}
                     </div>
                 </div>
             </div>
