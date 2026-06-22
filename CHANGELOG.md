@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Implemented complete local RajaOngkir shipping locations JSON dataset (`database/data/rajaongkir_locations.json`) containing all 34 provinces and 501 cities of Indonesia.
+- Updated `RajaOngkirSeeder` to securely load geographical data from the local JSON dataset as a fallback when `RAJAONGKIR_API_KEY` is not present, enabling zero-network deterministic seeding.
 - Added "Buy Now" (Beli Langsung) direct checkout button in the product details modal, bypassing the persistent database cart.
 - Implemented an interactive Mock Midtrans Sandbox Payment Simulation modal in the order details page, allowing developers and customers to test simulated payments (Virtual Account, GoPay, Credit Card) when sandbox API keys are invalid or missing.
 - Added a "Pesanan Diterima" (Confirm Order Received) button on the order details view when status is "Dalam Pengiriman", allowing buyers to mark order status as "Selesai" (completed) and unlock product review capabilities.
@@ -16,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored the dashboard route to a Livewire Volt component and built a visual analytics sales reports dashboard for the admin using Chart.js, featuring 7-day revenue trends, product category distribution donut charts, and top 5 best selling products progress charts.
 
 ### Fixed
+- Fixed DI Yogyakarta province ID mapping from legacy incorrect ID 39 to standard RajaOngkir ID 5 in seeder fallback and database records.
 - Refined UI/UX of "+ Keranjang" (Add to Cart) and "Beli Langsung" (Buy Now) buttons in the product details modal, resolving the oversized layout and shopping cart SVG icon overflow.
 - Fixed variant selection warning notification popup appearing immediately when opening the product details modal from the catalog page instead of only when trying to add/buy.
 - Included detailed product items, quantities, shipping costs, and voucher discounts in the Midtrans Snap request payload to display them on the payment page and dashboard.
