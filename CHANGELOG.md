@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added a comprehensive "Panduan Troubleshooting" section in `README.md` covering Windows-specific Composer installation issues (composer update/ignore-platform-reqs) and local Midtrans SSL/cURL certificates setup.
 - Added multi-status sandbox simulation options (Settlement/Success, Pending, and Expired/Failed) inside the mock payment overlay on the order details page.
 - Implemented a collapsible 'Voucher Hemat untuk Anda' visual coupon cards panel above the checkout summary on the cart page.
 - Added persistent light/dark mode toggle button to navigation layouts (desktop and mobile responsive) defaulting to light mode.

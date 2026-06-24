@@ -230,3 +230,44 @@ Untuk menjamin keandalan sistem dan keselarasan kode sesuai standar industri (sa
    composer run test
    ```
    Menjalankan 75 suite test otomatis yang memverifikasi fungsionalitas keranjang belanja, auto-apply voucher diskon, restock stok varian saat order batal/expired, dan integrasi response webhook pembayaran.
+
+---
+
+## 🔧 Panduan Troubleshooting (Windows & Platform Lain)
+
+Jika Anda menemui kendala selama proses instalasi atau saat menjalankan aplikasi secara lokal, berikut adalah beberapa solusi untuk masalah yang sering terjadi:
+
+### 1. Kegagalan `composer install` di Windows
+Pada beberapa sistem operasi Windows, proses `composer install` dapat gagal karena adanya ketidakcocokan versi ekstensi PHP lokal atau dependensi platform.
+* **Solusi**: Jalankan perintah pembaruan berikut untuk menyesuaikan file lock dengan dependensi yang ada di sistem Windows Anda:
+  ```bash
+  composer update
+  ```
+  Atau, jika Anda ingin mengabaikan batasan sistem/ekstensi lokal selama instalasi dependensi:
+  ```bash
+  composer install --ignore-platform-reqs
+  ```
+
+### 2. Gerbang Pembayaran Selalu Masuk ke "Midtrans Simulator" (Bukan Snap Popup Asli)
+Aplikasi ini dirancang untuk otomatis beralih (*fallback*) ke simulasi pembayaran lokal (Mock Modal) jika koneksi ke API Midtrans Sandbox terputus atau tidak terkonfigurasi dengan benar.
+
+Pada OS Windows, penyebab utama yang paling sering ditemui adalah **ketiadaan sertifikat SSL CA** pada instalasi PHP Anda, yang menyebabkan kegagalan jabat tangan HTTPS (cURL error 60).
+* **Solusi cURL SSL Error (Windows)**:
+  1. Unduh sertifikat CA terbaru (`cacert.pem`) dari situs resmi curl: [curl.se/docs/caextract.html](https://curl.se/docs/caextract.html).
+  2. Simpan file `cacert.pem` tersebut di direktori PHP Anda (misalnya di folder Laragon: `C:\laragon\bin\php\php-8.x.x-...\extras\ssl\cacert.pem` atau folder instalasi PHP lainnya).
+  3. Buka file konfigurasi `php.ini` Anda (melalui menu Laragon -> PHP -> php.ini), cari opsi `curl.cainfo` dan `openssl.cafile`, lalu arahkan ke lokasi file sertifikat tersebut:
+     ```ini
+     curl.cainfo = "C:/laragon/bin/php/php-8.x.x-.../extras/ssl/cacert.pem"
+     openssl.cafile = "C:/laragon/bin/php/php-8.x.x-.../extras/ssl/cacert.pem"
+     ```
+     *(Gunakan tanda garis miring `/` atau escape double-backslash `\\` di Windows)*.
+  4. Simpan file `php.ini` dan restart semua layanan di Laragon (klik **Stop** lalu **Start All**).
+* **Solusi Laravel Cache**:
+  Jika Anda baru saja mengubah kunci API Midtrans di berkas `.env` tetapi tidak kunjung terbaca oleh Laravel, jalankan perintah pembersihan cache:
+  ```bash
+  php artisan optimize:clear
+  ```
+
+### 3. Masalah Koneksi Database / Modul RajaOngkir Offline
+* **Database MySQL**: Pastikan status MySQL di kontrol panel Laragon sudah aktif (Start All). Pastikan nama database di berkas `.env` (`DB_DATABASE`) sama persis dengan nama database yang Anda buat di HeidiSQL (default: `e_shoesbox`).
+* **RajaOngkir**: Jika Anda tidak memasukkan API Key RajaOngkir di berkas `.env`, seeder dan sistem perhitungan ongkir akan otomatis beralih menggunakan data wilayah luring (*offline mode*) yang diambil dari `database/data/rajaongkir_locations.json` secara lokal tanpa memutus proses instalasi/belanja.
