@@ -8,11 +8,11 @@ A modern, high-fidelity, and feature-rich online shoe marketplace application bu
 
 ---
 
-## 👥 Tim Pengembang (Development Team)
+## 👥 Development Team
 
-Proyek ini dikembangkan sebagai tugas kuliah oleh kelompok:
-- **Meri Optasari** (Ketua Kelompok)
-- **Reza Saponna** (Anggota Kelompok)
+This project was developed as a university course project by:
+- **Meri Optasari** (Group Leader)
+- **Reza Saponna** (Group Member)
 
 ---
 
@@ -49,17 +49,17 @@ Proyek ini dikembangkan sebagai tugas kuliah oleh kelompok:
 - **CSS Framework**: TailwindCSS `^4.x`
 - **Bundler**: Vite
 
-### 🗄️ Arsitektur Database (Database Schema)
+### 🗄️ Database Schema
 
-Aplikasi ini menggunakan skema database relasional untuk menyimpan data toko secara terstruktur:
-- **users**: Data otentikasi untuk Pelanggan (Customer) dan Administrator (Admin).
-- **products**: Data produk sepatu, deskripsi, harga dasar, berat produk, promo tag, dan penjadwalan Flash Sale.
-- **product_variants**: Menyimpan detail varian spesifik berdasarkan kombinasi Ukuran (Size), Warna (Hex Color), dan tingkat stok masing-masing.
-- **campaigns**: Data banner promosi interaktif di halaman beranda dengan kustomisasi gradien background CSS, teks badge, dan emoji.
-- **vouchers**: Data kupon promo aktif pendukung potongan ongkos kirim (Bebas Ongkir) dan potongan harga belanja.
-- **orders & order_items**: Rincian transaksi pembelian, alamat penerima, pilihan kurir, nomor resi pengiriman, serta referensi kode voucher.
-- **payments**: Pencatatan data pembayaran terintegrasi Midtrans (Virtual Account, GoPay, Credit Card) beserta status pembayaran.
-- **reviews**: Rating bintang dan ulasan umpan balik dari pembeli terverifikasi (Verified Buyer).
+The application utilizes a relational database schema to store store data in a structured manner:
+- **users**: Authentication data for Customers and Administrators (Admin).
+- **products**: Shoe product details, descriptions, base prices, product weights, promo tags, and Flash Sale schedules.
+- **product_variants**: Stores specific variant details based on combinations of Size, Hex Color, and their respective stock levels.
+- **campaigns**: Interactive homepage promotional banners with custom CSS background gradients, badge texts, and emojis.
+- **vouchers**: Active coupon promotion data supporting free shipping and order discounts.
+- **orders & order_items**: Transaction details, recipient addresses, courier choices, shipping tracking numbers, and voucher code references.
+- **payments**: Integrated Midtrans payment records (Virtual Account, GoPay, Credit Card) along with payment status.
+- **reviews**: Star ratings and feedback reviews from verified buyers.
 
 ---
 
@@ -182,19 +182,19 @@ We have included a `.htaccess` file in the **project root directory** that autom
 ```
 *Make sure Apache's `mod_rewrite` module is enabled in your Laragon configuration (Laragon -> Apache -> Apache modules -> check `rewrite_module`).*
 
-## 👥 Default Testing Accounts (Akun Demo)
+## 👥 Default Testing Accounts
 
 You can log in using the following pre-seeded credentials for local testing:
 
 - **Store Administrator**:
   - **Email**: `admin@e-shoesbox.com`
   - **Password**: `password`
-  - **Role**: Admin (Akses panel admin di `/dashboard` atau menu laporan)
+  - **Role**: Admin (Accesses the admin dashboard at `/dashboard` or reports menu)
 
 - **Demo Customer**:
   - **Email**: `customer@e-shoesbox.com`
   - **Password**: `password`
-  - **Role**: Customer (Akses belanja dan lacak pesanan)
+  - **Role**: Customer (Accesses storefront shopping and order tracking)
 
 ---
 
@@ -202,7 +202,7 @@ You can log in using the following pre-seeded credentials for local testing:
 
 You can use the following default codes during cart checkout:
 - `COBAINBARU`: Grants a percentage/flat discount.
-- `FREEONGKIR`: Free shipping promotion (valid with a minimum spend of Rp 150.000).
+- `FREEONGKIR`: Free shipping promotion (valid with a minimum spend of Rp 150,000).
 - `DISKONHEBOH`: Promotional coupon for flash sale testing.
 
 ---
@@ -215,59 +215,59 @@ You can use the following default codes during cart checkout:
 
 ---
 
-## 🧪 Pengujian Sistem & Kualitas Kode (Testing & QA)
+## 🧪 Testing & QA
 
-Untuk menjamin keandalan sistem dan keselarasan kode sesuai standar industri (sangat berguna untuk laporan tugas kuliah), Anda dapat menjalankan perintah verifikasi berikut:
+To ensure system reliability and code quality alignment with industry standards (highly useful for university assignment reports), you can run the following verification commands:
 
 1. **Linter & Code Formatting (Laravel Pint)**:
    ```bash
    composer run lint
    ```
-   Secara otomatis merapikan penulisan kode PHP agar sesuai dengan standar PSR-12.
+   Automatically formats PHP code to comply with PSR-12 standards.
 
-2. **Pengujian Fungsional (Pest PHP)**:
+2. **Functional Testing (Pest PHP)**:
    ```bash
    composer run test
    ```
-   Menjalankan 75 suite test otomatis yang memverifikasi fungsionalitas keranjang belanja, auto-apply voucher diskon, restock stok varian saat order batal/expired, dan integrasi response webhook pembayaran.
+   Runs 75 automated test suites verifying cart functionality, voucher auto-application, stock variant restoration on order cancellation/expiry, and webhook integration.
 
 ---
 
-## 🔧 Panduan Troubleshooting (Windows & Platform Lain)
+## 🔧 Troubleshooting Guide (Windows & Other Platforms)
 
-Jika Anda menemui kendala selama proses instalasi atau saat menjalankan aplikasi secara lokal, berikut adalah beberapa solusi untuk masalah yang sering terjadi:
+If you encounter issues during installation or when running the application locally, here are some common solutions:
 
-### 1. Kegagalan `composer install` di Windows
-Pada beberapa sistem operasi Windows, proses `composer install` dapat gagal karena adanya ketidakcocokan versi ekstensi PHP lokal atau dependensi platform.
-* **Solusi**: Jalankan perintah pembaruan berikut untuk menyesuaikan file lock dengan dependensi yang ada di sistem Windows Anda:
+### 1. `composer install` Fails on Windows
+On some Windows operating systems, the `composer install` command may fail due to local PHP extension mismatches or platform requirements.
+* **Solution**: Run the following update command to align the lock file with the dependencies available on your Windows system:
   ```bash
   composer update
   ```
-  Atau, jika Anda ingin mengabaikan batasan sistem/ekstensi lokal selama instalasi dependensi:
+  Alternatively, you can ignore local system/extension constraints during dependency installation:
   ```bash
   composer install --ignore-platform-reqs
   ```
 
-### 2. Gerbang Pembayaran Selalu Masuk ke "Midtrans Simulator" (Bukan Snap Popup Asli)
-Aplikasi ini dirancang untuk otomatis beralih (*fallback*) ke simulasi pembayaran lokal (Mock Modal) jika koneksi ke API Midtrans Sandbox terputus atau tidak terkonfigurasi dengan benar.
+### 2. Payment Gateway Always Routes to "Midtrans Simulator" (Not the Real Snap Popup)
+The application is designed to automatically fall back to the local payment simulation modal (Mock Modal) if the connection to the Midtrans Sandbox API fails or is misconfigured.
 
-Pada OS Windows, penyebab utama yang paling sering ditemui adalah **ketiadaan sertifikat SSL CA** pada instalasi PHP Anda, yang menyebabkan kegagalan jabat tangan HTTPS (cURL error 60).
-* **Solusi cURL SSL Error (Windows)**:
-  1. Unduh sertifikat CA terbaru (`cacert.pem`) dari situs resmi curl: [curl.se/docs/caextract.html](https://curl.se/docs/caextract.html).
-  2. Simpan file `cacert.pem` tersebut di direktori PHP Anda (misalnya di folder Laragon: `C:\laragon\bin\php\php-8.x.x-...\extras\ssl\cacert.pem` atau folder instalasi PHP lainnya).
-  3. Buka file konfigurasi `php.ini` Anda (melalui menu Laragon -> PHP -> php.ini), cari opsi `curl.cainfo` dan `openssl.cafile`, lalu arahkan ke lokasi file sertifikat tersebut:
+On Windows, the most common cause is the **absence of a CA SSL certificate** in your local PHP installation, which causes HTTPS handshake failures (cURL error 60).
+* **cURL SSL Error Solution (Windows)**:
+  1. Download the latest CA certificate (`cacert.pem`) from the official curl site: [curl.se/docs/caextract.html](https://curl.se/docs/caextract.html).
+  2. Save the `cacert.pem` file in your PHP directory (for example, in Laragon: `C:\laragon\bin\php\php-8.x.x-...\extras\ssl\cacert.pem` or another local PHP folder).
+  3. Open your `php.ini` configuration file (via Laragon -> PHP -> php.ini), search for the options `curl.cainfo` and `openssl.cafile`, and point them to the certificate location:
      ```ini
      curl.cainfo = "C:/laragon/bin/php/php-8.x.x-.../extras/ssl/cacert.pem"
      openssl.cafile = "C:/laragon/bin/php/php-8.x.x-.../extras/ssl/cacert.pem"
      ```
-     *(Gunakan tanda garis miring `/` atau escape double-backslash `\\` di Windows)*.
-  4. Simpan file `php.ini` dan restart semua layanan di Laragon (klik **Stop** lalu **Start All**).
-* **Solusi Laravel Cache**:
-  Jika Anda baru saja mengubah kunci API Midtrans di berkas `.env` tetapi tidak kunjung terbaca oleh Laravel, jalankan perintah pembersihan cache:
+     *(Use forward slashes `/` or escaped double backslashes `\\` for path configurations in Windows)*.
+  4. Save `php.ini` and restart all services in Laragon (click **Stop** then **Start All**).
+* **Laravel Config Cache Solution**:
+  If you have recently changed the Midtrans API keys in the `.env` file but they are not being read by Laravel, run the configuration clear command:
   ```bash
   php artisan optimize:clear
   ```
 
-### 3. Masalah Koneksi Database / Modul RajaOngkir Offline
-* **Database MySQL**: Pastikan status MySQL di kontrol panel Laragon sudah aktif (Start All). Pastikan nama database di berkas `.env` (`DB_DATABASE`) sama persis dengan nama database yang Anda buat di HeidiSQL (default: `e_shoesbox`).
-* **RajaOngkir**: Jika Anda tidak memasukkan API Key RajaOngkir di berkas `.env`, seeder dan sistem perhitungan ongkir akan otomatis beralih menggunakan data wilayah luring (*offline mode*) yang diambil dari `database/data/rajaongkir_locations.json` secara lokal tanpa memutus proses instalasi/belanja.
+### 3. Database Connection Issues / RajaOngkir Module Offline
+* **MySQL Database**: Ensure that the MySQL service status in Laragon is active (Start All). Verify that the database name in the `.env` file (`DB_DATABASE`) matches the database you created in HeidiSQL (default: `e_shoesbox`).
+* **RajaOngkir**: If you do not enter a `RAJAONGKIR_API_KEY` in the `.env` file, the seeder and shipping cost calculator will automatically switch to using offline regional data (`database/data/rajaongkir_locations.json`) without interrupting the installation or checkout process.
