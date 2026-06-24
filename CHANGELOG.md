@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Integrated general promo tags (`Flash Sale`, `Cashback`, `Diskon Besar`, `New Arrival`) into admin campaigns and products forms.
 
 ### Changed
+- Standardized `README.md` language layout by translating all remaining Indonesian sections (Development Team, Database Schema, Testing Accounts, Promos, Testing & QA, and Troubleshooting Guide) to English.
 - Refactored checkout courier selection to fetch JNE, POS, and TIKI shipping rates simultaneously, merging them into a unified list sorted by cost ascending.
 - Updated coupon recommendation cards layout on checkout page to display with discount values, eligibility indicator, and auto-selection of the best eligible vouchers by default.
 - Migrated storefront primary branding color palette from Indigo to Violet (main action borders/buttons) & Emerald (success and accents) across index catalog, cart checkout, and order detail pages, ensuring robust input contrast and transitions.
